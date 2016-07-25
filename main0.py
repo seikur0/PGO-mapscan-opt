@@ -306,21 +306,20 @@ def get_profile(access_token, api, useauth, *reqq):
     newResponse = api_req(api, access_token, req, useauth = useauth)
 
     retry_after=1
-    while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error
+    while (newResponse.status_code not in [1,2,53,102]): #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
         retry_after=min(retry_after*2,MAXWAIT)
         newResponse = api_req(api, access_token, req, useauth = useauth)
+
     return newResponse
 
 def set_api_endpoint():
     global api_endpoint
     p_ret = get_profile(access_token, API_URL, None)
-    retry_after=1
-    while not p_ret.api_url:
-        print('[-] Server returned an empty api url, retrying in {} seconds'.format(retry_after))
-        time.sleep(retry_after)
-        retry_after=min(retry_after*2,MAXWAIT)
+    while p_ret.status_code==102:
+        print('[-] Error, invalid session, retrying...')
+        time.sleep(300) #at that point the severs are pretty much done for, so waiting for 5 min
         p_ret = get_profile(access_token, API_URL, None)
 
     api_endpoint = ('https://%s/rpc' % p_ret.api_url)
