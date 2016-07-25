@@ -494,7 +494,7 @@ def main():
     finally:
         f.close()
     seen = set([])
-	uniqueE = set([])
+    uniqueE = set([])
     while True:
         curT=int(time.time())
         #curR=0;
