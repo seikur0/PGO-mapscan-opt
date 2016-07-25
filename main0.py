@@ -90,6 +90,8 @@ access_token = ''
 response = {}
 r = None
 
+LANGUAGE='german' #'german' and 'english' supported
+
 LI_TYPE='ptc' #'google'#
 users_ptc= ['agent0','agent1','agent2','agent3','agent4','agent5','agent6']
 passwords_ptc = ['secretpassword','secretpassword','secretpassword','secretpassword','secretpassword','secretpassword','secretpassword']
@@ -426,7 +428,7 @@ def main():
     DATA_FILE = 'res/data{}.json'.format(wID)
     STAT_FILE = 'res/spawns{}.json'.format(wID)
 
-    pokemons = json.load(open('res/german.json'))
+    pokemons = json.load(open('res/'+LANGUAGE+'.json'))
     init_location()
 
     do_login()
