@@ -23,8 +23,9 @@
     var map;
     var markers = [];
     var spawns = [];
-    var gernames;
+    var pokenames;
     var excludeIDs=[10,11,12,13,14,15,16,17,18,19,20,21,22,41,42];
+	var LANGUAGE="german" //supports german/english
     var timenow;
     var infowindow;
     var iconSize
@@ -60,7 +61,7 @@
                             markers[i].setMap(null);
                             markers[i].validTill = 0;
                         }else
-                            markers[i].infotext= "<b>"+gernames[markers[i].id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                            markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
 
                     }
                 }
@@ -82,7 +83,7 @@
                         var s = 0;
                         while (s< spawns.length && spawns[s]!=p.spawnID){s++;}
                         if (s< spawns.length){
-                            markers[s].infotext = "<b>"+gernames[p.id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                            markers[s].infotext = "<b>"+pokenames[p.id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
                             if (markers[s].validTill != p.despawnTime) {
                                 if (markers[s].validTill ==0) {
                                     markers[s].id=p.id;
@@ -98,7 +99,7 @@
         						position: {lat: p.lat, lng: p.lng},
         						optimized: false,
         						id: p.id,
-        						infotext: "<b>"+gernames[p.id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s",
+        						infotext: "<b>"+pokenames[p.id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s",
         						validTill: p.despawnTime,
         						spawnID: p.spawnID,
         						icon: cIcon
@@ -132,12 +133,12 @@
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 53.148302, lng: 8.182658},
+    center: {lat: INPUT_YOUR_LATITUDE, lng: INPUT_YOUR_LONGITUDE},
     zoom: 15,
     disableDoubleClickZoom: true
   });
-  getFile("res/german.json", false, function(tnames) {
-    gernames=JSON.parse(tnames);
+  getFile("res/"+LANGUAGE+".json", false, function(tnames) {
+    pokenames=JSON.parse(tnames);
   });
   infowindow = new google.maps.InfoWindow();
   iconSize = new google.maps.Size(72, 72);
