@@ -2,10 +2,12 @@
 
 ## Instructions
 * Put your username(s)/password(s) into the main0.py file (line 94 and 95)
+* Put your scan location into the main0.py file (line 79) as latitude, longitude,altitude (you can put in 0 for the last one)
 * `pip install -r requirements.txt`
 * `python main0.py -id 0 -r 20 -t 600`
 
 * If you want the map visualization, put your Google API Browser key into the html file (line 160) (you can get one for free)
+* Also put your scan location into the index.html file (line 135), only latitude, longitude this time
 * `python -m SimpleHTTPServer 8000`
 * Open browser to `http://localhost:8000`
 
