@@ -24,14 +24,16 @@
     var markers = [];
     var spawns = [];
     var pokenames;
-    var excludeIDs=[10,11,12,13,14,15,16,17,18,19,20,21,22,41,42];
-	var LANGUAGE="german" //supports german/english
+	var LAT_C=INPUT_YOUR_LATITUDE;
+	var LNG_C=INPUT_YOUR_LATITUDE;
+	var LANGUAGE="german"; //supports german/english
+	var excludeIDs=[10,11,12,13,14,15,16,17,18,19,20,21,22,41,42];
     var timenow;
     var infowindow;
-    var iconSize
-    var iconOrigin
-    var iconAnchor
-    var iconScaledSize
+    var iconSize;
+    var iconOrigin;
+    var iconAnchor;
+    var iconScaledSize;
 /////////////////////////////////////////////////////////////////////
     function getFile(path, asynch, callback) {
         var xhr = new XMLHttpRequest();
@@ -133,7 +135,7 @@
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: INPUT_YOUR_LATITUDE, lng: INPUT_YOUR_LONGITUDE},
+    center: {lat: LAT_C, lng: LNG_C},
     zoom: 15,
     disableDoubleClickZoom: true
   });
