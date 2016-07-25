@@ -494,6 +494,7 @@ def main():
     finally:
         f.close()
     seen = set([])
+	uniqueE = set([])
     while True:
         curT=int(time.time())
         #curR=0;
@@ -508,28 +509,33 @@ def main():
                 f= open(STAT_FILE,'a',1)
                 for cell in h.map_cells:
                     for wild in cell.wild_pokemons:
-                        spawnIDint=int(wild.spawn_point_id, 16)
                         if (wild.encounter_id not in seen):
                             seen.add(wild.encounter_id)
-                            org_tth=wild.time_till_hidden_ms
-                            if wild.time_till_hidden_ms < 0:
-                                wild.time_till_hidden_ms=901000
-                            if LOGGING:
-                                other = LatLng.from_degrees(wild.latitude, wild.longitude)
-                                diff = other - origin
-                                difflat = diff.lat().degrees
-                                difflng = diff.lng().degrees
-                                direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '')  + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
-                                print("<<>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
-                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id],wild.pokemon_data.pokemon_id,spawnIDint,wild.latitude,wild.longitude,(wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0-900.0,wild.last_modified_timestamp_ms/1000.0,org_tth/1000.0,wild.encounter_id))
-                            add_pokemon(wild.pokemon_data.pokemon_id,spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0))
+                            if (wild.encounter_id not in uniqueE):
+                                spawnIDint=int(wild.spawn_point_id, 16)
+                                org_tth=wild.time_till_hidden_ms
+                                if wild.time_till_hidden_ms < 0:
+                                    wild.time_till_hidden_ms=901000
+                                else:
+                                    uniqueE.add(wild.encounter_id)
+
+                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id],wild.pokemon_data.pokemon_id,spawnIDint,wild.latitude,wild.longitude,(wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0-900.0,wild.last_modified_timestamp_ms/1000.0,org_tth/1000.0,wild.encounter_id))
+                                add_pokemon(wild.pokemon_data.pokemon_id,spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0))
+
+                                if LOGGING:
+                                    other = LatLng.from_degrees(wild.latitude, wild.longitude)
+                                    diff = other - origin
+                                    difflat = diff.lat().degrees
+                                    difflng = diff.lng().degrees
+                                    direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '')  + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
+                                    print("<<>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
             finally:
                 f.close()
             write_data_to_file(DATA_FILE)
             #if LOGGING:
                 #print('')
             #time.sleep(1)
-
+        uniqueE=uniqueE & seen
         seen.clear()
         curT = int(time.time())-curT
         print('[+] Scan Time: {} s'.format(curT))
