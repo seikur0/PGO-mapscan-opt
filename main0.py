@@ -76,7 +76,7 @@ EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
 HEX_R = 100.0 #range of detection for pokemon = 100m
 HEX_M = 3.0**(0.5)/2.0*HEX_R
-LAT_C,LNG_C,ALT_C = [53.148302, 8.182658, 5]
+LAT_C,LNG_C,ALT_C = [INPUT_YOUR_LATITUDE, INPUT_YOUR_LONGITUDE, 5]
 safety=1.0
 
 HEX_NUM = 0
