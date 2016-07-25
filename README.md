@@ -20,3 +20,5 @@
 To Tejado, who made the original pokemongo api demo, which I based my project on: https://github.com/tejado/pgoapi
 
 To AeonLucid for creating and expanding the POGO Protos Library: https://github.com/AeonLucid/POGOProtos
+
+To HEKTakun, I'm using his awesom pokemon icons for the map.
