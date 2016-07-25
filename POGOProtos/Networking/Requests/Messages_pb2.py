@@ -45,7 +45,7 @@ from POGOProtos.Data.Player_pb2 import *
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Networking.Requests.Messages.proto',
   package='POGOProtos.Networking.Requests.Messages',
-  syntax='proto3',
+  #syntax='proto3',
   serialized_pb=_b('\n-POGOProtos.Networking.Requests.Messages.proto\x12\'POGOProtos.Networking.Requests.Messages\x1a\x1fPOGOProtos.Inventory.Item.proto\x1a\x1cPOGOProtos.Data.Battle.proto\x1a\x16POGOProtos.Enums.proto\x1a\x1cPOGOProtos.Data.Player.proto\"\x96\x01\n\x16\x41\x64\x64\x46ortModifierMessage\x12\x38\n\rmodifier_type\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x0f\n\x07\x66ort_id\x18\x02 \x01(\t\x12\x17\n\x0fplayer_latitude\x18\x03 \x01(\x01\x12\x18\n\x10player_longitude\x18\x04 \x01(\x01\"\xec\x01\n\x10\x41ttackGymMessage\x12\x0e\n\x06gym_id\x18\x01 \x01(\t\x12\x11\n\tbattle_id\x18\x02 \x01(\t\x12<\n\x0e\x61ttack_actions\x18\x03 \x03(\x0b\x32$.POGOProtos.Data.Battle.BattleAction\x12\x44\n\x16last_retrieved_actions\x18\x04 \x01(\x0b\x32$.POGOProtos.Data.Battle.BattleAction\x12\x17\n\x0fplayer_latitude\x18\x05 \x01(\x01\x12\x18\n\x10player_longitude\x18\x06 \x01(\x01\"\xe6\x01\n\x13\x43\x61tchPokemonMessage\x12\x14\n\x0c\x65ncounter_id\x18\x01 \x01(\x06\x12\x33\n\x08pokeball\x18\x02 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x1f\n\x17normalized_reticle_size\x18\x03 \x01(\x01\x12\x16\n\x0espawn_point_id\x18\x04 \x01(\t\x12\x13\n\x0bhit_pokemon\x18\x05 \x01(\x08\x12\x15\n\rspin_modifier\x18\x06 \x01(\x01\x12\x1f\n\x17normalized_hit_position\x18\x07 \x01(\x01\"\x1b\n\x19\x43heckAwardedBadgesMessage\"1\n\x1d\x43heckCodenameAvailableMessage\x12\x10\n\x08\x63odename\x18\x01 \x01(\t\"(\n\x14\x43laimCodenameMessage\x12\x10\n\x08\x63odename\x18\x01 \x01(\t\"\x1a\n\x18\x43ollectDailyBonusMessage\"\"\n CollectDailyDefenderBonusMessage\"p\n\x14\x44iskEncounterMessage\x12\x14\n\x0c\x65ncounter_id\x18\x01 \x01(\x04\x12\x0f\n\x07\x66ort_id\x18\x02 \x01(\t\x12\x17\n\x0fplayer_latitude\x18\x03 \x01(\x01\x12\x18\n\x10player_longitude\x18\x04 \x01(\x01\"\x1e\n\x1c\x44ownloadItemTemplatesMessage\"\xaa\x01\n\"DownloadRemoteConfigVersionMessage\x12,\n\x08platform\x18\x01 \x01(\x0e\x32\x1a.POGOProtos.Enums.Platform\x12\x1b\n\x13\x64\x65vice_manufacturer\x18\x02 \x01(\t\x12\x14\n\x0c\x64\x65vice_model\x18\x03 \x01(\t\x12\x0e\n\x06locale\x18\x04 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x05 \x01(\r\"\'\n\x17\x44ownloadSettingsMessage\x12\x0c\n\x04hash\x18\x01 \x01(\t\"\r\n\x0b\x45\x63hoMessage\"s\n\x10\x45ncounterMessage\x12\x14\n\x0c\x65ncounter_id\x18\x01 \x01(\x06\x12\x16\n\x0espawn_point_id\x18\x02 \x01(\t\x12\x17\n\x0fplayer_latitude\x18\x03 \x01(\x01\x12\x18\n\x10player_longitude\x18\x04 \x01(\x01\"S\n EncounterTutorialCompleteMessage\x12/\n\npokemon_id\x18\x01 \x01(\x0e\x32\x1b.POGOProtos.Enums.PokemonId\"D\n\x11\x45quipBadgeMessage\x12/\n\nbadge_type\x18\x01 \x01(\x0e\x32\x1b.POGOProtos.Enums.BadgeType\"*\n\x14\x45volvePokemonMessage\x12\x12\n\npokemon_id\x18\x01 \x01(\x06\"r\n\x18\x46ortDeployPokemonMessage\x12\x0f\n\x07\x66ort_id\x18\x01 \x01(\t\x12\x12\n\npokemon_id\x18\x02 \x01(\x04\x12\x17\n\x0fplayer_latitude\x18\x03 \x01(\x01\x12\x18\n\x10player_longitude\x18\x04 \x01(\x01\"J\n\x12\x46ortDetailsMessage\x12\x0f\n\x07\x66ort_id\x18\x01 \x01(\t\x12\x10\n\x08latitude\x18\x02 \x01(\x01\x12\x11\n\tlongitude\x18\x03 \x01(\x01\"r\n\x18\x46ortRecallPokemonMessage\x12\x0f\n\x07\x66ort_id\x18\x01 \x01(\t\x12\x12\n\npokemon_id\x18\x02 \x01(\x04\x12\x17\n\x0fplayer_latitude\x18\x03 \x01(\x01\x12\x18\n\x10player_longitude\x18\x04 \x01(\x01\"\x86\x01\n\x11\x46ortSearchMessage\x12\x0f\n\x07\x66ort_id\x18\x01 \x01(\t\x12\x17\n\x0fplayer_latitude\x18\x02 \x01(\x01\x12\x18\n\x10player_longitude\x18\x03 \x01(\x01\x12\x15\n\rfort_latitude\x18\x04 \x01(\x01\x12\x16\n\x0e\x66ort_longitude\x18\x05 \x01(\x01\"\x9d\x01\n\x15GetAssetDigestMessage\x12,\n\x08platform\x18\x01 \x01(\x0e\x32\x1a.POGOProtos.Enums.Platform\x12\x1b\n\x13\x64\x65vice_manufacturer\x18\x02 \x01(\t\x12\x14\n\x0c\x64\x65vice_model\x18\x03 \x01(\t\x12\x0e\n\x06locale\x18\x04 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x05 \x01(\r\"*\n\x16GetDownloadUrlsMessage\x12\x10\n\x08\x61sset_id\x18\x01 \x03(\t\"\x86\x01\n\x14GetGymDetailsMessage\x12\x0e\n\x06gym_id\x18\x01 \x01(\t\x12\x17\n\x0fplayer_latitude\x18\x02 \x01(\x01\x12\x18\n\x10player_longitude\x18\x03 \x01(\x01\x12\x14\n\x0cgym_latitude\x18\x04 \x01(\x01\x12\x15\n\rgym_longitude\x18\x05 \x01(\x01\"\x17\n\x15GetHatchedEggsMessage\"M\n\x18GetIncensePokemonMessage\x12\x17\n\x0fplayer_latitude\x18\x01 \x01(\x01\x12\x18\n\x10player_longitude\x18\x02 \x01(\x01\"H\n\x13GetInventoryMessage\x12\x19\n\x11last_timestamp_ms\x18\x01 \x01(\x03\x12\x16\n\x0eitem_been_seen\x18\x02 \x01(\x05\"p\n\x14GetMapObjectsMessage\x12\x13\n\x07\x63\x65ll_id\x18\x01 \x03(\x04\x42\x02\x10\x01\x12\x1e\n\x12since_timestamp_ms\x18\x02 \x03(\x03\x42\x02\x10\x01\x12\x10\n\x08latitude\x18\x03 \x01(\x01\x12\x11\n\tlongitude\x18\x04 \x01(\x01\"\x12\n\x10GetPlayerMessage\".\n\x17GetPlayerProfileMessage\x12\x13\n\x0bplayer_name\x18\x01 \x01(\t\"\x1e\n\x1cGetSuggestedCodenamesMessage\"K\n\x17IncenseEncounterMessage\x12\x14\n\x0c\x65ncounter_id\x18\x01 \x01(\x03\x12\x1a\n\x12\x65ncounter_location\x18\x02 \x01(\t\"&\n\x15LevelUpRewardsMessage\x12\r\n\x05level\x18\x01 \x01(\x05\"\x9b\x01\n\x1bMarkTutorialCompleteMessage\x12<\n\x13tutorials_completed\x18\x01 \x03(\x0e\x32\x1f.POGOProtos.Enums.TutorialState\x12\x1d\n\x15send_marketing_emails\x18\x02 \x01(\x08\x12\x1f\n\x17send_push_notifications\x18\x03 \x01(\x08\">\n\x16NicknamePokemonMessage\x12\x12\n\npokemon_id\x18\x01 \x01(\x06\x12\x10\n\x08nickname\x18\x02 \x01(\t\":\n\x13PlayerUpdateMessage\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\"`\n\x1bRecycleInventoryItemMessage\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\r\n\x05\x63ount\x18\x02 \x01(\x05\"+\n\x15ReleasePokemonMessage\x12\x12\n\npokemon_id\x18\x01 \x01(\x06\"O\n\x10SetAvatarMessage\x12;\n\rplayer_avatar\x18\x02 \x01(\x0b\x32$.POGOProtos.Data.Player.PlayerAvatar\"^\n\x19SetContactSettingsMessage\x12\x41\n\x10\x63ontact_settings\x18\x01 \x01(\x0b\x32\'.POGOProtos.Data.Player.ContactSettings\"D\n\x19SetFavoritePokemonMessage\x12\x12\n\npokemon_id\x18\x01 \x01(\x04\x12\x13\n\x0bis_favorite\x18\x02 \x01(\x08\"A\n\x14SetPlayerTeamMessage\x12)\n\x04team\x18\x01 \x01(\x0e\x32\x1b.POGOProtos.Enums.TeamColor\"\x17\n\x15SfidaActionLogMessage\"\x97\x01\n\x15StartGymBattleMessage\x12\x0e\n\x06gym_id\x18\x01 \x01(\t\x12\x1d\n\x15\x61ttacking_pokemon_ids\x18\x02 \x03(\x06\x12\x1c\n\x14\x64\x65\x66\x65nding_pokemon_id\x18\x03 \x01(\x04\x12\x17\n\x0fplayer_latitude\x18\x04 \x01(\x01\x12\x18\n\x10player_longitude\x18\x05 \x01(\x01\"+\n\x15UpgradePokemonMessage\x12\x12\n\npokemon_id\x18\x01 \x01(\x04\"L\n\x11UseIncenseMessage\x12\x37\n\x0cincense_type\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\"{\n\x15UseItemCaptureMessage\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x14\n\x0c\x65ncounter_id\x18\x02 \x01(\x06\x12\x18\n\x10spawn_point_guid\x18\x03 \x01(\t\"A\n\x1aUseItemEggIncubatorMessage\x12\x0f\n\x07item_id\x18\x01 \x01(\t\x12\x12\n\npokemon_id\x18\x02 \x01(\x04\"\x8a\x01\n\x11UseItemGymMessage\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x0e\n\x06gym_id\x18\x02 \x01(\t\x12\x17\n\x0fplayer_latitude\x18\x03 \x01(\x01\x12\x18\n\x10player_longitude\x18\x04 \x01(\x01\"^\n\x14UseItemPotionMessage\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x12\n\npokemon_id\x18\x02 \x01(\x04\"^\n\x14UseItemReviveMessage\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x12\n\npokemon_id\x18\x02 \x01(\x04\"K\n\x15UseItemXpBoostMessage\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemIdP\x00P\x01P\x02P\x03\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Inventory_dot_Item__pb2.DESCRIPTOR,POGOProtos_dot_Data_dot_Battle__pb2.DESCRIPTOR,POGOProtos_dot_Enums__pb2.DESCRIPTOR,POGOProtos_dot_Data_dot_Player__pb2.DESCRIPTOR,])
@@ -97,7 +97,7 @@ _ADDFORTMODIFIERMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -163,7 +163,7 @@ _ATTACKGYMMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -236,7 +236,7 @@ _CATCHPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -260,7 +260,7 @@ _CHECKAWARDEDBADGESMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -291,7 +291,7 @@ _CHECKCODENAMEAVAILABLEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -322,7 +322,7 @@ _CLAIMCODENAMEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -346,7 +346,7 @@ _COLLECTDAILYBONUSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -370,7 +370,7 @@ _COLLECTDAILYDEFENDERBONUSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -422,7 +422,7 @@ _DISKENCOUNTERMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -446,7 +446,7 @@ _DOWNLOADITEMTEMPLATESMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -505,7 +505,7 @@ _DOWNLOADREMOTECONFIGVERSIONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -536,7 +536,7 @@ _DOWNLOADSETTINGSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -560,7 +560,7 @@ _ECHOMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -612,7 +612,7 @@ _ENCOUNTERMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -643,7 +643,7 @@ _ENCOUNTERTUTORIALCOMPLETEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -674,7 +674,7 @@ _EQUIPBADGEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -705,7 +705,7 @@ _EVOLVEPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -757,7 +757,7 @@ _FORTDEPLOYPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -802,7 +802,7 @@ _FORTDETAILSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -854,7 +854,7 @@ _FORTRECALLPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -913,7 +913,7 @@ _FORTSEARCHMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -972,7 +972,7 @@ _GETASSETDIGESTMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1003,7 +1003,7 @@ _GETDOWNLOADURLSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1062,7 +1062,7 @@ _GETGYMDETAILSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1086,7 +1086,7 @@ _GETHATCHEDEGGSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1124,7 +1124,7 @@ _GETINCENSEPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1162,7 +1162,7 @@ _GETINVENTORYMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1214,7 +1214,7 @@ _GETMAPOBJECTSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1238,7 +1238,7 @@ _GETPLAYERMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1269,7 +1269,7 @@ _GETPLAYERPROFILEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1293,7 +1293,7 @@ _GETSUGGESTEDCODENAMESMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1331,7 +1331,7 @@ _INCENSEENCOUNTERMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1362,7 +1362,7 @@ _LEVELUPREWARDSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1407,7 +1407,7 @@ _MARKTUTORIALCOMPLETEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1445,7 +1445,7 @@ _NICKNAMEPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1483,7 +1483,7 @@ _PLAYERUPDATEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1521,7 +1521,7 @@ _RECYCLEINVENTORYITEMMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1552,7 +1552,7 @@ _RELEASEPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1583,7 +1583,7 @@ _SETAVATARMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1614,7 +1614,7 @@ _SETCONTACTSETTINGSMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1652,7 +1652,7 @@ _SETFAVORITEPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1683,7 +1683,7 @@ _SETPLAYERTEAMMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1707,7 +1707,7 @@ _SFIDAACTIONLOGMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1766,7 +1766,7 @@ _STARTGYMBATTLEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1797,7 +1797,7 @@ _UPGRADEPOKEMONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1828,7 +1828,7 @@ _USEINCENSEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1873,7 +1873,7 @@ _USEITEMCAPTUREMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1911,7 +1911,7 @@ _USEITEMEGGINCUBATORMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -1963,7 +1963,7 @@ _USEITEMGYMMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -2001,7 +2001,7 @@ _USEITEMPOTIONMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -2039,7 +2039,7 @@ _USEITEMREVIVEMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -2070,7 +2070,7 @@ _USEITEMXPBOOSTMESSAGE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

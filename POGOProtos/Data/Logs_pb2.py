@@ -22,7 +22,7 @@ from POGOProtos.Inventory.Item_pb2 import *
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Data.Logs.proto',
   package='POGOProtos.Data.Logs',
-  syntax='proto3',
+  #syntax='proto3',
   serialized_pb=_b('\n\x1aPOGOProtos.Data.Logs.proto\x12\x14POGOProtos.Data.Logs\x1a\x16POGOProtos.Enums.proto\x1a\x1fPOGOProtos.Inventory.Item.proto\"\xc5\x01\n\x0e\x41\x63tionLogEntry\x12\x14\n\x0ctimestamp_ms\x18\x01 \x01(\x03\x12\r\n\x05sfida\x18\x02 \x01(\x08\x12\x43\n\rcatch_pokemon\x18\x03 \x01(\x0b\x32*.POGOProtos.Data.Logs.CatchPokemonLogEntryH\x00\x12?\n\x0b\x66ort_search\x18\x04 \x01(\x0b\x32(.POGOProtos.Data.Logs.FortSearchLogEntryH\x00\x42\x08\n\x06\x41\x63tion\"\xf7\x01\n\x14\x43\x61tchPokemonLogEntry\x12\x41\n\x06result\x18\x01 \x01(\x0e\x32\x31.POGOProtos.Data.Logs.CatchPokemonLogEntry.Result\x12/\n\npokemon_id\x18\x02 \x01(\x0e\x32\x1b.POGOProtos.Enums.PokemonId\x12\x15\n\rcombat_points\x18\x03 \x01(\x05\x12\x17\n\x0fpokemon_data_id\x18\x04 \x01(\x04\";\n\x06Result\x12\t\n\x05UNSET\x10\x00\x12\x14\n\x10POKEMON_CAPTURED\x10\x01\x12\x10\n\x0cPOKEMON_FLED\x10\x02\"\xca\x01\n\x12\x46ortSearchLogEntry\x12?\n\x06result\x18\x01 \x01(\x0e\x32/.POGOProtos.Data.Logs.FortSearchLogEntry.Result\x12\x0f\n\x07\x66ort_id\x18\x02 \x01(\t\x12\x32\n\x05items\x18\x03 \x03(\x0b\x32#.POGOProtos.Inventory.Item.ItemData\x12\x0c\n\x04\x65ggs\x18\x04 \x01(\x05\" \n\x06Result\x12\t\n\x05UNSET\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01P\x00P\x01\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Enums__pb2.DESCRIPTOR,POGOProtos_dot_Inventory_dot_Item__pb2.DESCRIPTOR,])
@@ -122,7 +122,7 @@ _ACTIONLOGENTRY = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
@@ -178,7 +178,7 @@ _CATCHPOKEMONLOGENTRY = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -231,7 +231,7 @@ _FORTSEARCHLOGENTRY = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

@@ -20,7 +20,7 @@ from POGOProtos.Networking.Requests_pb2 import *
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Networking.Envelopes.proto',
   package='POGOProtos.Networking.Envelopes',
-  syntax='proto3',
+  #syntax='proto3',
   serialized_pb=_b('\n%POGOProtos.Networking.Envelopes.proto\x12\x1fPOGOProtos.Networking.Envelopes\x1a$POGOProtos.Networking.Requests.proto\"E\n\nAuthTicket\x12\r\n\x05start\x18\x01 \x01(\x0c\x12\x1b\n\x13\x65xpire_timestamp_ms\x18\x02 \x01(\x04\x12\x0b\n\x03\x65nd\x18\x03 \x01(\x0c\"\xa4\x04\n\x0fRequestEnvelope\x12\x13\n\x0bstatus_code\x18\x01 \x01(\x05\x12\x12\n\nrequest_id\x18\x03 \x01(\x04\x12\x39\n\x08requests\x18\x04 \x03(\x0b\x32\'.POGOProtos.Networking.Requests.Request\x12;\n\x08unknown6\x18\x06 \x01(\x0b\x32).POGOProtos.Networking.Envelopes.Unknown6\x12\x10\n\x08latitude\x18\x07 \x01(\x01\x12\x11\n\tlongitude\x18\x08 \x01(\x01\x12\x10\n\x08\x61ltitude\x18\t \x01(\x01\x12L\n\tauth_info\x18\n \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo\x12@\n\x0b\x61uth_ticket\x18\x0b \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12\x11\n\tunknown12\x18\x0c \x01(\x03\x1a\x95\x01\n\x08\x41uthInfo\x12\x10\n\x08provider\x18\x01 \x01(\t\x12L\n\x05token\x18\x02 \x01(\x0b\x32=.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo.JWT\x1a)\n\x03JWT\x12\x10\n\x08\x63ontents\x18\x01 \x01(\t\x12\x10\n\x08unknown2\x18\x02 \x01(\x05\"\xb8\x02\n\x10ResponseEnvelope\x12\x13\n\x0bstatus_code\x18\x01 \x01(\x05\x12\x12\n\nrequest_id\x18\x02 \x01(\x04\x12\x0f\n\x07\x61pi_url\x18\x03 \x01(\t\x12\x43\n\x08unknown6\x18\x06 \x01(\x0b\x32\x31.POGOProtos.Networking.Envelopes.Unknown6Response\x12@\n\x0b\x61uth_ticket\x18\x07 \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12\x0f\n\x07returns\x18\x64 \x03(\x0c\x12\r\n\x05\x65rror\x18\x65 \x01(\t\x1a\x43\n\x08Unknown7\x12\x11\n\tunknown71\x18\x01 \x01(\x0c\x12\x11\n\tunknown72\x18\x02 \x01(\x03\x12\x11\n\tunknown73\x18\x03 \x01(\x0c\"\x80\x01\n\x08Unknown6\x12\x10\n\x08unknown1\x18\x01 \x01(\x05\x12\x44\n\x08unknown2\x18\x02 \x01(\x0b\x32\x32.POGOProtos.Networking.Envelopes.Unknown6.Unknown2\x1a\x1c\n\x08Unknown2\x12\x10\n\x08unknown1\x18\x01 \x01(\x0c\"\x90\x01\n\x10Unknown6Response\x12\x10\n\x08unknown1\x18\x01 \x01(\x05\x12L\n\x08unknown2\x18\x02 \x01(\x0b\x32:.POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2\x1a\x1c\n\x08Unknown2\x12\x10\n\x08unknown1\x18\x01 \x01(\x04P\x00\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Networking_dot_Requests__pb2.DESCRIPTOR,])
@@ -65,7 +65,7 @@ _AUTHTICKET = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -103,7 +103,7 @@ _REQUESTENVELOPE_AUTHINFO_JWT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -140,7 +140,7 @@ _REQUESTENVELOPE_AUTHINFO = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -233,7 +233,7 @@ _REQUESTENVELOPE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -278,7 +278,7 @@ _RESPONSEENVELOPE_UNKNOWN7 = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -350,7 +350,7 @@ _RESPONSEENVELOPE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -381,7 +381,7 @@ _UNKNOWN6_UNKNOWN2 = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -418,7 +418,7 @@ _UNKNOWN6 = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -449,7 +449,7 @@ _UNKNOWN6RESPONSE_UNKNOWN2 = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -486,7 +486,7 @@ _UNKNOWN6RESPONSE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

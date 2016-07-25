@@ -31,7 +31,7 @@ from POGOProtos.Map.Pokemon_pb2 import *
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Map.proto',
   package='POGOProtos.Map',
-  syntax='proto3',
+  #syntax='proto3',
   serialized_pb=_b('\n\x14POGOProtos.Map.proto\x12\x0ePOGOProtos.Map\x1a\x19POGOProtos.Map.Fort.proto\x1a\x1cPOGOProtos.Map.Pokemon.proto\"\x81\x04\n\x07MapCell\x12\x12\n\ns2_cell_id\x18\x01 \x01(\x04\x12\x1c\n\x14\x63urrent_timestamp_ms\x18\x02 \x01(\x03\x12,\n\x05\x66orts\x18\x03 \x03(\x0b\x32\x1d.POGOProtos.Map.Fort.FortData\x12\x30\n\x0cspawn_points\x18\x04 \x03(\x0b\x32\x1a.POGOProtos.Map.SpawnPoint\x12\x17\n\x0f\x64\x65leted_objects\x18\x06 \x03(\t\x12\x19\n\x11is_truncated_list\x18\x07 \x01(\x08\x12\x38\n\x0e\x66ort_summaries\x18\x08 \x03(\x0b\x32 .POGOProtos.Map.Fort.FortSummary\x12:\n\x16\x64\x65\x63imated_spawn_points\x18\t \x03(\x0b\x32\x1a.POGOProtos.Map.SpawnPoint\x12:\n\rwild_pokemons\x18\x05 \x03(\x0b\x32#.POGOProtos.Map.Pokemon.WildPokemon\x12>\n\x12\x63\x61tchable_pokemons\x18\n \x03(\x0b\x32\".POGOProtos.Map.Pokemon.MapPokemon\x12>\n\x0fnearby_pokemons\x18\x0b \x03(\x0b\x32%.POGOProtos.Map.Pokemon.NearbyPokemon\"1\n\nSpawnPoint\x12\x10\n\x08latitude\x18\x02 \x01(\x01\x12\x11\n\tlongitude\x18\x03 \x01(\x01*E\n\x10MapObjectsStatus\x12\x10\n\x0cUNSET_STATUS\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01\x12\x12\n\x0eLOCATION_UNSET\x10\x02P\x00P\x01\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Map_dot_Fort__pb2.DESCRIPTOR,POGOProtos_dot_Map_dot_Pokemon__pb2.DESCRIPTOR,])
@@ -162,7 +162,7 @@ _MAPCELL = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -200,7 +200,7 @@ _SPAWNPOINT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

@@ -22,7 +22,7 @@ from POGOProtos.Inventory.Item_pb2 import *
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Data.Capture.proto',
   package='POGOProtos.Data.Capture',
-  syntax='proto3',
+  #syntax='proto3',
   serialized_pb=_b('\n\x1dPOGOProtos.Data.Capture.proto\x12\x17POGOProtos.Data.Capture\x1a\x16POGOProtos.Enums.proto\x1a\x1fPOGOProtos.Inventory.Item.proto\"r\n\x0c\x43\x61ptureAward\x12\x35\n\ractivity_type\x18\x01 \x03(\x0e\x32\x1e.POGOProtos.Enums.ActivityType\x12\n\n\x02xp\x18\x02 \x03(\x05\x12\r\n\x05\x63\x61ndy\x18\x03 \x03(\x05\x12\x10\n\x08stardust\x18\x04 \x03(\x05\"\x8d\x01\n\x12\x43\x61ptureProbability\x12\x38\n\rpokeball_type\x18\x01 \x03(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x1b\n\x13\x63\x61pture_probability\x18\x02 \x03(\x02\x12 \n\x18reticle_difficulty_scale\x18\x0c \x01(\x01P\x00P\x01\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Enums__pb2.DESCRIPTOR,POGOProtos_dot_Inventory_dot_Item__pb2.DESCRIPTOR,])
@@ -74,7 +74,7 @@ _CAPTUREAWARD = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -119,7 +119,7 @@ _CAPTUREPROBABILITY = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

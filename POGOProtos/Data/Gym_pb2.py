@@ -31,7 +31,7 @@ from POGOProtos.Map.Fort_pb2 import *
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Data.Gym.proto',
   package='POGOProtos.Data.Gym',
-  syntax='proto3',
+  #syntax='proto3',
   serialized_pb=_b('\n\x19POGOProtos.Data.Gym.proto\x12\x13POGOProtos.Data.Gym\x1a\x15POGOProtos.Data.proto\x1a\x1cPOGOProtos.Data.Player.proto\x1a\x19POGOProtos.Map.Fort.proto\"\x90\x01\n\rGymMembership\x12\x32\n\x0cpokemon_data\x18\x01 \x01(\x0b\x32\x1c.POGOProtos.Data.PokemonData\x12K\n\x16trainer_public_profile\x18\x02 \x01(\x0b\x32+.POGOProtos.Data.Player.PlayerPublicProfile\"u\n\x08GymState\x12\x30\n\tfort_data\x18\x01 \x01(\x0b\x32\x1d.POGOProtos.Map.Fort.FortData\x12\x37\n\x0bmemberships\x18\x02 \x03(\x0b\x32\".POGOProtos.Data.Gym.GymMembershipP\x00P\x01P\x02\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Data__pb2.DESCRIPTOR,POGOProtos_dot_Data_dot_Player__pb2.DESCRIPTOR,POGOProtos_dot_Map_dot_Fort__pb2.DESCRIPTOR,])
@@ -69,7 +69,7 @@ _GYMMEMBERSHIP = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -107,7 +107,7 @@ _GYMSTATE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto3',
+  #syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
