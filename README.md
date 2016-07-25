@@ -8,6 +8,7 @@
 
 * If you want the map visualization, put your Google API Browser key into the html file (line 160) (you can get one for free)
 * Also put your scan location into the index.html file (line 135), only latitude, longitude this time
+* You should also modify the excludeIDs variable (line 27), pokemon with these ids won't be shown on the map, hint: leave in Pidgey ;)
 * `python -m SimpleHTTPServer 8000`
 * Open browser to `http://localhost:8000`
 
