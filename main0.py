@@ -318,7 +318,7 @@ def set_api_endpoint():
     p_ret = get_profile(access_token, API_URL, None)
     retry_after=1
     while not p_ret.api_url:
-        print('[-] Server returned an empty api url, retrying in {} seconds'.format(newResponse.status_code,retry_after))
+        print('[-] Server returned an empty api url, retrying in {} seconds'.format(retry_after))
         time.sleep(retry_after)
         retry_after=min(retry_after*2,MAXWAIT)
         p_ret = get_profile(access_token, API_URL, None)
