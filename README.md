@@ -1,11 +1,11 @@
 # PGO-mapscan-opt
 
 ## Instructions
-* Put your username(s)/password(s) into the main0.py file
+* Put your username(s)/password(s) into the main0.py file (line 94 and 95)
 * `pip install -r requirements.txt`
 * `python main0.py -id 0 -r 20 -t 600`
 
-* If you want the map visualization, put your Google API Browser key into the html file (you can get one for free)
+* If you want the map visualization, put your Google API Browser key into the html file (line 160) (you can get one for free)
 * `python -m SimpleHTTPServer 8000`
 * Open browser to `http://localhost:8000`
 
