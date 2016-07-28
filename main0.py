@@ -174,15 +174,15 @@ def do_settings():
 
     if allsettings['unique_coordinates'] and not allsettings['centralscan']:
         if LAT_C is None:
-            LAT_C = allsettings['coordinates']['profiles'][tID]['lat']
+            LAT_C = allsettings['profiles'][tID]['coordinates']['lat']
         else:
             LAT_C = float(LAT_C)
         if LNG_C is None:
-            LNG_C = allsettings['coordinates']['profiles'][tID]['lng']
+            LNG_C = allsettings['profiles'][tID]['coordinates']['lng']
         else:
             LNG_C = float(LNG_C)
         if ALT_C is None:
-            ALT_C = allsettings['coordinates']['profiles'][tID]['alt']
+            ALT_C = allsettings['profiles'][tID]['coordinates']['alt']
         else:
             ALT_C = float(ALT_C)
     else:
