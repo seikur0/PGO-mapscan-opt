@@ -10,11 +10,13 @@ def main():
 
     sock = socket()
     sock.connect((url, port))
+    print("check file {} exists {}".format(fp(counter),os.path.isfile(fp(counter))))
     while os.path.isfile(fp(counter)):
         with open(fp(counter)) as f:
             for line in f:
+                print("sending line {}".format(line))
                 sock.sendall(line)
         counter += 1
-
+    sock.close()
 if __name__ == '__main__':
     main()
