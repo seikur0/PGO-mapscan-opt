@@ -56,7 +56,19 @@ def getNeighbors():
             #origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
 
     return walk
+	
 
+with open('user_config.json') as file:
+	config = json.load(file)
+
+CFG_USERNAME = config.get('USERNAME', None)
+CFG_PASSWORD = config.get('PASSWORD', None)
+CFG_SCAN_RANGE = config.get('SCAN_RANGE', None)
+CFG_TIME_INTERVAL = config.get('TIME_INTERVAL')
+CFG_SCAN_LAT = config.get('SCAN_LAT', None)
+CFG_SCAN_LNG = config.get('SCAN_LNG', None)
+#CFG_GOOGLE_MAPS_API_KEY = config.get('GOOGLE_MAPS_API_KEY', None)
+CFG_WORKER_ID = config.get('WORKER_ID')
 
 
 API_URL = 'https://pgorelease.nianticlabs.com/plfe/rpc'
@@ -76,7 +88,7 @@ EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
 HEX_R = 100.0 #range of detection for pokemon = 100m
 HEX_M = 3.0**(0.5)/2.0*HEX_R
-LAT_C,LNG_C,ALT_C = [INPUT_YOUR_LATITUDE, INPUT_YOUR_LONGITUDE, 5]
+LAT_C,LNG_C,ALT_C = [CFG_SCAN_LAT, CFG_SCAN_LNG, 5]
 safety=1.0
 
 HEX_NUM = 0
@@ -90,14 +102,14 @@ access_token = ''
 response = {}
 r = None
 
-LANGUAGE='german' #'german' and 'english' supported
+LANGUAGE='english' #'german' and 'english' supported
 
 LI_TYPE='ptc' #'google'#
-users_ptc= ['agent0','agent1','agent2','agent3','agent4','agent5','agent6']
-passwords_ptc = ['secretpassword','secretpassword','secretpassword','secretpassword','secretpassword','secretpassword','secretpassword']
+users_ptc= [CFG_USERNAME,'agent1','agent2','agent3','agent4','agent5','agent6']
+passwords_ptc = [CFG_PASSWORD,'secretpassword','secretpassword','secretpassword','secretpassword','secretpassword','secretpassword']
 
-users_google=['agent0@gmail.com','agent1@gmail.com']
-passwords_google=['secretpassword','secretpassword']
+users_google=[CFG_USERNAME,'agent1@gmail.com']
+passwords_google=[CFG_PASSWORD,'secretpassword']
 
 li_user=''
 li_password=''
@@ -406,7 +418,7 @@ def main():
     parser.add_argument("-id", "--id", help="worker id")
     parser.add_argument("-r", "--range", help="scan range")
     parser.add_argument("-t", "--timeinterval", help="time interval")
-    parser.set_defaults(id=0,range=20,timeinterval=300)
+    parser.set_defaults(id=CFG_WORKER_ID, range=CFG_SCAN_RANGE, timeinterval=CFG_TIME_INTERVAL)
 
     args = parser.parse_args()
 

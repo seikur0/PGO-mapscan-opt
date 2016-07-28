@@ -1,0 +1,10 @@
+{
+ "USERNAME"			: "User0",
+ "PASSWORD"			: "Password0",
+ "SCAN_RANGE"		: "20",
+ "TIME_INTERVAL"	: "600",
+ "SCAN_LAT"			: 40.758576,,
+ "SCAN_LNG"			: -73.985069,
+ "GOOGLE_MAPS_API_KEY"	: "gmaps api key",
+ "WORKER_ID"		: "0"
+}

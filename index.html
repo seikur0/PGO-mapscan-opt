@@ -16,25 +16,32 @@
   </head>
   <body>
     <div id="map"></div>
-    <script type="text/javascript">
-
+	<div id="capture"></div>
+    <script>
+	
 /////////////////////////////////////////////////////////////////////
-    var pokdats = {};
+    
+	var pokdats = {};
     var map;
     var markers = [];
     var spawns = [];
     var pokenames;
-	var LAT_C=INPUT_YOUR_LATITUDE;
-	var LNG_C=INPUT_YOUR_LONGITUDE;
-	var LANGUAGE="german"; //supports german/english
-	var excludeIDs=[10,11,12,13,14,15,16,17,18,19,20,21,22,41,42];
+	var LAT_C;
+	var LNG_C;
+	var LANGUAGE="english"; //supports german/english
+/*only magicarp, scyther, vulpix, ponyta, ryhorn, dratini, snorlax, abra*/
+//    var excludeIDs=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,64,65,66,67,68,69,70,71,72,73,74,75,76,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,112,113,114,115,116,117,118,119,120,121,122,124,125,126,127,128,130,131,132,133,134,135,136,137,138,139,140,141,142,144,145,146,148,149,150,151];	
+    var excludeIDs=[10,11,13,14,16,17,19,20,21,48,96,133];
+//    var excludeIDs=[];
     var timenow;
     var infowindow;
     var iconSize;
     var iconOrigin;
     var iconAnchor;
     var iconScaledSize;
+	
 /////////////////////////////////////////////////////////////////////
+
     function getFile(path, asynch, callback) {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", path, asynch);
@@ -48,8 +55,31 @@
 
 /////////////////////////////////////////////////////////////////////
 
+	function loadScript(src) {
+		var element = document.createElement("script");
+		element.src = src;
+        document.body.appendChild(element);
+    }	
+
+	function latLng(lat, lng) {
+		LAT_C = lat;
+		LNG_C = lng;
+	}
+	
+	getFile("user_config.json", false, function(configData) {
+		config = JSON.parse(configData)
+		console.log(configData);
+		loadScript("https://maps.googleapis.com/maps/api/js?key=" + config.GOOGLE_MAPS_API_KEY + "&libraries=drawing&callback=initMap");
+		latLng(config.SCAN_LAT, config.SCAN_LNG); 
+	});
+	
+/////////////////////////////////////////////////////////////////////
+
     function refreshData() {
-        for (var fileN=0;fileN<7;fileN++){
+        //changed for 1 username/password
+		//for (var fileN=0;fileN<7;fileN++){
+		for (var fileN=0;fileN<1;fileN++){
+
             timenow=Math.round((new Date()).getTime() / 1000);
             filenow="res/data".concat(fileN.toString(),".json");
             getFile(filenow, false, function(fileData) {
@@ -63,7 +93,7 @@
                             markers[i].setMap(null);
                             markers[i].validTill = 0;
                         }else
-                            markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                            markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>" + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
 
                     }
                 }
@@ -85,7 +115,7 @@
                         var s = 0;
                         while (s< spawns.length && spawns[s]!=p.spawnID){s++;}
                         if (s< spawns.length){
-                            markers[s].infotext = "<b>"+pokenames[p.id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                            markers[s].infotext = "<b>"+pokenames[p.id]+"</b><br>" + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
                             if (markers[s].validTill != p.despawnTime) {
                                 if (markers[s].validTill ==0) {
                                     markers[s].id=p.id;
@@ -101,12 +131,17 @@
         						position: {lat: p.lat, lng: p.lng},
         						optimized: false,
         						id: p.id,
-        						infotext: "<b>"+pokenames[p.id]+"</b><br>Zeit &#252;brig: " + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s",
+        						infotext: "<b>"+pokenames[p.id]+"</b><br>" + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s",
         						validTill: p.despawnTime,
         						spawnID: p.spawnID,
         						icon: cIcon
         					});
-        					marker.addListener('click', function() {
+        					marker.addListener('mouseover', function() {
+        						infowindow.close();
+        						infowindow.setContent(this.infotext);
+        						infowindow.open(map, this);
+        					});
+							marker.addListener('click', function() {
         						infowindow.close();
         						infowindow.setContent(this.infotext);
         						infowindow.open(map, this);
@@ -133,34 +168,31 @@
 
 /////////////////////////////////////////////////////////////////////
 
-function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: LAT_C, lng: LNG_C},
-    zoom: 15,
-    disableDoubleClickZoom: true
-  });
-  getFile("res/"+LANGUAGE+".json", false, function(tnames) {
-    pokenames=JSON.parse(tnames);
-  });
-  infowindow = new google.maps.InfoWindow();
-  iconSize = new google.maps.Size(72, 72);
-  iconOrigin= new google.maps.Point(0, 0);
-  iconAnchor= new google.maps.Point(36, 36);
-  iconScaledSize= new google.maps.Size(72, 72);
+	function initMap() {
 
+		map = new google.maps.Map(document.getElementById('map'), {
+			center: {lat: LAT_C, lng: LNG_C},
+			zoom: 15,
+			disableDoubleClickZoom: true
+		});
+		getFile("res/"+LANGUAGE+".json", false, function(tnames) {
+			pokenames=JSON.parse(tnames);
+		});
+		infowindow = new google.maps.InfoWindow();
+		iconSize = new google.maps.Size(44, 44);
+		iconOrigin= new google.maps.Point(0, 0);
+		iconAnchor= new google.maps.Point(22, 22);
+		iconScaledSize= new google.maps.Size(44, 44);
 
-  refreshData();
-  setInterval(refreshData, 10000);
-  google.maps.event.addListener(map, 'click', function(event) {
+		refreshData();
+		setInterval(refreshData, 10000);
+		google.maps.event.addListener(map, 'click', function(event) {
         infowindow.close()
-    });
-}
+		});
+	}
 
 /////////////////////////////////////////////////////////////////////
 
-    </script>
-    <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=PUT_YOUR_API_KEY_HERE&libraries=drawing&callback=initMap">
-    </script>
+	</script>
   </body>
 </html>
