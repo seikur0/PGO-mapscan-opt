@@ -164,7 +164,7 @@ function initMap() {
 }
 
 function initSite() {
-  getFile("/static/res/usersettings.json", false, function(tsettings) {
+  getFile("res/usersettings.json", false, function(tsettings) {
     var settings=JSON.parse(tsettings);
 
     LAT_C=settings['standard_coordinates']['lat'];
