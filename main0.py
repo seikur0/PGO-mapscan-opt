@@ -2,6 +2,7 @@ import requests
 import re
 import json
 import argparse
+
 import POGOProtos
 import POGOProtos.Data_pb2
 import POGOProtos.Enums_pb2
@@ -16,13 +17,13 @@ import POGOProtos.Networking.Requests
 import POGOProtos.Networking.Requests.Messages_pb2
 
 import time
-
 from datetime import datetime
-#from geopy.geocoders import GoogleV3
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-from s2sphere import *
+import sys
+import math
 
+from s2sphere import CellId, LatLng
+from gpsoauth import perform_master_login, perform_oauth
+from shutil import move
 
 def getNeighbors():
     origin = CellId.from_lat_lng(LatLng.from_degrees(FLOAT_LAT, FLOAT_LNG)).parent(15)
@@ -54,53 +55,156 @@ def getNeighbors():
             #origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
             #origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
             #origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
-
     return walk
 
-
-
 API_URL = 'https://pgorelease.nianticlabs.com/plfe/rpc'
-LOGIN_URL = 'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'
-LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
 
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 SESSION = requests.session()
 SESSION.verify = False
 NET_MAXWAIT = 30
-LOGIN_MAXWAIT = 5
+LOGIN_MAXWAIT = 30
 MAXWAIT = LOGIN_MAXWAIT
 
-FLOAT_LAT = 0
-FLOAT_LNG = 0
-FLOAT_ALT = 0
+FLOAT_LAT = None
+FLOAT_LNG = None
+FLOAT_ALT = None
 EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
 HEX_R = 100.0 #range of detection for pokemon = 100m
 HEX_M = 3.0**(0.5)/2.0*HEX_R
-LAT_C,LNG_C,ALT_C = [INPUT_YOUR_LATITUDE, INPUT_YOUR_LONGITUDE, 5]
-safety=1.0
+safety=0.999
 
-HEX_NUM = 0
-DATA = []
 LOGGING = False
-wID = 0
+DATA = []
 
-login_type=''
-api_endpoint = ''
-access_token = ''
+F_LIMIT = None
+LANGUAGE = None
+HEX_NUM = None
+wID = None
+interval = None
+
+LI_TYPE=None
+li_user=None
+li_password=None
+LAT_C,LNG_C,ALT_C = [None,None,None]
+
+api_endpoint = None
+access_token = None
 response = {}
 r = None
 
-LANGUAGE='german' #'german' and 'english' supported
 
-LI_TYPE='ptc' #'google'#
-users_ptc= ['agent0','agent1','agent2','agent3','agent4','agent5','agent6']
-passwords_ptc = ['secretpassword','secretpassword','secretpassword','secretpassword','secretpassword','secretpassword','secretpassword']
+SETTINGS_FILE='res/usersettings.json'
 
-users_google=['agent0@gmail.com','agent1@gmail.com']
-passwords_google=['secretpassword','secretpassword']
+def do_settings():
+    global LANGUAGE
+    global li_user
+    global li_password
+    global LI_TYPE
+    global LAT_C,LNG_C,ALT_C
+    global wID
+    global HEX_NUM
+    global interval
+    global F_LIMIT
 
-li_user=''
-li_password=''
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-id", "--id", help="worker id")
+    parser.add_argument("-r", "--range", help="scan range")
+    parser.add_argument("-t", "--timeinterval", help="time interval")
+    parser.add_argument("-lt", "--logintype", help="ptc or google")
+    parser.add_argument("-u", "--username", help="username")
+    parser.add_argument("-p", "--password", help="password")
+    parser.add_argument("-lat", "--latitude", help="latitude")
+    parser.add_argument("-lng", "--longitude", help="longitude")
+    parser.add_argument("-alt", "--altitude", help="altitude")
+    args = parser.parse_args()
+    wID=args.id
+    HEX_NUM=args.range
+    interval=args.timeinterval
+    LI_TYPE=args.logintype
+    li_user=args.username
+    li_password=args.password
+    LAT_C=args.latitude
+    LNG_C=args.longitude
+    ALT_C=args.altitude
+
+    if wID is None:
+        wID=0
+    else:
+        wID=int(wID)
+
+    try:
+        f = open(SETTINGS_FILE, 'r')
+        try:
+            allsettings=json.load(f)
+        except ValueError, e:
+            print("[-] Error: The settings file is not in a valid format, {}".format(e))
+            f.close
+            sys.exit()
+    finally:
+        f.close()
+
+    LANGUAGE=allsettings['language']
+    idlist=[]
+    for i in range(0,len(allsettings['profiles'])):
+        idlist.append(allsettings['profiles'][i]['id'])
+
+    if wID in idlist:
+        tID=idlist.index(wID)
+        if LI_TYPE is None:
+            LI_TYPE=allsettings['profiles'][tID]['type']
+        if li_user is None:
+            li_user=allsettings['profiles'][tID]['username']
+        if li_password is None:
+            li_password=allsettings['profiles'][tID]['password']
+    else:
+        print("[-] Error: No profile exists for the set id.")
+        sys.exit()
+
+    if HEX_NUM is None:
+        HEX_NUM=allsettings['range']
+    else:
+        HEX_NUM=int(HEX_NUM)
+    if interval is None:
+        interval=allsettings['scaninterval']
+    else:
+        interval=int(interval)
+
+    if allsettings['unique_coordinates'] and not allsettings['centralscan']:
+        if LAT_C is None:
+            LAT_C = allsettings['coordinates']['profiles'][tID]['lat']
+        else:
+            LAT_C = float(LAT_C)
+        if LNG_C is None:
+            LNG_C = allsettings['coordinates']['profiles'][tID]['lng']
+        else:
+            LNG_C = float(LNG_C)
+        if ALT_C is None:
+            ALT_C = allsettings['coordinates']['profiles'][tID]['alt']
+        else:
+            ALT_C = float(ALT_C)
+    else:
+        if LAT_C is None:
+            LAT_C = allsettings['standard_coordinates']['lat']
+        else:
+            LAT_C = float(LAT_C)
+        if LNG_C is None:
+            LNG_C = allsettings['standard_coordinates']['lng']
+        else:
+            LNG_C = float(LNG_C)
+        if ALT_C is None:
+            ALT_C = allsettings['standard_coordinates']['alt']
+        else:
+            ALT_C = float(ALT_C)
+
+    if allsettings['centralscan']:
+        centralscan_location()
+    else:
+        set_location_coords(LAT_C,LNG_C,ALT_C)
+    F_LIMIT=int(allsettings['backup_size']*1024*1024)
+    if F_LIMIT==0:
+        F_LIMIT=math.inf
 
 def prune_data():
     # prune despawned pokemon
@@ -134,7 +238,7 @@ def set_location_coords(lat, lng, alt):
     FLOAT_LNG = lng
     FLOAT_ALT = alt
 
-def init_location():
+def centralscan_location():
     latrad=LAT_C*math.pi/180
 
     a=(HEX_NUM+0.5)
@@ -150,14 +254,44 @@ def init_location():
 def login_google(username,password):
     global access_token
     global login_type
-    login_type='google'
-    return None
+
+    ANDROID_ID='9774d56d682e549c'
+    SERVICE='audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com'
+    APP='com.nianticlabs.pokemongo'
+    APP_SIG='321187995bc7cdc2b5fc91b11a96e2baa8602c62'
+
+    while True:
+        try:
+            retry_after=1
+            login1 = perform_master_login(username, password, ANDROID_ID)
+            while login1.get('Token') is None:
+                print('[-] Google Login error, retrying in {} seconds (step 1)'.format(retry_after))
+                time.sleep(retry_after)
+                retry_after=min(retry_after*2,MAXWAIT)
+                login1 = perform_master_login(username, password, ANDROID_ID)
+
+            retry_after=1
+            login2 = perform_oauth(username, login1.get('Token'), ANDROID_ID, SERVICE, APP, APP_SIG)
+            while login2.get('Auth') is None:
+                print('[-] Google Login error, retrying in {} seconds (step 2)'.format(retry_after))
+                time.sleep(retry_after)
+                retry_after=min(retry_after*2,MAXWAIT)
+                login2 = perform_oauth(username, login1.get('Token', ''), ANDROID_ID, SERVICE, APP, APP_SIG)
+
+            access_token = login2['Auth']
+            return
+        except Exception,e:
+            print('[-] Unexpected google login error: {}'.format(e))
+            print('[-] Retrying...')
+            time.sleep(2)
 
 def login_ptc(username, password):
     global access_token
     global login_type
-    login_type='ptc'
-    r = None
+
+    LOGIN_URL = 'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'
+    LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
+
     while True:
         try:
             #SESSION.headers.update({'User-Agent': 'Niantic App'})
@@ -209,9 +343,9 @@ def login_ptc(username, password):
             return
 
         except Exception,e:
-            print('[-] Uncaught connection error, error: {}'.format(e))
+            print('[-] Unexpected ptc login error: {}'.format(e))
             if r is not None:
-                print('[-] Uncaught connection error, http code: {}'.format(r.status_code))
+                print('[-] Connection error, http code: {}'.format(r.status_code))
             else:
                 print('[-] Error happened before network request.')
             print('[-] Retrying...')
@@ -219,17 +353,14 @@ def login_ptc(username, password):
 
 def do_login():
     if LI_TYPE=='ptc':
-        li_user = users_ptc[wID]
-        li_password = passwords_ptc[wID]
         print('[+] login for ptc account: {}'.format(li_user))
         login_ptc(li_user,li_password)
     elif LI_TYPE=='google':
-        li_user = users_google[wID]
-        li_password = passwords_google[wID]
         print('[+] login for google account: {}'.format(li_user))
         login_google(li_user,li_password)
     else:
-        raise Exception('login type should be either ptc or google')
+        print("[-] Error: Login type should be either ptc or google.")
+        sys.exit()
 
 def api_req(api_endpoint, access_token, *mehs, **kw):
     r=None;
@@ -244,7 +375,7 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
 
             p_req.unknown12 = 989 #transaction id, anything works
             if 'useauth' not in kw or not kw['useauth']:
-                p_req.auth_info.provider = login_type
+                p_req.auth_info.provider = LI_TYPE
                 p_req.auth_info.token.contents = access_token
                 p_req.auth_info.token.unknown2 = 14
             else:
@@ -308,7 +439,7 @@ def get_profile(access_token, api, useauth, *reqq):
     newResponse = api_req(api, access_token, req, useauth = useauth)
 
     retry_after=1
-    while (newResponse.status_code not in [1,2,53,102]): #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
+    while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
         retry_after=min(retry_after*2,MAXWAIT)
@@ -392,47 +523,26 @@ def fixNum(int_type):
         int_ret >>= 1
         length += 1
     int_ret = int_type ^ (-1 << length)
-    int_ret = int_ret-0x1A000
     return int_ret
 
+def statfile_new(statfile):
+    try:
+        f=open(statfile,'a')
+        if f.tell()==0:
+            f.write('Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n')
+    finally:
+        f.close()
+
 def main():
-    global wID
-    global li_user
-    global li_password
-    global HEX_NUM
     global MAXWAIT
-    interval=0
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-id", "--id", help="worker id")
-    parser.add_argument("-r", "--range", help="scan range")
-    parser.add_argument("-t", "--timeinterval", help="time interval")
-    parser.set_defaults(id=0,range=20,timeinterval=300)
 
-    args = parser.parse_args()
-
-    if args.id is not None:
-        wID=int(args.id)
-        if wID < 0 or wID > 6:
-            raise TypeError('id must be positive')
-
-    if args.range is not None:
-        HEX_NUM=int(args.range)
-        if HEX_NUM < 0 or HEX_NUM > 100:
-            raise TypeError('range must be between 0 and 100, recommended: 20')
-
-    if args.timeinterval is not None:
-        interval=int(args.timeinterval)
-        if interval < 0 or interval > 900:
-            raise TypeError('time interval must be between 0 and 900, recommended 600')
+    do_settings()
 
     DATA_FILE = 'res/data{}.json'.format(wID)
     STAT_FILE = 'res/spawns{}.json'.format(wID)
-
     pokemons = json.load(open('res/'+LANGUAGE+'.json'))
-    init_location()
 
     do_login()
-
     print('[+] RPC Session Token: {}'.format(access_token))
 
     set_api_endpoint()
@@ -455,6 +565,7 @@ def main():
     origin = LatLng.from_degrees(FLOAT_LAT, FLOAT_LNG)
     all_ll = [origin]
     maxR = 1;
+
     for a in range(1,HEX_NUM+1):
         for i in range(0,a*6):
             latrad = origin.lat().radians
@@ -487,26 +598,24 @@ def main():
 
     #////////////////////
     print('')
-    try:
-        f=open(STAT_FILE,'a')
-        if f.tell()==0:
-            f.write('Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n')
-    finally:
-        f.close()
+    statfile_new(STAT_FILE)
+
     seen = set([])
     uniqueE = set([])
+    backup = False
     while True:
         curT=int(time.time())
         #curR=0;
         print("[+] Time: " + datetime.now().strftime("%H:%M:%S"))
-        for this_ll in all_ll:
-            #if LOGGING:
-                #print('[+] Finished: '+str(100.0*curR/maxR)+' %')
-            #curR+=1
-            set_location_coords(this_ll.lat().degrees, this_ll.lng().degrees, ALT_C)
-            h = heartbeat()
-            try:
-                f= open(STAT_FILE,'a',1)
+        try:
+            f= open(STAT_FILE,'a',1)
+            for this_ll in all_ll:
+                #if LOGGING:
+                    #print('[+] Finished: '+str(100.0*curR/maxR)+' %')
+                #curR+=1
+                set_location_coords(this_ll.lat().degrees, this_ll.lng().degrees, ALT_C)
+                h = heartbeat()
+
                 for cell in h.map_cells:
                     for wild in cell.wild_pokemons:
                         if (wild.encounter_id not in seen):
@@ -529,14 +638,23 @@ def main():
                                     difflng = diff.lng().degrees
                                     direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '')  + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
                                     print("<<>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
-            finally:
-                f.close()
-            write_data_to_file(DATA_FILE)
-            #if LOGGING:
-                #print('')
-            #time.sleep(1)
+                write_data_to_file(DATA_FILE)
+                #if LOGGING:
+                    #print('')
+            if f.tell()>F_LIMIT:
+                backup=True
+        finally:
+            f.close()
+
         uniqueE=uniqueE & seen
         seen.clear()
+
+        if backup:
+            print('[+] File size is over the set limit, doing backup.')
+            move(STAT_FILE,STAT_FILE[:-5]+'.'+time.strftime('%Y%m%d_%H%M')+'.json')
+            statfile_new(STAT_FILE)
+            backup=False
+
         curT = int(time.time())-curT
         print('[+] Scan Time: {} s'.format(curT))
         curT=max(interval-curT,0)
