@@ -2,7 +2,7 @@
 
 ## Instructions
 * Edit the 'usersettings.json' file in the res subfolder to your liking. Don't worry, if you don't understand every setting, some are for more specific uses.
-  * 'standard_coordinates' and the first 'profile' have to be edited, and if you want the map functionality the 'api_key' setting as well
+  * 'standard_coordinates' and the first 'profile' have to be edited and if you want the map functionality the 'api_key' setting as well
 * 'pip install -r requirements.txt' or if that fails 'pip install --user -r requirements.txt'
 * 'python main0.py' to run the program
 
