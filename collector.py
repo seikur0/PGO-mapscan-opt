@@ -15,8 +15,10 @@ def main():
         with open(fp(counter)) as f:
             for line in f:
                 print("sending line {}".format(line))
-                sock.sendall(line)
+                sock.sendall(line+"\n")
+        os.remove(fp(counter))
         counter += 1
+
     sock.close()
 if __name__ == '__main__':
     main()
