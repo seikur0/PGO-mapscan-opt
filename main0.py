@@ -235,7 +235,6 @@ def write_data_to_file(DATA_FILE):
     finally:
         f.close()
 
-
 def add_pokemon(pokeId, spawnID, lat, lng, despawnT):
     DATA.append({
         'id': pokeId,
@@ -554,7 +553,6 @@ def main():
     do_settings()
 
     DATA_FILE = 'res/data{}.json'.format(wID)
-    UPLOAD_FILE = 'res/upload{}.log'.format(wID)
     STAT_FILE = 'res/spawns{}.json'.format(wID)
     pokemons = json.load(open('res/'+LANGUAGE+'.json'))
 
@@ -646,7 +644,7 @@ def main():
 
                                 f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id],wild.pokemon_data.pokemon_id,spawnIDint,wild.latitude,wild.longitude,(wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0-900.0,wild.last_modified_timestamp_ms/1000.0,org_tth/1000.0,wild.encounter_id))
                                 add_pokemon(wild.pokemon_data.pokemon_id,spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0))
-                                
+
                                 if pb is not None:
                                      if wild.pokemon_data.pokemon_id in PUSHPOKS:
                                         pb.push_link("<<Pokemon: {}>>  <<Timer: {}s>>".format(pokemons[wild.pokemon_data.pokemon_id],int(wild.time_till_hidden_ms/1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude,wild.longitude))
