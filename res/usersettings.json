@@ -43,7 +43,16 @@
   "comment13": "The path to the res folder from the html point of view.",
   "html_respath": "res/",
 
-  "_comment14": "The profiles. Each with their own id, login info, and coordinates. Add as many as you like.",
+  "comment14": "Pushbullet settings. You need a Pushbullet API key for it. Put ids of pokemon you want to be notified about into push_ids.",
+  "pushbullet":
+  {
+      "enabled": false,
+      "api_key": "",
+      "push_ids": []
+
+  },
+  
+  "_comment15": "The profiles. Each with their own id, login info, and coordinates. Add as many as you like.",
   "profiles": [
     {
       "id": 0,

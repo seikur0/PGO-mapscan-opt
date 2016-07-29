@@ -21,6 +21,7 @@ from datetime import datetime
 import sys
 import math
 
+from pushbullet import Pushbullet
 from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
@@ -77,7 +78,8 @@ safety=0.999
 
 LOGGING = False
 DATA = []
-UPLOAD = []
+pb = None
+PUSHPOKS=set([])
 
 F_LIMIT = None
 LANGUAGE = None
@@ -108,6 +110,8 @@ def do_settings():
     global HEX_NUM
     global interval
     global F_LIMIT
+    global pb
+    global PUSHPOKS
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", "--id", help="worker id")
@@ -206,6 +210,16 @@ def do_settings():
     F_LIMIT=int(allsettings['backup_size']*1024*1024)
     if F_LIMIT==0:
         F_LIMIT=9223372036854775807
+
+    if allsettings['pushbullet']['enabled'] is True:
+        try:
+            pb = Pushbullet(allsettings['pushbullet']['api_key'])
+            PUSHPOKS=set(allsettings['pushbullet']['push_ids'])
+        except Exception as e:
+            print('[-] Pushbullet error, invalid key, {}'.format(e))
+            print('[-] Pushbullet will be disabled.')
+            pb = None
+            PUSHPOKS = None
 
 def prune_data():
     # prune despawned pokemon
@@ -390,7 +404,7 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
     while True:
         try:
             p_req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
-            p_req.request_id = 1469378659230941192
+            p_req.request_id = 1469378659230941192 #anything works here as well, tried 1569378659230941192
 
             p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
 
@@ -422,10 +436,10 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
             p_ret.ParseFromString(r.content)
             return p_ret
 
-        except Exception as e:
-            print('[-] Unexpected connection error, error: {}'.format(e))
+        except Exception,e:
+            print('[-] Uncaught connection error, error: {}'.format(e))
             if r is not None:
-                print('[-] Unexpected connection error, http code: {}'.format(r.status_code))
+                print('[-] Uncaught connection error, http code: {}'.format(r.status_code))
             else:
                 print('[-] Error happened before network request.')
             print('[-] Retrying...')
@@ -463,11 +477,10 @@ def get_profile(access_token, api, useauth, *reqq):
 
     retry_after=0.26
     while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
-        print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
+        #print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
         retry_after=min(retry_after*2,MAXWAIT)
         newResponse = api_req(api, access_token, req, useauth = useauth)
-
     return newResponse
 
 def set_api_endpoint():
@@ -655,6 +668,10 @@ def main():
                                 f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id],wild.pokemon_data.pokemon_id,spawnIDint,wild.latitude,wild.longitude,(wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0-900.0,wild.last_modified_timestamp_ms/1000.0,org_tth/1000.0,wild.encounter_id))
                                 add_pokemon(wild.pokemon_data.pokemon_id,spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0))
                                 log_pokemon(wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, wild.encounter_id, wild.last_modified_timestamp_ms, wild.time_till_hidden_ms)
+
+                                if pb is not None:
+                                     if wild.pokemon_data.pokemon_id in PUSHPOKS:
+                                        pb.push_link("<<Pokemon: {}>>  <<Timer: {}s>>".format(pokemons[wild.pokemon_data.pokemon_id],int(wild.time_till_hidden_ms/1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude,wild.longitude))
 
                                 if LOGGING:
                                     other = LatLng.from_degrees(wild.latitude, wild.longitude)
