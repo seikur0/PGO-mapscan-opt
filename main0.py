@@ -138,9 +138,9 @@ def do_settings():
         f = open(SETTINGS_FILE, 'r')
         try:
             allsettings=json.load(f)
-        except ValueError, e:
+        except ValueErroras e:
             print("[-] Error: The settings file is not in a valid format, {}".format(e))
-            f.close
+            f.close()
             sys.exit()
     finally:
         f.close()
@@ -280,7 +280,7 @@ def login_google(username,password):
 
             access_token = login2['Auth']
             return
-        except Exception,e:
+        except Exception as e:
             print('[-] Unexpected google login error: {}'.format(e))
             print('[-] Retrying...')
             time.sleep(2)
@@ -342,7 +342,7 @@ def login_ptc(username, password):
             access_token = re.sub('.*access_token=', '', access_token)
             return
 
-        except Exception,e:
+        except Exception as e:
             print('[-] Unexpected ptc login error: {}'.format(e))
             if r is not None:
                 print('[-] Connection error, http code: {}'.format(r.status_code))
@@ -399,7 +399,7 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
             p_ret.ParseFromString(r.content)
             return p_ret
 
-        except Exception,e:
+        except Exception as e:
             print('[-] Unexpected connection error, error: {}'.format(e))
             if r is not None:
                 print('[-] Unexpected connection error, http code: {}'.format(r.status_code))
