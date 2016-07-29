@@ -198,7 +198,7 @@ def do_settings():
     else:
         interval=int(interval)
 
-    if allsettings['unique_coordinates'] and not allsettings['centralscan']:
+    if allsettings['unique_coordinates'] and (not allsettings['centralscan'] or wID > 6):
         if LAT_C is None:
             LAT_C = allsettings['profiles'][tID]['coordinates']['lat']
         else:
@@ -225,7 +225,7 @@ def do_settings():
         else:
             ALT_C = float(ALT_C)
 
-    if allsettings['centralscan']:
+    if allsettings['centralscan'] and wID < 7:
         centralscan=True
     set_location_coords(LAT_C,LNG_C,ALT_C)
 
