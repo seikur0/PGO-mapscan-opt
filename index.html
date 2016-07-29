@@ -150,9 +150,9 @@ function initMap() {
   else if (LANGUAGE=="english")
     timelefttext = "Time left: ";
   infowindow = new google.maps.InfoWindow();
-  iconSize = new google.maps.Size(72, 72);
+  iconSize = new google.maps.Size(scalesize, scalesize);
   iconOrigin= new google.maps.Point(0, 0);
-  iconAnchor= new google.maps.Point(36, 36);
+  iconAnchor= new google.maps.Point(Math.ceil(scalesize/2), Math.ceil(scalesize/2));
   iconScaledSize= new google.maps.Size(scalesize, scalesize);
 
 
