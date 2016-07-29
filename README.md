@@ -4,6 +4,9 @@
 * Edit the 'usersettings.json' file in the res subfolder to your liking. Don't worry, if you don't understand every setting, some are for more specific uses.
   * 'standard_coordinates' and the first 'profile' have to be edited and if you want the map functionality the 'api_key' setting as well
 * 'pip install -r requirements.txt' or if that fails 'pip install --user -r requirements.txt'
+* 'pip install pushbullet.py' to install the pushbullet API
+* You will need an API key from https://www.pushbullet.com/#settings
+* Make sure to add the Pokemon ID's you want to be notifuied about to the configuration file
 * 'python main0.py' to run the program
 
 * 'python -m SimpleHTTPServer 8000' to run the local map server and make it accessible from your browser
