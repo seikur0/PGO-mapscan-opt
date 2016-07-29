@@ -204,7 +204,7 @@ def do_settings():
         set_location_coords(LAT_C,LNG_C,ALT_C)
     F_LIMIT=int(allsettings['backup_size']*1024*1024)
     if F_LIMIT==0:
-        F_LIMIT=math.inf
+        F_LIMIT=9223372036854775807
 
 def prune_data():
     # prune despawned pokemon
@@ -400,9 +400,9 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
             return p_ret
 
         except Exception,e:
-            print('[-] Uncaught connection error, error: {}'.format(e))
+            print('[-] Unexpected connection error, error: {}'.format(e))
             if r is not None:
-                print('[-] Uncaught connection error, http code: {}'.format(r.status_code))
+                print('[-] Unexpected connection error, http code: {}'.format(r.status_code))
             else:
                 print('[-] Error happened before network request.')
             print('[-] Retrying...')
@@ -438,7 +438,7 @@ def get_profile(access_token, api, useauth, *reqq):
 
     newResponse = api_req(api, access_token, req, useauth = useauth)
 
-    retry_after=1
+    retry_after=0.26
     while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
