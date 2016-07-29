@@ -81,5 +81,10 @@
               "alt": 0
           }
     }
-  ]
+  ],
+
+  "_comment15": "Set your Pushbullet API key and what pokemon you wish to be notified of here. Format is [1,2,3,76,138]",
+  "PB_ApiKey": "YOUR_PB_API_KEY",
+  "Pokemon_to_Push": [0]
+
 }
