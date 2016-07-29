@@ -680,7 +680,6 @@ def main():
 
         uniqueE=uniqueE & seen
         seen.clear()
-        print('[+] Encounters seen: {}'.format(len(uniqueE)))
 
         if backup:
             print('[+] File size is over the set limit, doing backup.')
