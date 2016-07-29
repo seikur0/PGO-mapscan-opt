@@ -116,7 +116,7 @@ def do_settings():
     global F_LIMIT
     global pb
     global PUSHPOKS
-	global centralscan
+    global centralscan
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", "--id", help="worker id")
