@@ -166,15 +166,15 @@ function initMap() {
 function initSite() {
   getFile("res/usersettings.json", false, function(tsettings) {
     var settings=JSON.parse(tsettings);
-	var centralized=settings['unique_coordinates'];
-    if (centralized==false){
-	    LAT_C=settings['standard_coordinates']['lat'];
+    if (settings['unique_coordinates']==false) {
+        LAT_C=settings['standard_coordinates']['lat'];
         LNG_C=settings['standard_coordinates']['lng'];
-		}
-    else{
-	    LAT_C=settings['profiles']['0']['coordinates']['lat'];
+    }else{
+        LAT_C=settings['profiles']['0']['coordinates']['lat'];
         LNG_C=settings['profiles']['0']['coordinates']['lng'];
-	}
+    }
+    LAT_C=settings['standard_coordinates']['lat'];
+    LNG_C=settings['standard_coordinates']['lng'];
     LANGUAGE=settings['language'];
     excludeIDs=settings['exclude_ids'];
     scalesize = Math.ceil(72*settings['icon_scalefactor']);
@@ -194,5 +194,4 @@ initSite()
 
 </script>
 
-  
 </body></html>
