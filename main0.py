@@ -235,15 +235,6 @@ def write_data_to_file(DATA_FILE):
     finally:
         f.close()
 
-def write_upload_to_file(UPLOAD_FILE):
-    try:
-        f = open(UPLOAD_FILE, 'a')
-        while len(UPLOAD) > 0:
-            obj = UPLOAD.pop()
-            out = json.dumps(obj, separators=(',', ':'))
-            f.write(out + '\n')
-    finally:
-        f.close()
 
 def add_pokemon(pokeId, spawnID, lat, lng, despawnT):
     DATA.append({
@@ -253,18 +244,6 @@ def add_pokemon(pokeId, spawnID, lat, lng, despawnT):
         'lng': lng,
         'despawnTime': despawnT,
     });
-
-def log_pokemon(pokeID, spawnID, lat, lng, encID, timestamp, despawn):
-    data = {
-        'pokemon_id':pokeID,
-        'last_modified_timestamp_ms': timestamp,
-        'time_till_hidden_ms':despawn,
-        'encounter_id': encID,
-        'spawnpoint_id': spawnID,
-        'longitude': lng,
-        'latitude': lat
-    }
-    UPLOAD.append(data)
 
 def getEarthRadius(latrad):
     return (1.0/(((math.cos(latrad))/EARTH_Rmax)**(2) + ((math.sin(latrad))/EARTH_Rmin)**(2)))**(1.0/2)
@@ -667,8 +646,7 @@ def main():
 
                                 f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id],wild.pokemon_data.pokemon_id,spawnIDint,wild.latitude,wild.longitude,(wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0-900.0,wild.last_modified_timestamp_ms/1000.0,org_tth/1000.0,wild.encounter_id))
                                 add_pokemon(wild.pokemon_data.pokemon_id,spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0))
-                                log_pokemon(wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, wild.encounter_id, wild.last_modified_timestamp_ms, wild.time_till_hidden_ms)
-
+                                
                                 if pb is not None:
                                      if wild.pokemon_data.pokemon_id in PUSHPOKS:
                                         pb.push_link("<<Pokemon: {}>>  <<Timer: {}s>>".format(pokemons[wild.pokemon_data.pokemon_id],int(wild.time_till_hidden_ms/1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude,wild.longitude))
@@ -680,7 +658,6 @@ def main():
                                     difflng = diff.lng().degrees
                                     direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '')  + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
                                     print("<<>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
-                    write_upload_to_file(UPLOAD_FILE)
                 write_data_to_file(DATA_FILE)
                 #if LOGGING:
                     #print('')
