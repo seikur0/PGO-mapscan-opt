@@ -26,9 +26,7 @@ class Greeter(LineReceiver):
         pass
 
     def sendPokemonLine(self, line):
-        print(line)
         spl = line.split("\t")
-        print(spl)
         obj = {
             "pokemon_id": spl[1],
             "last_modified_timestamp_ms": int(float(spl[5])),
@@ -40,7 +38,6 @@ class Greeter(LineReceiver):
         }
 
         msg = json.dumps(obj)
-        print(msg)
         self.sendLine(msg.encode('UTF-8'))
 
     def sendMessage(self, msg=''):
@@ -83,14 +80,15 @@ def wait(seconds, result=None):
 
 
 def find_files():
-    pattern = re.compile("^spawns[^0-9]*\..+\.json$")
+    pattern = re.compile("spawns[0-9]*\..+_.+\.json")
     ignored = []
     if os.path.isfile(ignore_file):
         with open(ignore_file) as f:
             ignored = f.readlines()
+    print(ignored)
     for file in os.listdir("res"):
-        if pattern.match(file) and file not in ignored:
-            yield file
+        if pattern.match(file) is not None and file not in ignored:
+            yield "res/"+file
 
 
 def complete_file(file):
@@ -109,7 +107,7 @@ def gotProtocol(p):
                     p.sendMessage(line)
                     # Give control back to the reactor to actually send the data
                     update_tick()
-                    yield wait(1)
+                    yield wait(0.1)
             complete_file(file)
 
     print('')
