@@ -72,8 +72,8 @@ FLOAT_LNG = None
 FLOAT_ALT = None
 EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
-HEX_R = 100.0 #range of detection for pokemon = 100m
-HEX_M = 3.0**(0.5)/2.0*HEX_R
+HEX_R = None
+
 safety=0.999
 
 LOGGING = False
@@ -86,16 +86,20 @@ LANGUAGE = None
 HEX_NUM = None
 wID = None
 interval = None
+centralscan = False
 
-LI_TYPE=None
-li_user=None
-li_password=None
+LI_TYPE=[]
+li_user=[]
+li_password=[]
 LAT_C,LNG_C,ALT_C = [None,None,None]
 
-api_endpoint = None
-access_token = None
-response = {}
+api_endpoint = []
+access_token = []
+response = []
 r = None
+
+JOINTNUM = None
+jointcur = None
 
 
 SETTINGS_FILE='res/usersettings.json'
@@ -112,6 +116,7 @@ def do_settings():
     global F_LIMIT
     global pb
     global PUSHPOKS
+	global centralscan
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", "--id", help="worker id")
@@ -204,9 +209,10 @@ def do_settings():
             ALT_C = float(ALT_C)
 
     if allsettings['centralscan']:
-        centralscan_location()
+        centralscan=True
     else:
         set_location_coords(LAT_C,LNG_C,ALT_C)
+
     F_LIMIT=int(allsettings['backup_size']*1024*1024)
     if F_LIMIT==0:
         F_LIMIT=9223372036854775807
@@ -255,6 +261,7 @@ def set_location_coords(lat, lng, alt):
 
 def centralscan_location():
     latrad=LAT_C*math.pi/180
+    HEX_M = 3.0**(0.5)/2.0*HEX_R
 
     a=(HEX_NUM+0.5)
     x_un=1.5*HEX_R/getEarthRadius(latrad)/math.cos(latrad)*safety*a*180/math.pi
@@ -453,7 +460,7 @@ def get_profile(access_token, api, useauth, *reqq):
 
     newResponse = api_req(api, access_token, req, useauth = useauth)
 
-    retry_after=0.26
+    retry_after=0.25
     while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         #print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
@@ -514,9 +521,8 @@ def heartbeat():
         m1.request_message = m11.SerializeToString()
         newResponse = get_profile(access_token, api_endpoint, response.auth_ticket, m1, m2, m3, m4, m5)
         if newResponse.status_code==1:
-            payload = newResponse.returns[0]
             heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
-            heartbeat.ParseFromString(payload)
+            heartbeat.ParseFromString(newResponse.returns[0])
             return heartbeat
         elif newResponse.status_code==2:
             authorize_profile()
@@ -549,7 +555,7 @@ def statfile_new(statfile):
 
 def main():
     global MAXWAIT
-
+    global HEX_R
     do_settings()
 
     DATA_FILE = 'res/data{}.json'.format(wID)
@@ -564,9 +570,17 @@ def main():
     authorize_profile()
     print('[+] Login successful')
 
-    payload = response.returns[0]
+
+    settings = POGOProtos.Networking.Responses_pb2.DownloadSettingsResponse()
+    settings.ParseFromString(response.returns[4])
+    HEX_R = settings.settings.map_settings.pokemon_visible_range
+
+    if centralscan:
+        centralscan_location()
+
     profile = POGOProtos.Networking.Responses_pb2.GetPlayerResponse()
-    profile.ParseFromString(payload)
+    profile.ParseFromString(response.returns[0])
+
 
     print('[+] Username: {}'.format(profile.player_data.username))
 
@@ -583,6 +597,7 @@ def main():
     for a in range(1,HEX_NUM+1):
         for i in range(0,a*6):
             latrad = origin.lat().radians
+            HEX_M = 3.0**(0.5)/2.0*HEX_R
 
             x_un=1.5*HEX_R/getEarthRadius(latrad)/math.cos(latrad)*safety*180/math.pi
             y_un=1.0*HEX_M/getEarthRadius(latrad)*safety*180/math.pi
@@ -626,10 +641,9 @@ def main():
             for this_ll in all_ll:
                 #if LOGGING:
                     #print('[+] Finished: '+str(100.0*curR/maxR)+' %')
-                #curR+=1
+                    #curR+=1
                 set_location_coords(this_ll.lat().degrees, this_ll.lng().degrees, ALT_C)
                 h = heartbeat()
-
                 for cell in h.map_cells:
                     for wild in cell.wild_pokemons:
                         if (wild.encounter_id not in seen):
@@ -655,7 +669,7 @@ def main():
                                     difflat = diff.lat().degrees
                                     difflng = diff.lng().degrees
                                     direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '')  + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
-                                    print("<<>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
+                                    print("<<pwild>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
                 write_data_to_file(DATA_FILE)
                 #if LOGGING:
                     #print('')
@@ -666,6 +680,7 @@ def main():
 
         uniqueE=uniqueE & seen
         seen.clear()
+        print('[+] Encounters seen: {}'.format(len(uniqueE)))
 
         if backup:
             print('[+] File size is over the set limit, doing backup.')
