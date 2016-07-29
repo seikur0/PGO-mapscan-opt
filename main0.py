@@ -7,6 +7,7 @@ import POGOProtos
 import POGOProtos.Data_pb2
 import POGOProtos.Enums_pb2
 import POGOProtos.Inventory_pb2
+import POGOProtos.Inventory_pb2
 import POGOProtos.Map_pb2
 import POGOProtos.Settings_pb2
 import POGOProtos.Networking
@@ -15,12 +16,13 @@ import POGOProtos.Networking.Requests_pb2
 import POGOProtos.Networking.Responses_pb2
 import POGOProtos.Networking.Requests
 import POGOProtos.Networking.Requests.Messages_pb2
-
+import pushbullet
+import os.path
 import time
 from datetime import datetime
 import sys
 import math
-
+from pushbullet import Pushbullet
 from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
@@ -93,7 +95,7 @@ api_endpoint = None
 access_token = None
 response = {}
 r = None
-
+pb = None
 
 SETTINGS_FILE='res/usersettings.json'
 
@@ -107,7 +109,8 @@ def do_settings():
     global HEX_NUM
     global interval
     global F_LIMIT
-
+    global POKEMONS_PUSH
+    global pb
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", "--id", help="worker id")
     parser.add_argument("-r", "--range", help="scan range")
@@ -205,7 +208,14 @@ def do_settings():
     F_LIMIT=int(allsettings['backup_size']*1024*1024)
     if F_LIMIT==0:
         F_LIMIT=9223372036854775807
-
+    PBKEY = allsettings['PB_ApiKey']
+    if pb is None:
+        pb = Pushbullet(PBKEY)
+    POKEMONS_PUSH=allsettings['Pokemon_to_Push']
+    
+    
+    
+    
 def prune_data():
     # prune despawned pokemon
     cur_time = int(time.time())
@@ -440,7 +450,7 @@ def get_profile(access_token, api, useauth, *reqq):
 
     retry_after=0.26
     while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
-        print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
+        #print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
         retry_after=min(retry_after*2,MAXWAIT)
         newResponse = api_req(api, access_token, req, useauth = useauth)
@@ -630,7 +640,8 @@ def main():
 
                                 f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id],wild.pokemon_data.pokemon_id,spawnIDint,wild.latitude,wild.longitude,(wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0-900.0,wild.last_modified_timestamp_ms/1000.0,org_tth/1000.0,wild.encounter_id))
                                 add_pokemon(wild.pokemon_data.pokemon_id,spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0))
-
+                                if wild.pokemon_data.pokemon_id in POKEMONS_PUSH:
+                                    push = pb.push_link("Pokemon {} found! Timer {}".format(pokemons[wild.pokemon_data.pokemon_id],int(wild.time_till_hidden_ms/1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude,wild.longitude))
                                 if LOGGING:
                                     other = LatLng.from_degrees(wild.latitude, wild.longitude)
                                     diff = other - origin
