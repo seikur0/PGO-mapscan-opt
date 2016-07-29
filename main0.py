@@ -140,12 +140,12 @@ def do_settings():
     li_password=args.password
 
     ALT_C=args.altitude
-    if args.address is None:
+    if args.location is None:
         LAT_C=args.latitude
         LNG_C=args.longitude
     else:
         url = 'https://maps.googleapis.com/maps/api/geocode/json'
-        params = {'sensor': 'false', 'address': args.address}
+        params = {'sensor': 'false', 'address': args.location}
         r = requests.get(url, params=params)
         if r.status_code==200:
             spot = r.json()['results'][0]['geometry']['location']
