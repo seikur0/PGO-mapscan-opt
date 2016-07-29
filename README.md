@@ -28,7 +28,7 @@
   * '-alt': altitude
 
 ## What to do with collected data
-* 'python collector.py' will upload the backupped spawn files and share them
+* 'python collector.py' will upload the backed up spawn files and share them
 * I was asked to include that tool by Kostronor, for more informations see https://github.com/seikur0/PGO-mapscan-opt/issues/14
 
 ## Updated stuff
