@@ -20,6 +20,7 @@ import time
 from datetime import datetime
 import sys
 import math
+import os
 
 from pushbullet import Pushbullet
 from s2sphere import CellId, LatLng
@@ -87,6 +88,7 @@ HEX_NUM = None
 wID = None
 interval = None
 centralscan = False
+workdir = os.path.dirname(os.path.realpath(__file__))
 
 LI_TYPE=[]
 li_user=[]
@@ -102,7 +104,7 @@ JOINTNUM = None
 jointcur = None
 
 
-SETTINGS_FILE='res/usersettings.json'
+SETTINGS_FILE='{}/res/usersettings.json'.format(workdir)
 
 def do_settings():
     global LANGUAGE
@@ -128,6 +130,7 @@ def do_settings():
     parser.add_argument("-lat", "--latitude", help="latitude")
     parser.add_argument("-lng", "--longitude", help="longitude")
     parser.add_argument("-alt", "--altitude", help="altitude")
+    parser.add_argument("-a", "--address", help="address")
     args = parser.parse_args()
     wID=args.id
     HEX_NUM=args.range
@@ -135,9 +138,19 @@ def do_settings():
     LI_TYPE=args.logintype
     li_user=args.username
     li_password=args.password
-    LAT_C=args.latitude
-    LNG_C=args.longitude
+
     ALT_C=args.altitude
+
+    if(not args.address):
+        LAT_C=args.latitude
+        LNG_C=args.longitude
+    else:
+        url = 'https://maps.googleapis.com/maps/api/geocode/json'
+        params = {'sensor': 'false', 'address': str(args.address)}
+        r = requests.get(url, params=params)
+        results = r.json()['results']
+        spot = results[0]['geometry']['location']
+        LAT_C,LNG_C = [spot['lat'], spot['lng']]
 
     if wID is None:
         wID=0
@@ -557,9 +570,9 @@ def main():
     global HEX_R
     do_settings()
 
-    DATA_FILE = 'res/data{}.json'.format(wID)
-    STAT_FILE = 'res/spawns{}.json'.format(wID)
-    pokemons = json.load(open('res/'+LANGUAGE+'.json'))
+    DATA_FILE = '{}/res/data{}.json'.format(workdir, wID)
+    STAT_FILE = '{}/res/spawns{}.json'.format(workdir, wID)
+    pokemons = json.load(open('{}/res/{}.json'.format(workdir, LANGUAGE)))
 
     do_login()
     print('[+] RPC Session Token: {}'.format(access_token))
