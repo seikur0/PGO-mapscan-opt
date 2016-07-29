@@ -460,7 +460,7 @@ def get_profile(access_token, api, useauth, *reqq):
 
     newResponse = api_req(api, access_token, req, useauth = useauth)
 
-    retry_after=0.26
+    retry_after=0.25
     while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         #print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
