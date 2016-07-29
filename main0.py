@@ -210,8 +210,7 @@ def do_settings():
 
     if allsettings['centralscan']:
         centralscan=True
-    else:
-        set_location_coords(LAT_C,LNG_C,ALT_C)
+    set_location_coords(LAT_C,LNG_C,ALT_C)
 
     F_LIMIT=int(allsettings['backup_size']*1024*1024)
     if F_LIMIT==0:
