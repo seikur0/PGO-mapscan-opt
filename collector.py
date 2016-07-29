@@ -8,7 +8,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 
-ignore_file = "/res/.uploader.ignore"
+ignore_file = "res/.uploader.ignore"
 
 url = 'h2569107.stratoserver.net'
 port = 8007
@@ -85,10 +85,18 @@ def find_files():
     if os.path.isfile(ignore_file):
         with open(ignore_file) as f:
             ignored = f.readlines()
-    print(ignored)
     for file in os.listdir("res"):
         if pattern.match(file) is not None and file not in ignored:
-            yield "res/"+file
+            fileout = "res/" + file
+            yield fileout
+
+
+def file_len(fname):
+    i, l = 0, 0
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
 
 
 def complete_file(file):
@@ -100,6 +108,7 @@ def complete_file(file):
 def gotProtocol(p):
     for file in find_files():
         if os.path.isfile(file):
+            linenum = file_len(file)
             with open(file) as f:
                 for line in f:
                     if line.startswith("Name"):
