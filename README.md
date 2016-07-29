@@ -26,6 +26,7 @@
   * '-lat': latitude
   * '-lng': longitude
   * '-alt': altitude
+  * '-loc': location, you can specify the name of a location and the coordinates will be set to that, overwrites -lat and -lng
 
 ## What to do with collected data
 * 'python collector.py' will upload the backed up spawn files and share them
