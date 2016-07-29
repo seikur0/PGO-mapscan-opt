@@ -138,7 +138,7 @@ def do_settings():
         f = open(SETTINGS_FILE, 'r')
         try:
             allsettings=json.load(f)
-        except ValueErroras e:
+        except ValueError as e:
             print("[-] Error: The settings file is not in a valid format, {}".format(e))
             f.close()
             sys.exit()
