@@ -130,7 +130,7 @@ def do_settings():
     parser.add_argument("-lat", "--latitude", help="latitude")
     parser.add_argument("-lng", "--longitude", help="longitude")
     parser.add_argument("-alt", "--altitude", help="altitude")
-    parser.add_argument("-a", "--address", help="address")
+    parser.add_argument("-loc", "--location", help="location")
     args = parser.parse_args()
     wID=args.id
     HEX_NUM=args.range
@@ -140,17 +140,21 @@ def do_settings():
     li_password=args.password
 
     ALT_C=args.altitude
-
-    if(not args.address):
+    if args.address is None:
         LAT_C=args.latitude
         LNG_C=args.longitude
     else:
         url = 'https://maps.googleapis.com/maps/api/geocode/json'
-        params = {'sensor': 'false', 'address': str(args.address)}
+        params = {'sensor': 'false', 'address': args.address}
         r = requests.get(url, params=params)
-        results = r.json()['results']
-        spot = results[0]['geometry']['location']
-        LAT_C,LNG_C = [spot['lat'], spot['lng']]
+        if r.status_code==200:
+            spot = r.json()['results'][0]['geometry']['location']
+            LAT_C,LNG_C = [spot['lat'], spot['lng']]
+        else:
+            print("[-] Error: The coordinates for the specified location couldn't be retrieved, http code: {}".format(r.status_code))
+            print("[-] The location parameter will be ignored.")
+            LAT_C=args.latitude
+            LNG_C=args.longitude
 
     if wID is None:
         wID=0
