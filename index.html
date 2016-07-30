@@ -210,7 +210,9 @@ function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: {lat: LAT_C, lng: LNG_C},
     zoom: 15,
-    disableDoubleClickZoom: true
+    streetViewControl: false,
+    scaleControl: true,
+    disableDoubleClickZoom: false
   });
   getFile(respath+LANGUAGE+".json", false, function(tnames) {
     pokenames=JSON.parse(tnames);
