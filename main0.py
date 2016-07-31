@@ -20,6 +20,7 @@ import time
 from datetime import datetime
 import sys
 import math
+import os
 
 from pushbullet import Pushbullet
 from s2sphere import CellId, LatLng
@@ -87,6 +88,7 @@ HEX_NUM = None
 wID = None
 interval = None
 centralscan = False
+workdir = os.path.dirname(os.path.realpath(__file__))
 
 LI_TYPE=[]
 li_user=[]
@@ -102,7 +104,7 @@ JOINTNUM = None
 jointcur = None
 
 
-SETTINGS_FILE='res/usersettings.json'
+SETTINGS_FILE='{}/res/usersettings.json'.format(workdir)
 
 def do_settings():
     global LANGUAGE
@@ -128,6 +130,7 @@ def do_settings():
     parser.add_argument("-lat", "--latitude", help="latitude")
     parser.add_argument("-lng", "--longitude", help="longitude")
     parser.add_argument("-alt", "--altitude", help="altitude")
+    parser.add_argument("-loc", "--location", help="location")
     args = parser.parse_args()
     wID=args.id
     HEX_NUM=args.range
@@ -135,9 +138,23 @@ def do_settings():
     LI_TYPE=args.logintype
     li_user=args.username
     li_password=args.password
-    LAT_C=args.latitude
-    LNG_C=args.longitude
+
     ALT_C=args.altitude
+    if args.location is None:
+        LAT_C=args.latitude
+        LNG_C=args.longitude
+    else:
+        url = 'https://maps.googleapis.com/maps/api/geocode/json'
+        params = {'sensor': 'false', 'address': args.location}
+        r = requests.get(url, params=params)
+        if r.status_code==200:
+            spot = r.json()['results'][0]['geometry']['location']
+            LAT_C,LNG_C = [spot['lat'], spot['lng']]
+        else:
+            print("[-] Error: The coordinates for the specified location couldn't be retrieved, http code: {}".format(r.status_code))
+            print("[-] The location parameter will be ignored.")
+            LAT_C=args.latitude
+            LNG_C=args.longitude
 
     if wID is None:
         wID=0
@@ -181,7 +198,7 @@ def do_settings():
     else:
         interval=int(interval)
 
-    if allsettings['unique_coordinates'] and not allsettings['centralscan']:
+    if allsettings['unique_coordinates'] and (not allsettings['centralscan'] or wID > 6):
         if LAT_C is None:
             LAT_C = allsettings['profiles'][tID]['coordinates']['lat']
         else:
@@ -208,10 +225,9 @@ def do_settings():
         else:
             ALT_C = float(ALT_C)
 
-    if allsettings['centralscan']:
+    if allsettings['centralscan'] and wID < 7:
         centralscan=True
-    else:
-        set_location_coords(LAT_C,LNG_C,ALT_C)
+    set_location_coords(LAT_C,LNG_C,ALT_C)
 
     F_LIMIT=int(allsettings['backup_size']*1024*1024)
     if F_LIMIT==0:
@@ -408,13 +424,14 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
             for meh in mehs:
                 p_req.MergeFrom(meh)
             protobuf = p_req.SerializeToString()
-            r = SESSION.post(api_endpoint, data=protobuf, verify=False)
 
+            r = SESSION.post(api_endpoint, data=protobuf, verify=False)
             retry_after=1
             while r.status_code!=200:
-                print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code,retry_after))
-                time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                if r.status_code!=403:
+                    print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code,retry_after))
+                    time.sleep(retry_after)
+                    retry_after=min(retry_after*2,MAXWAIT)
                 r = SESSION.post(api_endpoint, data=protobuf, verify=False)
 
             p_ret = POGOProtos.Networking.Envelopes_pb2.ResponseEnvelope()
@@ -460,7 +477,7 @@ def get_profile(access_token, api, useauth, *reqq):
 
     newResponse = api_req(api, access_token, req, useauth = useauth)
 
-    retry_after=0.25
+    retry_after=0.26
     while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         #print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
@@ -558,9 +575,9 @@ def main():
     global HEX_R
     do_settings()
 
-    DATA_FILE = 'res/data{}.json'.format(wID)
-    STAT_FILE = 'res/spawns{}.json'.format(wID)
-    pokemons = json.load(open('res/'+LANGUAGE+'.json'))
+    DATA_FILE = '{}/res/data{}.json'.format(workdir, wID)
+    STAT_FILE = '{}/res/spawns{}.json'.format(workdir, wID)
+    pokemons = json.load(open('{}/res/{}.json'.format(workdir, LANGUAGE)))
 
     do_login()
     print('[+] RPC Session Token: {}'.format(access_token))
