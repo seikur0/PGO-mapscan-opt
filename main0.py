@@ -4,14 +4,8 @@ import json
 import argparse
 
 import POGOProtos
-import POGOProtos.Data_pb2
-import POGOProtos.Enums_pb2
-import POGOProtos.Inventory_pb2
-import POGOProtos.Map_pb2
-import POGOProtos.Settings_pb2
 import POGOProtos.Networking
 import POGOProtos.Networking.Envelopes_pb2
-import POGOProtos.Networking.Requests_pb2
 import POGOProtos.Networking.Responses_pb2
 import POGOProtos.Networking.Requests
 import POGOProtos.Networking.Requests.Messages_pb2
@@ -27,6 +21,7 @@ from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
 
+
 def getNeighbors():
     origin = CellId.from_lat_lng(LatLng.from_degrees(FLOAT_LAT, FLOAT_LNG)).parent(15)
 
@@ -36,14 +31,14 @@ def getNeighbors():
 
     face, i, j = origin.to_face_ij_orientation()[0:3]
 
-    walk=  [origin.id(),
+    walk = [origin.id(),
             origin.from_face_ij_same(face, i, j - size, j - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i, j + size, j + size < max_size).parent(level).id(),
             origin.from_face_ij_same(face, i - size, j, i - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i + size, j, i + size < max_size).parent(level).id(),
-            origin.from_face_ij_same(face, i - size, j - size, j - size >= 0 and i - size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i - size, j - size, j - size >= 0 and i - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i + size, j - size, j - size >= 0 and i + size < max_size).parent(level).id(),
-            origin.from_face_ij_same(face, i - size, j + size, j + size < max_size and i - size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i - size, j + size, j + size < max_size and i - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i + size, j + size, j + size < max_size and i + size < max_size).parent(level).id()]
             #origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
             #origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
@@ -58,6 +53,7 @@ def getNeighbors():
             #origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
             #origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
     return walk
+
 
 API_URL = 'https://pgorelease.nianticlabs.com/plfe/rpc'
 
@@ -75,12 +71,12 @@ EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
 HEX_R = None
 
-safety=0.999
+safety = 0.999
 
 LOGGING = False
 DATA = []
 pb = None
-PUSHPOKS=set([])
+PUSHPOKS = set([])
 
 F_LIMIT = None
 LANGUAGE = None
@@ -90,28 +86,31 @@ interval = None
 centralscan = False
 workdir = os.path.dirname(os.path.realpath(__file__))
 
-LI_TYPE=[]
-li_user=[]
-li_password=[]
-LAT_C,LNG_C,ALT_C = [None,None,None]
+LI_TYPE = []
+li_user = []
+li_password = []
+LAT_C, LNG_C, ALT_C = [None, None, None]
 
 api_endpoint = []
 access_token = []
-response = []
+response = None
 r = None
 
-JOINTNUM = None
-jointcur = None
+SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 
+time_surehb = 5.0
+time_hb = 3.8
+time_small = 0.5
+tries = 2
+percinterval = 1
 
-SETTINGS_FILE='{}/res/usersettings.json'.format(workdir)
 
 def do_settings():
     global LANGUAGE
     global li_user
     global li_password
     global LI_TYPE
-    global LAT_C,LNG_C,ALT_C
+    global LAT_C, LNG_C, ALT_C
     global wID
     global HEX_NUM
     global interval
@@ -121,82 +120,82 @@ def do_settings():
     global centralscan
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-id", "--id", help="worker id")
-    parser.add_argument("-r", "--range", help="scan range")
-    parser.add_argument("-t", "--timeinterval", help="time interval")
-    parser.add_argument("-lt", "--logintype", help="ptc or google")
-    parser.add_argument("-u", "--username", help="username")
-    parser.add_argument("-p", "--password", help="password")
-    parser.add_argument("-lat", "--latitude", help="latitude")
-    parser.add_argument("-lng", "--longitude", help="longitude")
-    parser.add_argument("-alt", "--altitude", help="altitude")
-    parser.add_argument("-loc", "--location", help="location")
+    parser.add_argument('-id', '--id', help='worker id')
+    parser.add_argument('-r', '--range', help='scan range')
+    parser.add_argument('-t', '--timeinterval', help='time interval')
+    parser.add_argument('-lt', '--logintype', help='ptc or google')
+    parser.add_argument('-u', '--username', help='username')
+    parser.add_argument('-p', '--password', help='password')
+    parser.add_argument('-lat', '--latitude', help='latitude')
+    parser.add_argument('-lng', '--longitude', help='longitude')
+    parser.add_argument('-alt', '--altitude', help='altitude')
+    parser.add_argument('-loc', '--location', help='location')
     args = parser.parse_args()
-    wID=args.id
-    HEX_NUM=args.range
-    interval=args.timeinterval
-    LI_TYPE=args.logintype
-    li_user=args.username
-    li_password=args.password
+    wID = args.id
+    HEX_NUM = args.range
+    interval = args.timeinterval
+    LI_TYPE = args.logintype
+    li_user = args.username
+    li_password = args.password
 
-    ALT_C=args.altitude
+    ALT_C = args.altitude
     if args.location is None:
-        LAT_C=args.latitude
-        LNG_C=args.longitude
+        LAT_C = args.latitude
+        LNG_C = args.longitude
     else:
         url = 'https://maps.googleapis.com/maps/api/geocode/json'
         params = {'sensor': 'false', 'address': args.location}
         r = requests.get(url, params=params)
-        if r.status_code==200:
+        if r.status_code == 200:
             spot = r.json()['results'][0]['geometry']['location']
-            LAT_C,LNG_C = [spot['lat'], spot['lng']]
+            LAT_C, LNG_C = [spot['lat'], spot['lng']]
         else:
-            print("[-] Error: The coordinates for the specified location couldn't be retrieved, http code: {}".format(r.status_code))
-            print("[-] The location parameter will be ignored.")
-            LAT_C=args.latitude
-            LNG_C=args.longitude
+            print('[-] Error: The coordinates for the specified location couldn\'t be retrieved, http code: {}'.format(r.status_code))
+            print('[-] The location parameter will be ignored.')
+            LAT_C = args.latitude
+            LNG_C = args.longitude
 
     if wID is None:
-        wID=0
+        wID = 0
     else:
-        wID=int(wID)
+        wID = int(wID)
 
     try:
         f = open(SETTINGS_FILE, 'r')
         try:
-            allsettings=json.load(f)
+            allsettings = json.load(f)
         except ValueError as e:
-            print("[-] Error: The settings file is not in a valid format, {}".format(e))
+            print('[-] Error: The settings file is not in a valid format, {}'.format(e))
             f.close()
             sys.exit()
     finally:
         f.close()
 
-    LANGUAGE=allsettings['language']
-    idlist=[]
-    for i in range(0,len(allsettings['profiles'])):
+    LANGUAGE = allsettings['language']
+    idlist = []
+    for i in range(0, len(allsettings['profiles'])):
         idlist.append(allsettings['profiles'][i]['id'])
 
     if wID in idlist:
-        tID=idlist.index(wID)
+        tID = idlist.index(wID)
         if LI_TYPE is None:
-            LI_TYPE=allsettings['profiles'][tID]['type']
+            LI_TYPE = allsettings['profiles'][tID]['type']
         if li_user is None:
-            li_user=allsettings['profiles'][tID]['username']
+            li_user = allsettings['profiles'][tID]['username']
         if li_password is None:
-            li_password=allsettings['profiles'][tID]['password']
+            li_password = allsettings['profiles'][tID]['password']
     else:
-        print("[-] Error: No profile exists for the set id.")
+        print('[-] Error: No profile exists for the set id.')
         sys.exit()
 
     if HEX_NUM is None:
-        HEX_NUM=allsettings['range']
+        HEX_NUM = allsettings['range']
     else:
-        HEX_NUM=int(HEX_NUM)
+        HEX_NUM = int(HEX_NUM)
     if interval is None:
-        interval=allsettings['scaninterval']
+        interval = allsettings['scaninterval']
     else:
-        interval=int(interval)
+        interval = int(interval)
 
     if allsettings['unique_coordinates'] and (not allsettings['centralscan'] or wID > 6):
         if LAT_C is None:
@@ -226,29 +225,31 @@ def do_settings():
             ALT_C = float(ALT_C)
 
     if allsettings['centralscan'] and wID < 7:
-        centralscan=True
-    set_location_coords(LAT_C,LNG_C,ALT_C)
+        centralscan = True
+    set_location_coords(LAT_C, LNG_C, ALT_C)
 
-    F_LIMIT=int(allsettings['backup_size']*1024*1024)
-    if F_LIMIT==0:
-        F_LIMIT=9223372036854775807
+    F_LIMIT = int(allsettings['backup_size'] * 1024 * 1024)
+    if F_LIMIT == 0:
+        F_LIMIT = 9223372036854775807
 
     if allsettings['pushbullet']['enabled'] is True:
         try:
             pb = Pushbullet(allsettings['pushbullet']['api_key'])
-            PUSHPOKS=set(allsettings['pushbullet']['push_ids'])
+            PUSHPOKS = set(allsettings['pushbullet']['push_ids'])
         except Exception as e:
             print('[-] Pushbullet error, invalid key, {}'.format(e))
             print('[-] Pushbullet will be disabled.')
             pb = None
             PUSHPOKS = None
 
+
 def prune_data():
     # prune despawned pokemon
     cur_time = int(time.time())
     for i, poke in reversed(list(enumerate(DATA))):
-        if cur_time>poke['despawnTime']:
+        if cur_time > poke['despawnTime']:
             DATA.pop(i)
+
 
 def write_data_to_file(DATA_FILE):
     try:
@@ -257,6 +258,7 @@ def write_data_to_file(DATA_FILE):
     finally:
         f.close()
 
+
 def add_pokemon(pokeId, spawnID, lat, lng, despawnT):
     DATA.append({
         'id': pokeId,
@@ -264,10 +266,12 @@ def add_pokemon(pokeId, spawnID, lat, lng, despawnT):
         'lat': lat,
         'lng': lng,
         'despawnTime': despawnT,
-    });
+    })
+
 
 def getEarthRadius(latrad):
-    return (1.0/(((math.cos(latrad))/EARTH_Rmax)**(2) + ((math.sin(latrad))/EARTH_Rmin)**(2)))**(1.0/2)
+    return (1.0 / (((math.cos(latrad)) / EARTH_Rmax) ** 2 + ((math.sin(latrad)) / EARTH_Rmin) ** 2)) ** (1.0 / 2)
+
 
 def set_location_coords(lat, lng, alt):
     global FLOAT_LAT, FLOAT_LNG, FLOAT_ALT
@@ -275,45 +279,46 @@ def set_location_coords(lat, lng, alt):
     FLOAT_LNG = lng
     FLOAT_ALT = alt
 
+
 def centralscan_location():
-    latrad=LAT_C*math.pi/180
-    HEX_M = 3.0**(0.5)/2.0*HEX_R
+    latrad = LAT_C * math.pi / 180
+    HEX_M = 3.0 ** 0.5 / 2.0 * HEX_R
 
-    a=(HEX_NUM+0.5)
-    x_un=1.5*HEX_R/getEarthRadius(latrad)/math.cos(latrad)*safety*a*180/math.pi
-    y_un=3.0*HEX_M/getEarthRadius(latrad)*safety*a*180/math.pi
-    xmod=[0,1,2,1,-1,-2,-1]
-    ymod=[0,-1,0,1,1,0,-1]
-    lat = LAT_C+ymod[wID]*y_un
-    lng = LNG_C+xmod[wID]*x_un
+    a = HEX_NUM + 0.5
+    x_un = 1.5 * HEX_R / getEarthRadius(latrad) / math.cos(latrad) * safety * a * 180 / math.pi
+    y_un = 3.0 * HEX_M / getEarthRadius(latrad) * safety * a * 180 / math.pi
+    xmod = [0, 1, 2, 1, -1, -2, -1]
+    ymod = [0, -1, 0, 1, 1, 0, -1]
+    lat = LAT_C + ymod[wID] * y_un
+    lng = LNG_C + xmod[wID] * x_un
 
-    set_location_coords(lat,lng,ALT_C)
+    set_location_coords(lat, lng, ALT_C)
 
-def login_google(username,password):
+
+def login_google(username, password):
     global access_token
-    global login_type
 
-    ANDROID_ID='9774d56d682e549c'
-    SERVICE='audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com'
-    APP='com.nianticlabs.pokemongo'
-    APP_SIG='321187995bc7cdc2b5fc91b11a96e2baa8602c62'
+    ANDROID_ID = '9774d56d682e549c'
+    SERVICE = 'audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com'
+    APP = 'com.nianticlabs.pokemongo'
+    APP_SIG = '321187995bc7cdc2b5fc91b11a96e2baa8602c62'
 
     while True:
         try:
-            retry_after=1
+            retry_after = 1
             login1 = perform_master_login(username, password, ANDROID_ID)
             while login1.get('Token') is None:
                 print('[-] Google Login error, retrying in {} seconds (step 1)'.format(retry_after))
                 time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                retry_after = min(retry_after * 2, MAXWAIT)
                 login1 = perform_master_login(username, password, ANDROID_ID)
 
-            retry_after=1
+            retry_after = 1
             login2 = perform_oauth(username, login1.get('Token'), ANDROID_ID, SERVICE, APP, APP_SIG)
             while login2.get('Auth') is None:
                 print('[-] Google Login error, retrying in {} seconds (step 2)'.format(retry_after))
                 time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                retry_after = min(retry_after * 2, MAXWAIT)
                 login2 = perform_oauth(username, login1.get('Token', ''), ANDROID_ID, SERVICE, APP, APP_SIG)
 
             access_token = login2['Auth']
@@ -323,25 +328,24 @@ def login_google(username,password):
             print('[-] Retrying...')
             time.sleep(2)
 
+
 def login_ptc(username, password):
     global access_token
-    global login_type
 
     LOGIN_URL = 'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'
     LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
 
     while True:
         try:
-            #SESSION.headers.update({'User-Agent': 'Niantic App'})
+            # SESSION.headers.update({'User-Agent': 'Niantic App'})
             SESSION.headers.update({'User-Agent': 'niantic'})
             r = SESSION.get(LOGIN_URL)
-            retry_after=1
-            while r.status_code!=200:
-                print('[-] Connection error {}, retrying in {} seconds (step 1)'.format(r.status_code,retry_after))
+            retry_after = 1
+            while r.status_code != 200:
+                print('[-] Connection error {}, retrying in {} seconds (step 1)'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                retry_after = min(retry_after * 2, MAXWAIT)
                 r = SESSION.get(LOGIN_URL)
-
 
             jdata = json.loads(r.content)
             data = {
@@ -352,15 +356,14 @@ def login_ptc(username, password):
                 'password': password,
             }
             r = SESSION.post(LOGIN_URL, data=data)
-            retry_after=1
+            retry_after = 1
 
-            while r.status_code!=500 and r.status_code!=200:
-                print('[-] Connection error {}, retrying in {} seconds (step 2)'.format(r.status_code,retry_after))
+            while r.status_code != 500 and r.status_code != 200:
+                print('[-] Connection error {}, retrying in {} seconds (step 2)'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                retry_after = min(retry_after * 2, MAXWAIT)
                 r = SESSION.post(LOGIN_URL, data=data)
 
-            ticket = None
             ticket = re.sub('.*ticket=', '', r.history[0].headers['Location'])
             data1 = {
                 'client_id': 'mobile-app_pokemon-go',
@@ -370,10 +373,10 @@ def login_ptc(username, password):
                 'code': ticket,
             }
             r = SESSION.post(LOGIN_OAUTH, data=data1)
-            while r.status_code!=200:
-                print('[-] Connection error {}, retrying in {} seconds (step 3)'.format(r.status_code,retry_after))
+            while r.status_code != 200:
+                print('[-] Connection error {}, retrying in {} seconds (step 3)'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                retry_after = min(retry_after * 2, MAXWAIT)
                 r = SESSION.post(LOGIN_OAUTH, data=data1)
 
             access_token = re.sub('&expires.*', '', r.content)
@@ -389,29 +392,31 @@ def login_ptc(username, password):
             print('[-] Retrying...')
             time.sleep(2)
 
+
 def do_login():
-    if LI_TYPE=='ptc':
-        print('[+] login for ptc account: {}'.format(li_user))
-        login_ptc(li_user,li_password)
-    elif LI_TYPE=='google':
-        print('[+] login for google account: {}'.format(li_user))
-        login_google(li_user,li_password)
+    if LI_TYPE == 'ptc':
+        print('[+] Login for ptc account: {}'.format(li_user))
+        login_ptc(li_user, li_password)
+    elif LI_TYPE == 'google':
+        print('[+] Login for google account: {}'.format(li_user))
+        login_google(li_user, li_password)
     else:
-        print("[-] Error: Login type should be either ptc or google.")
+        print('[-] Error: Login type should be either ptc or google.')
         sys.exit()
 
+
 def api_req(api_endpoint, access_token, *mehs, **kw):
-    r=None;
+    r = None
     while True:
         try:
             p_req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
-            p_req.request_id = 1469378659230941192 #anything works here as well, tried 1569378659230941192
+            p_req.request_id = 1469378659230941192# anything works here as well 1469378659230941192
 
             p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
 
             p_req.latitude, p_req.longitude, p_req.altitude = (FLOAT_LAT, FLOAT_LNG, FLOAT_ALT)
 
-            p_req.unknown12 = 989 #transaction id, anything works
+            p_req.unknown12 = 989  # transaction id, anything works
             if 'useauth' not in kw or not kw['useauth']:
                 p_req.auth_info.provider = LI_TYPE
                 p_req.auth_info.token.contents = access_token
@@ -426,21 +431,21 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
             protobuf = p_req.SerializeToString()
 
             r = SESSION.post(api_endpoint, data=protobuf, verify=False)
-            retry_after=1
-            while r.status_code!=200:
-                if r.status_code==403:
+            retry_after = 1
+            while r.status_code != 200:
+                if r.status_code == 403:
                     print('[-] Access denied, your IP is blocked by the N-company.')
                     sys.exit()
-                print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code,retry_after))
+                print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                retry_after = min(retry_after * 2, MAXWAIT)
                 r = SESSION.post(api_endpoint, data=protobuf, verify=False)
 
             p_ret = POGOProtos.Networking.Envelopes_pb2.ResponseEnvelope()
             p_ret.ParseFromString(r.content)
             return p_ret
 
-        except Exception,e:
+        except Exception, e:
             print('[-] Uncaught connection error, error: {}'.format(e))
             if r is not None:
                 print('[-] Uncaught connection error, http code: {}'.format(r.status_code))
@@ -448,6 +453,7 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
                 print('[-] Error happened before network request.')
             print('[-] Retrying...')
             time.sleep(2)
+
 
 def get_profile(access_token, api, useauth, *reqq):
     req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
@@ -477,100 +483,107 @@ def get_profile(access_token, api, useauth, *reqq):
     if len(reqq) >= 5:
         req5.MergeFrom(reqq[4])
 
-    newResponse = api_req(api, access_token, req, useauth = useauth)
+    newResponse = api_req(api, access_token, req, useauth=useauth)
 
-    retry_after=0.26
-    while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
-        #print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
+    retry_after = 1
+    while newResponse.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
+        print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
-        retry_after=min(retry_after*2,MAXWAIT)
-        newResponse = api_req(api, access_token, req, useauth = useauth)
+        retry_after = min(retry_after * 2, MAXWAIT)
+        newResponse = api_req(api, access_token, req, useauth=useauth)
     return newResponse
+
 
 def set_api_endpoint():
     global api_endpoint
     p_ret = get_profile(access_token, API_URL, None)
-    while p_ret.status_code==102:
+    while p_ret.status_code == 102:
         print('[-] Error, invalid session, retrying...')
-        time.sleep(300) #at that point the severs are pretty much done for, so waiting for 5 min
+        time.sleep(2)
         p_ret = get_profile(access_token, API_URL, None)
 
     api_endpoint = ('https://%s/rpc' % p_ret.api_url)
+
 
 def authorize_profile():
     global response
     response = get_profile(access_token, api_endpoint, None)
 
+
 def heartbeat():
     while True:
-        lastR_t = int(time.time()*1000)
-        m5 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
+        #lastR_t = int(time.time() * 1000)
+        #m5 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
         #m5.request_type = POGOProtos.Networking.Envelopes_pb2.DOWNLOAD_SETTINGS
-        m51 = POGOProtos.Networking.Requests.Messages_pb2.DownloadSettingsMessage()
-        m51.hash = "05daf51635c82611d1aac95c0b051d3ec088a930"
-        m5.request_message = m51.SerializeToString()
+        #m51 = POGOProtos.Networking.Requests.Messages_pb2.DownloadSettingsMessage()
+        #m51.hash = '05daf51635c82611d1aac95c0b051d3ec088a930'
+        #m5.request_message = m51.SerializeToString()
 
-        m4 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
-        #m4.request_type = POGOProtos.Networking.Envelopes_pb2.CHECK_AWARDED_BADGES
-        #m41 = POGOProtos.Networking.Requests.Messages_pb2.CheckAwardedBadgesMessage()
+        #m4 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
+        # m4.request_type = POGOProtos.Networking.Envelopes_pb2.CHECK_AWARDED_BADGES
+        # m41 = POGOProtos.Networking.Requests.Messages_pb2.CheckAwardedBadgesMessage()
 
-
-        m3 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
+        #m3 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
         #m3.request_type = POGOProtos.Networking.Envelopes_pb2.GET_INVENTORY
-        m31 = POGOProtos.Networking.Requests.Messages_pb2.GetInventoryMessage()
-        m31.last_timestamp_ms = lastR_t
-        m3.request_message = m31.SerializeToString()
+        #m31 = POGOProtos.Networking.Requests.Messages_pb2.GetInventoryMessage()
+        #m31.last_timestamp_ms = lastR_t
+        #m3.request_message = m31.SerializeToString()
 
-
-        m2 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
+        #m2 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
         #m2.request_type = POGOProtos.Networking.Envelopes_pb2.GET_HATCHED_EGGS
         #m21 = POGOProtos.Networking.Requests.Messages_pb2.GetHatchedEggsMessage()
-
 
         m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
         m1.request_type = POGOProtos.Networking.Envelopes_pb2.GET_MAP_OBJECTS
         m11 = POGOProtos.Networking.Requests.Messages_pb2.GetMapObjectsMessage()
 
-        walk = sorted(getNeighbors())
+        walk = getNeighbors()
         m11.cell_id.extend(walk)
 
-        m11.since_timestamp_ms.extend([0]*len(walk))
+        m11.since_timestamp_ms.extend([0] * len(walk))
         m11.latitude = FLOAT_LAT
         m11.longitude = FLOAT_LNG
         m1.request_message = m11.SerializeToString()
-        newResponse = get_profile(access_token, api_endpoint, response.auth_ticket, m1, m2, m3, m4, m5)
-        if newResponse.status_code==1:
+        newResponse = get_profile(access_token, api_endpoint, response.auth_ticket, m1)
+        if newResponse.status_code == 1:
             heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
             heartbeat.ParseFromString(newResponse.returns[0])
-            return heartbeat
-        elif newResponse.status_code==2:
+            for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
+                for testit in cell.spawn_points:
+                    return heartbeat
+            return None
+        elif newResponse.status_code == 2:
             authorize_profile()
-        elif newResponse.status_code==102:
+        elif newResponse.status_code == 102:
             print('[-] Error, refreshing login')
             do_login()
             set_api_endpoint()
             authorize_profile()
         else:
-            print('[-] Heartbeat error, status code: {}'.format(newResponse.status_code)) #should not happen, probably unused
+            print('[-] Heartbeat error, status code: {}'.format(
+                newResponse.status_code))  # should not happen, probably unused
             print('[-] Retrying...')
             time.sleep(2)
+
 
 def fixNum(int_type):
     length = 0
     int_ret = ~int_type
-    while (int_ret):
+    while int_ret:
         int_ret >>= 1
         length += 1
     int_ret = int_type ^ (-1 << length)
     return int_ret
 
+
 def statfile_new(statfile):
     try:
-        f=open(statfile,'a')
-        if f.tell()==0:
+        f = open(statfile, 'a')
+        if f.tell() == 0:
             f.write('Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n')
     finally:
         f.close()
+
 
 def main():
     global MAXWAIT
@@ -589,7 +602,6 @@ def main():
     authorize_profile()
     print('[+] Login successful')
 
-
     settings = POGOProtos.Networking.Responses_pb2.DownloadSettingsResponse()
     settings.ParseFromString(response.returns[4])
     HEX_R = settings.settings.map_settings.pokemon_visible_range
@@ -600,117 +612,129 @@ def main():
     profile = POGOProtos.Networking.Responses_pb2.GetPlayerResponse()
     profile.ParseFromString(response.returns[0])
 
-
     print('[+] Username: {}'.format(profile.player_data.username))
 
-    creation_time = datetime.fromtimestamp(int(profile.player_data.creation_timestamp_ms)/1000)
-    print('[+] You are playing Pokemon Go since: {}'.format(creation_time.strftime('%Y-%m-%d %H:%M:%S')))
-    for curr in profile.player_data.currencies:
-        print('[+] {}: {}'.format(curr.name, curr.amount))
-
-    MAXWAIT=NET_MAXWAIT
+    MAXWAIT = NET_MAXWAIT
     origin = LatLng.from_degrees(FLOAT_LAT, FLOAT_LNG)
     all_ll = [origin]
-    maxR = 1;
+    maxR = 1
 
-    for a in range(1,HEX_NUM+1):
-        for i in range(0,a*6):
+    for a in range(1, HEX_NUM + 1):
+        for i in range(0, a * 6):
             latrad = origin.lat().radians
-            HEX_M = 3.0**(0.5)/2.0*HEX_R
+            HEX_M = 3.0 ** 0.5 / 2.0 * HEX_R
 
-            x_un=1.5*HEX_R/getEarthRadius(latrad)/math.cos(latrad)*safety*180/math.pi
-            y_un=1.0*HEX_M/getEarthRadius(latrad)*safety*180/math.pi
+            x_un = 1.5 * HEX_R / getEarthRadius(latrad) / math.cos(latrad) * safety * 180 / math.pi
+            y_un = 1.0 * HEX_M / getEarthRadius(latrad) * safety * 180 / math.pi
             if i < a:
-                lat = FLOAT_LAT+y_un*(-2*a+i)
-                lng = FLOAT_LNG+x_un*i
-            elif i < 2*a:
-                lat = FLOAT_LAT+y_un*(-3*a+2*i)
-                lng = FLOAT_LNG+x_un*a
-            elif i < 3*a:
-                lat = FLOAT_LAT+y_un*(-a+i)
-                lng = FLOAT_LNG+x_un*(3*a-i)
-            elif i < 4*a:
-                lat = FLOAT_LAT+y_un*(5*a-i)
-                lng = FLOAT_LNG+x_un*(3*a-i)
-            elif i < 5*a:
-                lat = FLOAT_LAT+y_un*(9*a-2*i)
-                lng = FLOAT_LNG+x_un*-a
+                lat = FLOAT_LAT + y_un * (-2 * a + i)
+                lng = FLOAT_LNG + x_un * i
+            elif i < 2 * a:
+                lat = FLOAT_LAT + y_un * (-3 * a + 2 * i)
+                lng = FLOAT_LNG + x_un * a
+            elif i < 3 * a:
+                lat = FLOAT_LAT + y_un * (-a + i)
+                lng = FLOAT_LNG + x_un * (3 * a - i)
+            elif i < 4 * a:
+                lat = FLOAT_LAT + y_un * (5 * a - i)
+                lng = FLOAT_LNG + x_un * (3 * a - i)
+            elif i < 5 * a:
+                lat = FLOAT_LAT + y_un * (9 * a - 2 * i)
+                lng = FLOAT_LNG + x_un * -a
             else:
-                lat = FLOAT_LAT+y_un*(4*a-i)
-                lng = FLOAT_LNG+x_un*(-6*a+i)
+                lat = FLOAT_LAT + y_un * (4 * a - i)
+                lng = FLOAT_LNG + x_un * (-6 * a + i)
 
-            all_ll.append(LatLng.from_degrees(lat,lng))
-            maxR+=1;
+            all_ll.append(LatLng.from_degrees(lat, lng))
+            maxR += 1
 
-    #/////////////////
+    # /////////////////
 
-    #////////////////////
+    # ////////////////////
     print('')
     statfile_new(STAT_FILE)
 
     seen = set([])
     uniqueE = set([])
     backup = False
+    firstrun = True
     while True:
-        curT=int(time.time())
-        curR=0;
-        print("[+] Time: " + datetime.now().strftime("%H:%M:%S"))
+        curT = int(time.time())
+        curR = 0
+        lastperc = percinterval
+        print('[+] Time: ' + datetime.now().strftime('%H:%M:%S'))
         try:
-            f= open(STAT_FILE,'a',1)
+            f = open(STAT_FILE, 'a', 1)
             for this_ll in all_ll:
-                if LOGGING:
-                    print('[+] Finished: '+str(100.0*curR/maxR)+' %')
-                    curR+=1
+                if (100.0 * curR / maxR) >= lastperc:
+                    print('[+] Finished: {} %'.format(lastperc))
+                    lastperc=lastperc+percinterval
+                curR += 1
                 set_location_coords(this_ll.lat().degrees, this_ll.lng().degrees, ALT_C)
                 h = heartbeat()
-                for cell in h.map_cells:
-                    for wild in cell.wild_pokemons:
-                        if (wild.encounter_id not in seen):
-                            seen.add(wild.encounter_id)
-                            if (wild.encounter_id not in uniqueE):
-                                spawnIDint=int(wild.spawn_point_id, 16)
-                                org_tth=wild.time_till_hidden_ms
-                                if wild.time_till_hidden_ms < 0:
-                                    wild.time_till_hidden_ms=901000
-                                else:
-                                    uniqueE.add(wild.encounter_id)
+                count=1
+                while h is None and count <= tries:
+                    if firstrun:
+                        print('[-] Empty heartbeat, retrying... (try {}/{})'.format(count,tries))
+                        count=count+1
+                        time.sleep(time_surehb)
+                    else:
+                        time.sleep(time_small)
+                    h = heartbeat()
+                time.sleep(time_hb)
+                if h is None:
+                    all_ll.remove(this_ll)
+                    print('[-] Location seems empty and was removed from scan locations.')
+                else:
+                    for cell in h.map_cells:
+                        for wild in cell.wild_pokemons:
+                            if wild.encounter_id not in seen:
+                                seen.add(wild.encounter_id)
+                                if wild.encounter_id not in uniqueE:
+                                    spawnIDint = int(wild.spawn_point_id, 16)
+                                    org_tth = wild.time_till_hidden_ms
+                                    if wild.time_till_hidden_ms < 0:
+                                        wild.time_till_hidden_ms = 901000
+                                    else:
+                                        uniqueE.add(wild.encounter_id)
 
-                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id],wild.pokemon_data.pokemon_id,spawnIDint,wild.latitude,wild.longitude,(wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0-900.0,wild.last_modified_timestamp_ms/1000.0,org_tth/1000.0,wild.encounter_id))
-                                add_pokemon(wild.pokemon_data.pokemon_id,spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms+wild.time_till_hidden_ms)/1000.0))
+                                    f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(pokemons[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0, wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0, wild.encounter_id))
+                                    add_pokemon(wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0))
+                                    if pb is not None:
+                                        if wild.pokemon_data.pokemon_id in PUSHPOKS:
+                                            pb.push_link('<<Pokemon: {}>>  <<Timer: {}s>>'.format( pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
 
-                                if pb is not None:
-                                     if wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                        pb.push_link("<<Pokemon: {}>>  <<Timer: {}s>>".format(pokemons[wild.pokemon_data.pokemon_id],int(wild.time_till_hidden_ms/1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude,wild.longitude))
-
-                                if LOGGING:
-                                    other = LatLng.from_degrees(wild.latitude, wild.longitude)
-                                    diff = other - origin
-                                    difflat = diff.lat().degrees
-                                    difflng = diff.lng().degrees
-                                    direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '')  + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
-                                    print("<<pwild>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
-                write_data_to_file(DATA_FILE)
-                if LOGGING:
-                    print('')
-            if f.tell()>F_LIMIT:
-                backup=True
+                                    if LOGGING:
+                                        other = LatLng.from_degrees(wild.latitude, wild.longitude)
+                                        diff = other - origin
+                                        difflat = diff.lat().degrees
+                                        difflng = diff.lng().degrees
+                                        direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
+                                        print('<<>> (%s) %s visible for %s seconds (%sm %s from you)' % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
+                    write_data_to_file(DATA_FILE)
+                    #if LOGGING:
+                        #print('')
+            if f.tell() > F_LIMIT:
+                backup = True
         finally:
             f.close()
 
-        uniqueE=uniqueE & seen
+        uniqueE = uniqueE & seen
         seen.clear()
 
         if backup:
             print('[+] File size is over the set limit, doing backup.')
-            move(STAT_FILE,STAT_FILE[:-5]+'.'+time.strftime('%Y%m%d_%H%M')+'.json')
+            move(STAT_FILE, STAT_FILE[:-5] + '.' + time.strftime('%Y%m%d_%H%M') + '.json')
             statfile_new(STAT_FILE)
-            backup=False
+            backup = False
 
-        curT = int(time.time())-curT
+        curT = int(time.time()) - curT
         print('[+] Scan Time: {} s'.format(curT))
-        curT=max(interval-curT,0)
+        curT = max(interval - curT, 0)
         print('[+] Sleeping for {} seconds...'.format(curT))
         time.sleep(curT)
         prune_data()
+
+
 if __name__ == '__main__':
     main()
