@@ -718,7 +718,8 @@ def main():
                 backup = True
         finally:
             f.close()
-
+            
+        firstrun = False
         uniqueE = uniqueE & seen
         seen.clear()
 
