@@ -428,10 +428,12 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
             r = SESSION.post(api_endpoint, data=protobuf, verify=False)
             retry_after=1
             while r.status_code!=200:
-                if r.status_code!=403:
-                    print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code,retry_after))
-                    time.sleep(retry_after)
-                    retry_after=min(retry_after*2,MAXWAIT)
+                if r.status_code==403:
+                    print('[-] Access denied, your IP is blocked by the N-company.')
+                    sys.exit()
+                print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code,retry_after))
+                time.sleep(retry_after)
+                retry_after=min(retry_after*2,MAXWAIT)
                 r = SESSION.post(api_endpoint, data=protobuf, verify=False)
 
             p_ret = POGOProtos.Networking.Envelopes_pb2.ResponseEnvelope()
@@ -651,14 +653,14 @@ def main():
     backup = False
     while True:
         curT=int(time.time())
-        #curR=0;
+        curR=0;
         print("[+] Time: " + datetime.now().strftime("%H:%M:%S"))
         try:
             f= open(STAT_FILE,'a',1)
             for this_ll in all_ll:
-                #if LOGGING:
-                    #print('[+] Finished: '+str(100.0*curR/maxR)+' %')
-                    #curR+=1
+                if LOGGING:
+                    print('[+] Finished: '+str(100.0*curR/maxR)+' %')
+                    curR+=1
                 set_location_coords(this_ll.lat().degrees, this_ll.lng().degrees, ALT_C)
                 h = heartbeat()
                 for cell in h.map_cells:
@@ -688,8 +690,8 @@ def main():
                                     direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '')  + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
                                     print("<<pwild>> (%s) %s visible for %s seconds (%sm %s from you)" % (wild.pokemon_data.pokemon_id, pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms/1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
                 write_data_to_file(DATA_FILE)
-                #if LOGGING:
-                    #print('')
+                if LOGGING:
+                    print('')
             if f.tell()>F_LIMIT:
                 backup=True
         finally:
