@@ -424,13 +424,14 @@ def api_req(api_endpoint, access_token, *mehs, **kw):
             for meh in mehs:
                 p_req.MergeFrom(meh)
             protobuf = p_req.SerializeToString()
-            r = SESSION.post(api_endpoint, data=protobuf, verify=False)
 
+            r = SESSION.post(api_endpoint, data=protobuf, verify=False)
             retry_after=1
             while r.status_code!=200:
-                print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code,retry_after))
-                time.sleep(retry_after)
-                retry_after=min(retry_after*2,MAXWAIT)
+                if r.status_code!=403:
+                    print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code,retry_after))
+                    time.sleep(retry_after)
+                    retry_after=min(retry_after*2,MAXWAIT)
                 r = SESSION.post(api_endpoint, data=protobuf, verify=False)
 
             p_ret = POGOProtos.Networking.Envelopes_pb2.ResponseEnvelope()
@@ -476,7 +477,7 @@ def get_profile(access_token, api, useauth, *reqq):
 
     newResponse = api_req(api, access_token, req, useauth = useauth)
 
-    retry_after=0.25
+    retry_after=0.26
     while newResponse.status_code not in [1,2,53,102]: #1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         #print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
