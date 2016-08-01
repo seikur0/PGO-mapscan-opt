@@ -98,10 +98,9 @@ r = None
 
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 
-time_surehb = 5.0
 time_hb = 3.8
-time_small = 0.5
-tries = 2
+time_small = 1
+tries = 5
 percinterval = 1
 
 
@@ -675,16 +674,14 @@ def main():
                 count=1
                 while h is None and count <= tries:
                     if firstrun:
-                        print('[-] Empty heartbeat, retrying... (try {}/{})'.format(count,tries))
+                        #print('[-] Empty heartbeat, retrying... (try {}/{})'.format(count,tries))
                         count=count+1
-                        time.sleep(time_surehb)
-                    else:
-                        time.sleep(time_small)
+                    time.sleep(time_small)
                     h = heartbeat()
                 time.sleep(time_hb)
                 if h is None:
+                    print('[-] Empty location removed, lat: {}, lng: {}'.format(this_ll.lat().degrees,this_ll.lng().degrees))
                     all_ll[all_ll.index(this_ll)] = None
-                    print('[-] Location seems empty and was removed from scan locations.')
                 else:
                     for cell in h.map_cells:
                         for wild in cell.wild_pokemons:
@@ -720,9 +717,13 @@ def main():
             f.close()
         
         if firstrun:
-            for this_ll in all_ll:
-                if this_ll is None:
-                    all_ll.remove(this_ll)
+            a=0
+            while a < len(all_ll):
+                if all_ll[a] is None:
+                    all_ll.remove(all_ll[a])
+                    maxR = maxR - 1
+                else:
+                    a = a + 1
             firstrun = False
             if not LOGGING:
                 print('[+] Going silent.')
