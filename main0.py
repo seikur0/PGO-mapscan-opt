@@ -683,7 +683,7 @@ def main():
                     h = heartbeat()
                 time.sleep(time_hb)
                 if h is None:
-                    all_ll.remove(this_ll)
+                    all_ll[all_ll.index(this_ll)] = None
                     print('[-] Location seems empty and was removed from scan locations.')
                 else:
                     for cell in h.map_cells:
@@ -704,7 +704,7 @@ def main():
                                         if wild.pokemon_data.pokemon_id in PUSHPOKS:
                                             pb.push_link('<<Pokemon: {}>>  <<Timer: {}s>>'.format( pokemons[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
 
-                                    if LOGGING:
+                                    if firstrun or LOGGING:
                                         other = LatLng.from_degrees(wild.latitude, wild.longitude)
                                         diff = other - origin
                                         difflat = diff.lat().degrees
@@ -718,8 +718,14 @@ def main():
                 backup = True
         finally:
             f.close()
-            
-        firstrun = False
+        
+        if firstrun:
+            for this_ll in all_ll:
+                if this_ll is None:
+                    all_ll.remove(this_ll)
+            firstrun = False
+            if not LOGGING
+                print('[+] Going silent.')
         uniqueE = uniqueE & seen
         seen.clear()
 
