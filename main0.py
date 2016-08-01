@@ -724,7 +724,7 @@ def main():
                 if this_ll is None:
                     all_ll.remove(this_ll)
             firstrun = False
-            if not LOGGING
+            if not LOGGING:
                 print('[+] Going silent.')
         uniqueE = uniqueE & seen
         seen.clear()
