@@ -73,39 +73,39 @@
                 for (var i = 0; i < pokdats.length; i++) {
                     var p = pokdats[i];
                     var ban=0;
-                    while (ban<excludeIDs.length && p.id!=excludeIDs[ban]){ban++;}
+                    while (ban<excludeIDs.length && p[0]!=excludeIDs[ban]){ban++;}
 
-                    var timeleft = p.despawnTime-timenow;
+                    var timeleft = p[4]-timenow;
                     if (ban>=excludeIDs.length&&timeleft>0) {
                         var cIcon= {
-                                  url: respath + "icons/" + p.id + ".png",
+                                  url: respath + "icons/" + p[0] + ".png",
                                   size: iconSize,
                                   origin: iconOrigin,
                                   anchor: iconAnchor,
                                   scaledSize: iconScaledSize
                                 };
                         var s = 0;
-                        while (s< spawns.length && spawns[s]!=p.spawnID){s++;}
+                        while (s< spawns.length && spawns[s]!=p[1]){s++;}
                         if (s< spawns.length){
-                            markers[s].infotext = "<b>"+pokenames[p.id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
-                            if (markers[s].validTill != p.despawnTime) {
+                            markers[s].infotext = "<b>"+pokenames[p[0]]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                            if (markers[s].validTill != p[4]) {
                                 if (markers[s].validTill ==0) {
-                                    markers[s].id=p.id;
+                                    markers[s].id=p[0];
                                     markers[s].icon = cIcon;
                                     markers[s].setOpacity(1.0);
                                     markers[s].setMap(map);
                                 }
-                                markers[s].validTill = p.despawnTime;
+                                markers[s].validTill = p[4];
                             }
                         }else{
                                 var marker = new google.maps.Marker({
         						map: map,
-        						position: {lat: p.lat, lng: p.lng},
+        						position: {lat: p[2], lng: p[3]},
         						optimized: false,
-        						id: p.id,
-        						infotext: "<b>"+pokenames[p.id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s",
-        						validTill: p.despawnTime,
-        						spawnID: p.spawnID,
+        						id: p[0],
+        						infotext: "<b>"+pokenames[p[0]]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s",
+        						validTill: p[4],
+        						spawnID: p[1],
         						icon: cIcon
         					});
         					marker.addListener('click', function() {
@@ -121,7 +121,7 @@
                             });
 
         					markers.push(marker);
-        					spawns.push(p.spawnID);
+        					spawns.push(p[1]);
         				}
                     }
         		}
@@ -166,13 +166,8 @@ function initMap() {
 function initSite() {
   getFile("res/usersettings.json", false, function(tsettings) {
     var settings=JSON.parse(tsettings);
-    if (settings['unique_coordinates']==false) {
-        LAT_C=settings['standard_coordinates']['lat'];
-        LNG_C=settings['standard_coordinates']['lng'];
-    }else{
-        LAT_C=settings['profiles']['0']['coordinates']['lat'];
-        LNG_C=settings['profiles']['0']['coordinates']['lng'];
-    }
+	LAT_C=settings['profiles']['0']['coordinates']['lat'];
+	LNG_C=settings['profiles']['0']['coordinates']['lng'];
     LANGUAGE=settings['language'];
     excludeIDs=settings['exclude_ids'];
     scalesize = Math.ceil(72*settings['icon_scalefactor']);
