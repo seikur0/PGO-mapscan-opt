@@ -44,7 +44,7 @@
   "login_simu": false,
   
   "_comment14": "The profiles. Each with their own id, login info, and coordinates.",
-  "profiles" [
+  "profiles": [
     {
       "id": 0,
       "type": "ptc",
