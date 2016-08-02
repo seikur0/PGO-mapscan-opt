@@ -574,8 +574,9 @@ def main():
                 curT = int(time.time()) - curT
                 print('[+] Scan Time: {} s'.format(curT))
                 scancount+=1
-                if scancount == totalscans:
+                if totalscans > 0:
                     print('[+] {} of {} scans completed'.format(scancount,totalscans))
+                if scancount == totalscans:
                     sys.exit()
                 curT = max(interval - curT, 0)
                 print('[+] Sleeping for {} seconds...'.format(curT))
