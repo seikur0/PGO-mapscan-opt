@@ -1,2 +1,2 @@
 So do I need multiple accounts in order to use multiple workers?
-	-Yes. Put all of them into the settings.json file and set them to the same id.
+	-Yes. Put all of them into the usersettings.json file and set them to the same id.
