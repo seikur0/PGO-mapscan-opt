@@ -24,7 +24,7 @@ from shutil import move
 
 import threading
 import Queue
-
+import sqlite3
 
 def getNeighbors(location):
     level = 15
@@ -98,6 +98,8 @@ curR = None
 maxR = None
 firstrun = True
 all_ll = None
+
+LOG2SQL = True
 
 def do_settings():
     global LANGUAGE
@@ -521,6 +523,31 @@ def write_data(data_file):
         if 'f' in vars() and not f.closed:
             f.close()
 
+def push_to_db(table,data):
+    sqlite_file = 'res/Spawns.sqlite'
+
+    data = ",".join(map(str, data))
+
+    if (table=='Encounters'):
+        columns = "EncounterID,SpawnID,PokeID,SpawnTime,Time,Time2Hidden"
+    else:
+        columns = "SpawnID,Lat,Lng"
+
+    conn = sqlite3.connect(sqlite_file)
+    c = conn.cursor()
+
+    try:
+        c.execute("INSERT INTO {tab} ({cols}) VALUES ({data})".format(tab=table, cols=columns, data=data))
+    except sqlite3.IntegrityError:
+        if LOGGING:
+            if (table == 'Encounters'):
+                print('Duplicate encounter - not inserting into db')
+            else:
+                print('Duplicate spawn location - not inserting into db')
+
+    conn.commit()
+    conn.close()
+    
 ##################################################################################################################################################
 ##################################################################################################################################################
 def main():
@@ -668,6 +695,9 @@ def main():
                                 list_unique.add(wild.encounter_id)
                             f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0, wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0, wild.encounter_id))
                             DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)])
+                            if LOG2SQL:
+                                push_to_db("Spawn_Locations",[spawnIDint,wild.latitude, wild.longitude])
+                                push_to_db("Encounters",[wild.encounter_id,spawnIDint, wild.pokemon_data.pokemon_id, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0, wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0])
                             other = LatLng.from_degrees(wild.latitude, wild.longitude)
                             diff = other - origin
                             difflat = diff.lat().degrees
