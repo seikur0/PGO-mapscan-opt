@@ -610,7 +610,7 @@ def main():
                     h = heartbeat(location, self.account)
                 time.sleep(time_hb)
                 if h is None:
-                    print('[+] Empty location removed. lat/lng: {}, {}'.format(self.account['num'], this_ll.lat().degrees, this_ll.lng().degrees))
+                    print('[+] Empty location removed. lat/lng: {}, {}'.format(this_ll.lat().degrees, this_ll.lng().degrees))
                     all_ll[all_ll.index(this_ll)] = None
                 else:
                     for cell in h.map_cells:
