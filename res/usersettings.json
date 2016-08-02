@@ -36,9 +36,15 @@
       "api_key": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
       "push_ids": []
   },
-
-  "_comment12": "The profiles. Each with their own id, login info, and coordinates. Profiles with the same id form a group. Coordinates of the first group member will be used as starting point.",
-  "profiles": [
+  
+  "_comment12": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
+  "scannum": 0,
+  
+  "_comment13": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
+  "login_simu": false,
+  
+  "_comment14": "The profiles. Each with their own id, login info, and coordinates.",
+  "profiles" [
     {
       "id": 0,
       "type": "ptc",
