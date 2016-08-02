@@ -29,11 +29,11 @@
   "_comment10": "The path to the res folder from the html point of view.",
   "html_respath": "res/",
 
-  "_comment11": "Pushbullet settings. You need a Pushbullet API key for it. Put ids of pokemon you want to be notified about into push_ids.",
+  "_comment11": "Pushbullet settings. You need a Pushbullet API key for it. Can input multiple API keys, comma separated. Put ids of pokemon you want to be notified about into push_ids.",
   "pushbullet":
   {
       "enabled": false,
-      "api_key(s)": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
+      "api_key": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
       "push_ids": []
   },
 
