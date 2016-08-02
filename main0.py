@@ -98,7 +98,8 @@ curR = None
 maxR = None
 firstrun = True
 all_ll = None
-
+scannum = None
+login_simu = False
 LOG2SQL = True
 
 def do_settings():
@@ -109,7 +110,9 @@ def do_settings():
     global F_LIMIT
     global pb
     global PUSHPOKS
-    global totalscans
+    global scannum
+    global login_simu
+
     global wID
 
     parser = argparse.ArgumentParser()
@@ -120,7 +123,7 @@ def do_settings():
     parser.add_argument('-lng', '--longitude', help='longitude')
     parser.add_argument('-alt', '--altitude', help='altitude')
     parser.add_argument('-loc', '--location', help='location')
-    parser.add_argument('-s', "--scans", help="number of scans to run")
+    parser.add_argument('-s', "--scannum", help="number of scans to run")
     args = parser.parse_args()
     wID = args.id
     HEX_NUM = args.range
@@ -137,25 +140,20 @@ def do_settings():
             spot = r.json()['results'][0]['geometry']['location']
             LAT_C, LNG_C = [spot['lat'], spot['lng']]
         else:
-            print('[-] Error: The coordinates for the specified location couldn\'t be retrieved, http code: {}'.format(r.status_code))
-            print('[-] The location parameter will be ignored.')
+            lprint('[-] Error: The coordinates for the specified location couldn\'t be retrieved, http code: {}'.format(r.status_code))
+            lprint('[-] The location parameter will be ignored.')
 
     if wID is None:
         wID = 0
     else:
         wID = int(wID)
-        
-    if args.scans is None:
-        totalscans=0 #infinity scans
-    else:
-        totalscans = int(args.scans) #user supplied number of scans
 
     try:
         f = open(SETTINGS_FILE, 'r')
         try:
             allsettings = json.load(f)
         except ValueError as e:
-            print('[-] Error: The settings file is not in a valid format, {}'.format(e))
+            lprint('[-] Error: The settings file is not in a valid format, {}'.format(e))
             f.close()
             sys.exit()
         f.close()
@@ -163,9 +161,16 @@ def do_settings():
         if f is not None and not f.closed:
             f.close()
 
+    login_simu = allsettings['login_simu']
+
     F_LIMIT = int(allsettings['backup_size'] * 1024 * 1024)
     if F_LIMIT == 0:
         F_LIMIT = 9223372036854775807
+
+    if args.scannum is None:
+        scannum = 0
+    else:
+        scannum = int(args.scans)
 
     if allsettings['pushbullet']['enabled'] is True:
         pb = []
@@ -175,8 +180,8 @@ def do_settings():
                 this_pb = Pushbullet(keys[a])
                 pb.append(this_pb)
             except Exception as e:
-                print('[-] Pushbullet error, key {} is invalid, {}'.format(a+1, e))
-                print('[-] This pushbullet will be disabled.')
+                lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a+1, e))
+                lprint('[-] This pushbullet will be disabled.')
 
         if len(pb) > 0:
             PUSHPOKS = set(allsettings['pushbullet']['push_ids'])
@@ -206,7 +211,7 @@ def do_settings():
             account = {'num': i, 'type': allsettings['profiles'][idlist[i]]['type'], 'user': allsettings['profiles'][idlist[i]]['username'], 'pw': allsettings['profiles'][idlist[i]]['password']}
             accounts.append(account)
     else:
-        print('[-] Error: No profile exists for the set id.')
+        lprint('[-] Error: No profile exists for the set id.')
         sys.exit()
 
     if LAT_C is None:
@@ -241,7 +246,7 @@ def login_google(account):
             retry_after = 1
             login1 = perform_master_login(account['user'], account['pw'], ANDROID_ID)
             while login1.get('Token') is None:
-                print('[-] Google Login error, retrying in {} seconds (step 1)'.format(retry_after))
+                lprint('[-] Google Login error, retrying in {} seconds (step 1)'.format(retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 login1 = perform_master_login(account['user'], account['pw'], ANDROID_ID)
@@ -249,17 +254,18 @@ def login_google(account):
             retry_after = 1
             login2 = perform_oauth(account['user'], login1.get('Token'), ANDROID_ID, SERVICE, APP, APP_SIG)
             while login2.get('Auth') is None:
-                print('[-] Google Login error, retrying in {} seconds (step 2)'.format(retry_after))
+                lprint('[-] Google Login error, retrying in {} seconds (step 2)'.format(retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 login2 = perform_oauth(account['user'], login1.get('Token', ''), ANDROID_ID, SERVICE, APP, APP_SIG)
 
             access_token = login2['Auth']
+            account['access_expire_timestamp'] = login2['Expiry']
             account['access_token'] = access_token
             return
         except Exception as e:
-            print('[-] Unexpected google login error: {}'.format(e))
-            print('[-] Retrying...')
+            lprint('[-] Unexpected google login error: {}'.format(e))
+            lprint('[-] Retrying...')
             time.sleep(2)
 
 
@@ -276,7 +282,7 @@ def login_ptc(account):
             r = session.get(LOGIN_URL)
             retry_after = 1
             while r.status_code != 200:
-                print('[-] Connection error {}, retrying in {} seconds (step 1)'.format(r.status_code, retry_after))
+                lprint('[-] Connection error {}, retrying in {} seconds (step 1)'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 r = session.get(LOGIN_URL)
@@ -293,7 +299,7 @@ def login_ptc(account):
             retry_after = 1
 
             while r.status_code != 500 and r.status_code != 200:
-                print('[-] Connection error {}, retrying in {} seconds (step 2)'.format(r.status_code, retry_after))
+                lprint('[-] Connection error {}, retrying in {} seconds (step 2)'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 r = session.post(LOGIN_URL, data=data)
@@ -308,24 +314,26 @@ def login_ptc(account):
             }
             r = session.post(LOGIN_OAUTH, data=data1)
             while r.status_code != 200:
-                print('[-] Connection error {}, retrying in {} seconds (step 3)'.format(r.status_code, retry_after))
+                lprint('[-] Connection error {}, retrying in {} seconds (step 3)'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 r = session.post(LOGIN_OAUTH, data=data1)
 
-            access_token = re.sub('&expires.*', '', r.content)
-            access_token = re.sub('.*access_token=', '', access_token)
-            account['access_token'] = access_token
+            pattern = re.compile("access_token=(?P<access_token>.+?)&expires=(?P<expire_in>[0-9]+)")
+            result = pattern.search(r.content)
+
+            account['access_expire_timestamp'] = int(result.groupdict()["expire_in"])+time.time()
+            account['access_token'] = result.groupdict()["access_token"]
             account['session'] = session
             return
 
         except Exception as e:
-            print('[-] Unexpected ptc login error: {}'.format(e))
+            lprint('[-] Unexpected ptc login error: {}'.format(e))
             if r is not None:
-                print('[-] Connection error, http code: {}'.format(r.status_code))
+                lprint('[-] Connection error, http code: {}'.format(r.status_code))
             else:
-                print('[-] Error happened before network request.')
-            print('[-] Retrying...')
+                lprint('[-] Error happened before network request.')
+            lprint('[-] Retrying...')
             time.sleep(2)
 
 def do_login(account):
@@ -334,14 +342,15 @@ def do_login(account):
         session.verify = False
         account['session'] = session
 
+    account['api_endpoint'] = None
     if account['type'] == 'ptc':
-        print('[{}] Login for ptc account: {}'.format(account['num'], account['user']))
+        lprint('[{}] Login for ptc account: {}'.format(account['num'], account['user']))
         login_ptc(account)
     elif account['type'] == 'google':
-        print('[{}] Login for google account: {}'.format(account['num'], account['user']))
+        lprint('[{}] Login for google account: {}'.format(account['num'], account['user']))
         login_google(account)
     else:
-        print('[{}] Error: Login type should be either ptc or google.'.format(account['num']))
+        lprint('[{}] Error: Login type should be either ptc or google.'.format(account['num']))
         sys.exit()
 
 
@@ -375,9 +384,9 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
             retry_after = 1
             while r.status_code != 200:
                 if r.status_code == 403:
-                    print('[-] Access denied, your IP is blocked by the N-company.')
+                    lprint('[-] Access denied, your IP is blocked by the N-company.')
                     sys.exit()
-                print('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after))
+                lprint('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 r = session.post(api_endpoint, data=protobuf, verify=False)
@@ -387,12 +396,12 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
             return p_ret
 
         except Exception, e:
-            print('[-] Uncaught connection error, error: {}'.format(e))
+            lprint('[-] Uncaught connection error, error: {}'.format(e))
             if r is not None:
-                print('[-] Uncaught connection error, http code: {}'.format(r.status_code))
+                lprint('[-] Uncaught connection error, http code: {}'.format(r.status_code))
             else:
-                print('[-] Error happened before network request.')
-            print('[-] Retrying...')
+                lprint('[-] Error happened before network request.')
+            lprint('[-] Retrying...')
             time.sleep(2)
 
 
@@ -428,7 +437,7 @@ def get_profile(location, account, api, useauth, *reqq):
 
     retry_after = 1
     while newResponse.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
-        print('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
+        lprint('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
         retry_after = min(retry_after * 2, MAXWAIT)
         newResponse = api_req(location, account, api, account['access_token'], req, useauth=useauth)
@@ -436,29 +445,23 @@ def get_profile(location, account, api, useauth, *reqq):
 
 
 def set_api_endpoint(location, account):
-    p_ret = get_profile(location, account, API_URL, None)
-    while p_ret.status_code == 102:
-        print('[-] Error, invalid session, retrying...')
-        time.sleep(2)
-        p_ret = get_profile(location, account, API_URL, None)
+    if account['api_endpoint'] is None or account['api_endpoint'] == '':
+        api_url = API_URL
+    else:
+        api_url = account['api_endpoint']
 
-    account['api_endpoint'] = ('https://%s/rpc' % p_ret.api_url)
-
-
-def authorize_profile(location, account):
-    while True:
-        response = get_profile(location, account, account['api_endpoint'], None)
-        if response.status_code == 1 or response.status_code == 2:
-            account['response'] = response
-            return
-        elif response.status_code == 102:
-            print('[-] Session token isn\'t valid yet, retrying...')
-            time.sleep(5)
-            #set_api_endpoint(location, account)
-        else:
-            print('[-] Authorization eror, status code: {}'.format( response.status_code))  # should not happen, probably unused
-            print('[-] Retrying...')
-            time.sleep(2)
+    response = get_profile(location, account, api_url, None)
+    if response.status_code == 102:
+        print(response)
+        lprint('[-] Error, invalid session, retrying...')
+        time.sleep(1)
+        do_login(account)
+        time.sleep(1)
+        response = get_profile(location, account, api_url, None)
+    else:
+        if response.status_code in [53,2]:
+            account['api_endpoint'] = 'https://{}/rpc'.format(response.api_url)
+        account['auth_ticket'] = response.auth_ticket
 
 
 def heartbeat(location, account):
@@ -474,7 +477,8 @@ def heartbeat(location, account):
         m11.latitude = location[0]
         m11.longitude = location[1]
         m1.request_message = m11.SerializeToString()
-        newResponse = get_profile(location, account, account['api_endpoint'], account['response'].auth_ticket, m1)
+        newResponse = get_profile(location, account, account['api_endpoint'], account['auth_ticket'], m1)
+
         if newResponse.status_code == 1:
             heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
             heartbeat.ParseFromString(newResponse.returns[0])
@@ -483,15 +487,26 @@ def heartbeat(location, account):
                     return heartbeat
             return None
         elif newResponse.status_code == 2:
-            authorize_profile(location, account)
+                #lprint('[+] Received profile infos.')
+                #account['api_endpoint'] = 'https://{}/rpc'.format(newResponse.api_url)
+                #account['profile'] = newResponse.returns[0]
+                #account['settings'] = newResponse.returns[4]
+                time.sleep(1)
         elif newResponse.status_code == 102:
-            print('[-] Error, refreshing login')
-            do_login(account)
-            set_api_endpoint(location, account)
-            authorize_profile(location, account)
+            #lprint(newResponse)
+            if time.time() > account['access_expire_timestamp']:
+                lprint('[-] Login refresh')
+                do_login(account)
+                account['api_endpoint'] = None
+                set_api_endpoint(location, account)
+                time.sleep(1)
+            elif time.time() > account['auth_ticket'].expire_timestamp_ms/1000:
+                lprint('[-] Authorization refresh')
+                set_api_endpoint(location, account)
+                time.sleep(1)
         else:
-            print('[-] Heartbeat error, status code: {}'.format( newResponse.status_code))  # should not happen, probably unused
-            print('[-] Retrying...')
+            lprint('[-] Heartbeat error, status code: {}'.format( newResponse.status_code))  # should not happen, probably unused
+            lprint('[-] Retrying...')
             time.sleep(2)
 
 
@@ -523,6 +538,9 @@ def write_data(data_file):
         if 'f' in vars() and not f.closed:
             f.close()
 
+def lprint(message):
+    sys.stdout.write(str(message)+'\n')
+
 def push_to_db(table,data):
     sqlite_file = 'res/Spawns.sqlite'
 
@@ -541,13 +559,12 @@ def push_to_db(table,data):
     except sqlite3.IntegrityError:
         if LOGGING:
             if (table == 'Encounters'):
-                print('Duplicate encounter - not inserting into db')
+                lprint('Duplicate encounter - not inserting into db')
             else:
-                print('Duplicate spawn location - not inserting into db')
+                lprint('Duplicate spawn location - not inserting into db')
 
     conn.commit()
     conn.close()
-    
 ##################################################################################################################################################
 ##################################################################################################################################################
 def main():
@@ -558,17 +575,16 @@ def main():
             global curR
             global maxR
             global firstrun
-            global totalscans
-            scancount = 0
+            global scannum
             firstrun = True
             maxR=len(all_ll)
 
-            print('')
-            print('[+] Distributing {} locations to {} threads.'.format(len(all_ll), threadnum))
+            lprint('')
+            lprint('[+] Distributing {} locations to {} threads.'.format(len(all_ll), threadnum))
 
             while True:
-                print('')
-                print('[+] Time: {}'.format(datetime.now().strftime('%H:%M:%S')))
+                lprint('')
+                lprint('[+] Time: {}'.format(datetime.now().strftime('%H:%M:%S')))
                 curR = 0
                 nextperc = percinterval
                 curT = int(time.time())
@@ -577,7 +593,7 @@ def main():
                     addlocation.put(this_ll)
                     if (100.0 * curR / maxR) >= nextperc:
                         perc = math.floor((100.0 * curR / maxR) / percinterval) * percinterval
-                        print('[+] Finished: {} %'.format(perc))
+                        lprint('[+] Finished: {} %'.format(perc))
                         nextperc = perc + percinterval
 
                 addlocation.join()
@@ -588,27 +604,31 @@ def main():
                             all_ll.remove(all_ll[a])
                         else:
                             a +=1
-                    print('[+] {}/{} non-empty locations in scan range remaining.'.format(len(all_ll), maxR))
+                    lprint('[+] {}/{} non-empty locations in scan range remaining.'.format(len(all_ll), maxR))
                     maxR = len(all_ll)
                     firstrun = False
 
                 addpokemon.join()
-                print('[+] Finished: 100 %')
+                lprint('[+] Finished: 100 %')
 
                 list_unique.intersection_update(list_seen)
                 list_seen.clear()
 
                 curT = int(time.time()) - curT
-                print('[+] Scan Time: {} s'.format(curT))
-                scancount+=1
-                if totalscans > 0:
-                    print('[+] {} of {} scans completed'.format(scancount,totalscans))
-                if scancount == totalscans:
-                    sys.exit()
+                lprint('[+] Scan Time: {} s'.format(curT))
+
+                if scannum > 0:
+                    scannum -= 1
+                    if scannum == 0:
+                        sys.exit()
+
                 curT = max(interval - curT, 0)
-                print('[+] Sleeping for {} seconds...'.format(curT))
+                lprint('[+] Sleeping for {} seconds...'.format(curT))
                 time.sleep(curT)
                 prune_data()
+
+
+
 
 #########################################################################
 #########################################################################
@@ -620,20 +640,20 @@ def main():
         def run(self):
             global curR
             do_login(self.account)
-            print('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
+            lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
             location = origin.lat().degrees, origin.lng().degrees, ALT_C
             set_api_endpoint(location, self.account)
-            print('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_endpoint']))
-            authorize_profile(location, self.account)
-            print('[{}] Login successful'.format(self.account['num']))
+            lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_endpoint']))
 
-            settings = POGOProtos.Networking.Responses_pb2.DownloadSettingsResponse()
-            settings.ParseFromString(self.account['response'].returns[4])
+            #lprint('[{}] Login successful'.format(self.account['num']))
 
-            profile = POGOProtos.Networking.Responses_pb2.GetPlayerResponse()
-            profile.ParseFromString(self.account['response'].returns[0])
+            #settings = POGOProtos.Networking.Responses_pb2.DownloadSettingsResponse()
+            #settings.ParseFromString(self.account['settings'])
 
-            print('[{}] Username: {}'.format(self.account['num'], profile.player_data.username))
+            #profile = POGOProtos.Networking.Responses_pb2.GetPlayerResponse()
+            #profile.ParseFromString(self.account['profile'])
+
+            #lprint('[{}] Username: {}'.format(self.account['num'], profile.player_data.username))
             # /////////////////
             synch_li.get()
             synch_li.task_done()
@@ -646,13 +666,13 @@ def main():
                 count = 1
                 while h is None and count <= tries:
                     if firstrun:
-                        # print('[-] Empty heartbeat, retrying... (try {}/{})'.format(count,tries))
+                        # lprint('[-] Empty heartbeat, retrying... (try {}/{})'.format(count,tries))
                         count += 1
                     time.sleep(time_small)
                     h = heartbeat(location, self.account)
                 time.sleep(time_hb)
                 if h is None:
-                    print('[+] Empty location removed. lat/lng: {}, {}'.format(this_ll.lat().degrees, this_ll.lng().degrees))
+                    lprint('[+] Empty location removed. lat/lng: {}, {}'.format(this_ll.lat().degrees, this_ll.lng().degrees))
                     all_ll[all_ll.index(this_ll)] = None
                 else:
                     for cell in h.map_cells:
@@ -690,7 +710,7 @@ def main():
                             spawnIDint = int(wild.spawn_point_id, 16)
                             org_tth = wild.time_till_hidden_ms
                             if wild.time_till_hidden_ms < 0:
-                                wild.time_till_hidden_ms = 900001
+                                wild.time_till_hidden_ms = 901000
                             else:
                                 list_unique.add(wild.encounter_id)
                             f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0, wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0, wild.encounter_id))
@@ -703,19 +723,19 @@ def main():
                             difflat = diff.lat().degrees
                             difflng = diff.lng().degrees
                             direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
-                            print('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
+                            lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
 
-                            if pb is not None:
-                                if wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                    try:
-                                        location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
-                                        notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " @ " + location.address
-                                    except:
-                                        notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " found!"
-                                    disappear_time = str(datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M"))
-                                    location_text = "disappears at: " + disappear_time
-                                    for pushacc in pb:
-                                        pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=location_text)
+                            if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
+                                try:
+                                    location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
+                                    notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " @ " + location.address
+                                except:
+                                    notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " found!"
+                                disappear_time = str(datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M"))
+                                location_text = "disappears at: " + disappear_time
+                                for pushacc in pb:
+                                    pushacc.push_link('<<Pokemon: {}>> <<Timer: {}s>>'.format(POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
+                                    pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=location_text)
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
@@ -723,7 +743,7 @@ def main():
                                 prune_data()
                                 write_data(data_file)
                                 if f.tell() > F_LIMIT:
-                                    print('[+] File size is over the set limit, doing backup.')
+                                    lprint('[+] File size is over the set limit, doing backup.')
                                     f.close()
                                     move(stat_file, stat_file[:-4] + '.' + time.strftime('%Y%m%d_%H%M') + '.txt')
                                     f = open(stat_file, 'a', 0)
@@ -786,20 +806,30 @@ def main():
     newthread.daemon = True
     newthread.start()
 
+    if login_simu:
+        for i in range(0, threadnum):
+            synch_li.put(True)
+
+
+
     for i in range(0,threadnum):
         newthread = collector(i, accounts[i])
         newthread.daemon = True
         newthread.start()
-        synch_li.put(True)
         threadList.append(newthread)
+        if not login_simu:
+            synch_li.put(True)
+            synch_li.join()
+
+    if login_simu:
         synch_li.join()
 
     newthread = locgiver()
     newthread.daemon = True
     newthread.start()
 
-    for t in threadList:
-        t.join()
+    while True:
+        newthread.join(5)
 
 if __name__ == '__main__':
     main()
