@@ -719,7 +719,6 @@ def main():
                                 disappear_time = str(datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M"))
                                 location_text = "disappears at: " + disappear_time
                                 for pushacc in pb:
-                                    pushacc.push_link('<<Pokemon: {}>> <<Timer: {}s>>'.format(POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
                                     pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=location_text)
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
