@@ -118,6 +118,7 @@ def do_settings():
     parser.add_argument('-lng', '--longitude', help='longitude')
     parser.add_argument('-alt', '--altitude', help='altitude')
     parser.add_argument('-loc', '--location', help='location')
+    parser.add_argument('-s', "--scans", help="number of scans to run")
     args = parser.parse_args()
     wID = args.id
     HEX_NUM = args.range
@@ -141,6 +142,11 @@ def do_settings():
         wID = 0
     else:
         wID = int(wID)
+        
+    if args.scans is None:
+        totalscans=0 #infinity scans
+    else:
+        totalscans = args.scans #user supplied number of scans
 
     try:
         f = open(SETTINGS_FILE, 'r')
@@ -525,6 +531,8 @@ def main():
             global curR
             global maxR
             global firstrun
+            global totalscans
+            scancount = 0
             firstrun = True
             maxR=len(all_ll)
 
@@ -565,6 +573,9 @@ def main():
 
                 curT = int(time.time()) - curT
                 print('[+] Scan Time: {} s'.format(curT))
+                scancount+=1
+                if int(scancount) == int(totalscans):
+                    exit()
                 curT = max(interval - curT, 0)
                 print('[+] Sleeping for {} seconds...'.format(curT))
                 time.sleep(curT)
