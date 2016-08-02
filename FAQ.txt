@@ -17,3 +17,10 @@
 	-See question 3. Scan time decreases linearly with the amount of workers, twice the workers, half the time.
 	Also increases quadratically with scan range, twice the range, four times the duration.
 	Try it out with some workers and just use a good estimate.
+	
+6. I have many empty cells, is that bad?
+	-Water cells are mostly empty, but even in cities you have some empty cells and in rural areas you have many of them as well.
+	They will be removed during the first scan and make subsequent ones faster.
+	
+7. What is that time format? How can I convert it into something readable?
+	-It's the timezone independent unix time, you can easily transform that into any local time format. Example: http://www.unixtimestamp.com/
