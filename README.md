@@ -40,9 +40,10 @@
 * Accounts not being able to log in was fixed (some people had problems)
 
 ## FAQ
-* I will collect questions, when I answer them the first time, and then I'll include a FAQ in the files here on github.
-* Don't think I'm impolite, when I'll just answer FAQ to something you write me. It's just that I want to do more with my day than answering the same questions over and over again :)
-* Suggestions and feedback in general are very welcome though, that helps me in finding bugs and improvements.
+* https://github.com/seikur0/PGO-mapscan-opt/blob/master/FAQ.txt
+  * I will collect questions, when I answer them the first time, and then I'll include a FAQ in the files here on github.
+  * Don't think I'm impolite, when I'll just answer FAQ to something you write me. It's just that I want to do more with my day than answering the same questions over and over again :)
+  * Suggestions and feedback in general are very welcome though, that helps me in finding bugs and improvements.
 
 ## Thanks
 
