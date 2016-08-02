@@ -2,10 +2,13 @@
 	-Yes. Put all of them into the usersettings.json file and set them to the same id.
 	
 2. Should I aim for a 100% scan under 15 minutes? Is that a good way to decide how many workers?
-	-Yes for data collecting a time under 15 minutes is good for the first run. subsequent runs will also be faster, because of removed empty cells. For hunting/live map purposes 5 minutes would be better as mark.
+	-Yes for data collecting a time under 15 minutes is good for the first run. subsequent runs will also be faster,
+	because of removed empty cells. For hunting/live map purposes 5 minutes would be better as mark.
 	
 3. For a continuous area larger than -r 30? What is the best, increase the radius and workers or a split in different id's?
-	-You want that whole area, don't split. You want parts of it, better split it, i.e. run multiple instances of the tool with different ids. Empty areas get removed in subsequent runs, don't worry about those.
+	-You want that whole area, don't split. You want parts of it, better split it, i.e. run multiple instances
+	of the tool with different ids. Empty areas get removed in subsequent runs, don't worry about those.
 	
 4. Do the id's still attach on each other or I have to estimate on google maps?
-	-They don't attach and in most cases it's better to just use one id anyway. If you want them to attach, yes you'll have to use google maps.
+	-They don't attach and in most cases it's better to just use one id anyway.
+	If you want them to attach, yes you'll have to use google maps.
