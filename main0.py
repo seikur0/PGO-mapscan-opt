@@ -107,7 +107,7 @@ def do_settings():
     global F_LIMIT
     global pb
     global PUSHPOKS
-
+    global totalscans
     global wID
 
     parser = argparse.ArgumentParser()
@@ -146,7 +146,7 @@ def do_settings():
     if args.scans is None:
         totalscans=0 #infinity scans
     else:
-        totalscans = args.scans #user supplied number of scans
+        totalscans = int(args.scans) #user supplied number of scans
 
     try:
         f = open(SETTINGS_FILE, 'r')
@@ -574,7 +574,7 @@ def main():
                 curT = int(time.time()) - curT
                 print('[+] Scan Time: {} s'.format(curT))
                 scancount+=1
-                if int(scancount) == int(totalscans):
+                if scancount == totalscans:
                     exit()
                 curT = max(interval - curT, 0)
                 print('[+] Sleeping for {} seconds...'.format(curT))
