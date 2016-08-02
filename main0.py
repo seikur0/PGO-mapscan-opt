@@ -97,7 +97,9 @@ percinterval = 2
 curR = None
 maxR = None
 firstrun = True
+countmax = 0
 all_ll = None
+
 scannum = None
 login_simu = False
 
@@ -444,23 +446,24 @@ def get_profile(location, account, api, useauth, *reqq):
 
 
 def set_api_endpoint(location, account):
-    if account['api_endpoint'] is None or account['api_endpoint'] == '':
-        api_url = API_URL
-    else:
-        api_url = account['api_endpoint']
+    while True:
+        if account['api_endpoint'] is None or account['api_endpoint'] == '':
+            api_url = API_URL
+        else:
+            api_url = account['api_endpoint']
 
-    response = get_profile(location, account, api_url, None)
-    if response.status_code == 102:
-        print(response)
-        lprint('[-] Error, invalid session, retrying...')
-        time.sleep(1)
-        do_login(account)
-        time.sleep(1)
         response = get_profile(location, account, api_url, None)
-    else:
-        if response.status_code in [53,2]:
-            account['api_endpoint'] = 'https://{}/rpc'.format(response.api_url)
-        account['auth_ticket'] = response.auth_ticket
+        if response.status_code == 102:
+            print(response)
+            lprint('[-] Error, invalid session, retrying...')
+            time.sleep(1)
+            do_login(account)
+            time.sleep(1)
+        else:
+            if response.status_code in [53,2]:
+                account['api_endpoint'] = 'https://{}/rpc'.format(response.api_url)
+            account['auth_ticket'] = response.auth_ticket
+            return
 
 
 def heartbeat(location, account):
@@ -494,15 +497,17 @@ def heartbeat(location, account):
         elif newResponse.status_code == 102:
             #lprint(newResponse)
             if time.time() > account['access_expire_timestamp']:
-                lprint('[-] Login refresh')
+                lprint('[-] Login refresh (102)')
                 do_login(account)
                 account['api_endpoint'] = None
                 set_api_endpoint(location, account)
                 time.sleep(1)
             elif time.time() > account['auth_ticket'].expire_timestamp_ms/1000:
-                lprint('[-] Authorization refresh')
+                lprint('[-] Authorization refresh (102)')
                 set_api_endpoint(location, account)
                 time.sleep(1)
+        elif newResponse.status_code == 53: # returned error due to too many connections
+            time.sleep(1)
         else:
             lprint('[-] Heartbeat error, status code: {}'.format( newResponse.status_code))  # should not happen, probably unused
             lprint('[-] Retrying...')
@@ -523,6 +528,8 @@ def load_data(data_file):
         prune_data()
         f.close()
     except IOError as e:
+        pass
+    except ValueError as e:
         pass
     finally:
         if 'f' in vars() and not f.closed:
@@ -551,6 +558,8 @@ def main():
             global maxR
             global firstrun
             global scannum
+            global countmax
+
             firstrun = True
             maxR=len(all_ll)
 
@@ -583,6 +592,11 @@ def main():
                     maxR = len(all_ll)
                     firstrun = False
 
+                #lprint('[-] Non-empty heartbeats reached a maximum of {} tries.'.format(countmax))
+                #if tries-countmax < 2:
+                    #lprint('[-] It is advised to increase the tries variable.')
+                #countmax = 0
+
                 addpokemon.join()
                 lprint('[+] Finished: 100 %')
 
@@ -614,6 +628,7 @@ def main():
 
         def run(self):
             global curR
+            global countmax
             do_login(self.account)
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
             location = origin.lat().degrees, origin.lng().degrees, ALT_C
@@ -638,11 +653,9 @@ def main():
                 this_ll = addlocation.get()
                 location = this_ll.lat().degrees, this_ll.lng().degrees, ALT_C
                 h = heartbeat(location, self.account)
-                count = 1
-                while h is None and count <= tries:
-                    if firstrun:
-                        # lprint('[-] Empty heartbeat, retrying... (try {}/{})'.format(count,tries))
-                        count += 1
+                count = 0
+                while h is None and (not firstrun or count < tries):
+                    count += 1
                     time.sleep(time_small)
                     h = heartbeat(location, self.account)
                 time.sleep(time_hb)
@@ -650,6 +663,7 @@ def main():
                     lprint('[+] Empty location removed. lat/lng: {}, {}'.format(this_ll.lat().degrees, this_ll.lng().degrees))
                     all_ll[all_ll.index(this_ll)] = None
                 else:
+                    countmax = max(countmax, count)
                     for cell in h.map_cells:
                         for wild in cell.wild_pokemons:
                             addpokemon.put(wild)
@@ -677,7 +691,6 @@ def main():
                     f.write(statheader)
                 while True:
                     wild = addpokemon.get()
-
                     if wild.encounter_id not in list_seen:
                         list_seen.add(wild.encounter_id)
                         if wild.encounter_id not in list_unique:
@@ -770,9 +783,9 @@ def main():
     threadnum = len(accounts)
 
     threadList = []
-    addpokemon = Queue.Queue(threadnum * 3)
+    addpokemon = Queue.Queue(threadnum)
     synch_li = Queue.Queue(threadnum)
-    addlocation = Queue.Queue(threadnum * 2)
+    addlocation = Queue.Queue(threadnum)
 
     newthread = joiner()
     newthread.daemon = True
