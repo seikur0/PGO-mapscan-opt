@@ -3,7 +3,9 @@
 ## Instructions
 * Edit the 'usersettings.json' file in the res subfolder to your liking.
   * The first 'profile' has to be edited and if you want the map functionality the 'api_key' setting as well. Profiles with same ids form a scan group. They use the location from the first profile in that group.
-* 'pip install -r requirements.txt' or if that fails 'pip install --user -r requirements.txt'
+* 'pip install -r requirements.txt'
+  * if it fails 'pip install --user -r requirements.txt' (mostly for unix systems)
+  * if it still fails and you're using windows, you may need to install these runtimes from Microsoft: http://aka.ms/vcpython27
 * 'python main0.py' to run the program
 
 * 'python -m SimpleHTTPServer 8000' to run the local map server and make it accessible from your browser
