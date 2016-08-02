@@ -17,6 +17,7 @@ import math
 import os
 
 from pushbullet import Pushbullet
+from geopy.geocoders import Nominatim
 from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
@@ -76,6 +77,7 @@ LOGGING = False
 DATA = []
 pb = None
 PUSHPOKS = None
+geolocator = Nominatim()
 
 F_LIMIT = None
 LANGUAGE = None
@@ -695,10 +697,17 @@ def main():
                             direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
                             lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
 
-                            if pb is not None:
-                                if wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                    for pushacc in pb:
-                                        pushacc.push_link('<<Pokemon: {}>>  <<Timer: {}s>>'.format(POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
+                            if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
+                                try:
+                                    location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
+                                    notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " @ " + location.address
+                                except:
+                                    notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " found!"
+                                disappear_time = str(datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M"))
+                                location_text = "disappears at: " + disappear_time
+                                for pushacc in pb:
+                                    pushacc.push_link('<<Pokemon: {}>> <<Timer: {}s>>'.format(POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
+                                    pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=location_text)
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
