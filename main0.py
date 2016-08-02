@@ -73,7 +73,7 @@ EARTH_Rmin = 6356752.3
 HEX_R = 70.0
 
 safety = 0.999
-
+LOG2SQL = True
 LOGGING = False
 DATA = []
 pb = None
