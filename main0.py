@@ -183,7 +183,12 @@ def do_settings():
         for a in range (len(keys)):
             try:
                 this_pb = Pushbullet(keys[a])
-                pb.append(this_pb)
+                if allsettings['pushbullet']['use_channels'] is True:
+                    for channel in this_pb.channels:
+                        if channel.channel_tag in allsettings['pushbullet']['channel_tags']:
+                            pb.append(channel)
+                else:
+                    pb.append(this_pb)
             except Exception as e:
                 lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a+1, e))
                 lprint('[-] This pushbullet will be disabled.')

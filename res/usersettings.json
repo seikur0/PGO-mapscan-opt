@@ -34,6 +34,8 @@
   {
       "enabled": false,
       "api_key": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
+      "use_channels": false,
+      "channel_tags": [],
       "push_ids": []
   },
   
