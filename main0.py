@@ -445,10 +445,13 @@ def set_api_endpoint(location, account):
             do_login(account)
             time.sleep(1)
         else:
-            if response.status_code in [53, 2] and response.api_url:
+            if response.status_code in [53, 2]:
                 account['api_endpoint'] = 'https://{}/rpc'.format(response.api_url)
             account['auth_ticket'] = response.auth_ticket
-            return
+            if response.api_url:
+                return
+            else:
+                time.sleep(1)
 
 
 def heartbeat(location, account):
