@@ -92,7 +92,7 @@ SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 
 time_hb = 5
 time_small = 1
-tries = 7
+tries = 8
 percinterval = 2
 curR = None
 maxR = None
@@ -268,28 +268,25 @@ def login_google(account):
         except Exception as e:
             lprint('[-] Unexpected google login error: {}'.format(e))
             lprint('[-] Retrying...')
-            time.sleep(2)
+            time.sleep(1)
 
 
 def login_ptc(account):
-    session = account['session']
-
     LOGIN_URL = 'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'
     LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
+    pattern = re.compile("access_token=(?P<access_token>.+?)&expires=(?P<expire_in>[0-9]+)")
 
     while True:
         try:
-            # session.headers.update({'User-Agent': 'Niantic App'})
-            session.headers.update({'User-Agent': 'niantic'})
-            r = session.get(LOGIN_URL)
-            retry_after = 1
-            while r.status_code != 200:
-                lprint('[-] Connection error {}, retrying in {} seconds (step 1)'.format(r.status_code, retry_after))
-                time.sleep(retry_after)
-                retry_after = min(retry_after * 2, MAXWAIT)
-                r = session.get(LOGIN_URL)
+            session = requests.session()
+            session.verify = False
+            session.headers.update({'User-Agent': 'niantic'})  # session.headers.update({'User-Agent': 'Niantic App'})
 
+            step = 0
+            r = session.get(LOGIN_URL)
+            step = 1
             jdata = json.loads(r.content)
+            step = 2
             data = {
                 'lt': jdata['lt'],
                 'execution': jdata['execution'],
@@ -297,16 +294,12 @@ def login_ptc(account):
                 'username': account['user'],
                 'password': account['pw'],
             }
+            step = 3
             r = session.post(LOGIN_URL, data=data)
-            retry_after = 1
-
-            while r.status_code != 500 and r.status_code != 200:
-                lprint('[-] Connection error {}, retrying in {} seconds (step 2)'.format(r.status_code, retry_after))
-                time.sleep(retry_after)
-                retry_after = min(retry_after * 2, MAXWAIT)
-                r = session.post(LOGIN_URL, data=data)
+            step = 4
 
             ticket = re.sub('.*ticket=', '', r.history[0].headers['Location'])
+            step = 5
             data1 = {
                 'client_id': 'mobile-app_pokemon-go',
                 'redirect_uri': 'https://www.nianticlabs.com/pokemongo/error',
@@ -315,33 +308,24 @@ def login_ptc(account):
                 'code': ticket,
             }
             r = session.post(LOGIN_OAUTH, data=data1)
-            while r.status_code != 200:
-                lprint('[-] Connection error {}, retrying in {} seconds (step 3)'.format(r.status_code, retry_after))
-                time.sleep(retry_after)
-                retry_after = min(retry_after * 2, MAXWAIT)
-                r = session.post(LOGIN_OAUTH, data=data1)
-
-            pattern = re.compile("access_token=(?P<access_token>.+?)&expires=(?P<expire_in>[0-9]+)")
+            step = 6
             result = pattern.search(r.content)
-
+            step = 7
             account['access_expire_timestamp'] = int(result.groupdict()["expire_in"])+time.time()
             account['access_token'] = result.groupdict()["access_token"]
             account['session'] = session
             return
 
         except Exception as e:
-            lprint('[-] Unexpected ptc login error: {}'.format(e))
+            lprint('[-] Ptc login error in step {}: {}'.format(step, e))
             if r is not None:
                 lprint('[-] Connection error, http code: {}'.format(r.status_code))
             else:
                 lprint('[-] Error happened before network request.')
             lprint('[-] Retrying...')
-            time.sleep(2)
+            time.sleep(1)
 
 def do_login(account):
-    session = requests.session()
-    session.verify = False
-    account['session'] = session
     account['api_endpoint'] = None
 
     if account['type'] == 'ptc':
@@ -387,6 +371,8 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
                 if r.status_code == 403:
                     lprint('[-] Access denied, your IP is blocked by the N-company.')
                     sys.exit()
+                if retry_after == MAXWAIT:
+                    pass # insert some smart way to handle exception later
                 lprint('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
@@ -495,11 +481,11 @@ def heartbeat(location, account):
                 time.sleep(1)
         elif newResponse.status_code == 102:
             if time.time() > account['auth_ticket'].expire_timestamp_ms/1000:
-                lprint('[-] Authorization refresh (102)')
+                #lprint('[-] Authorization refresh (102)')
                 set_api_endpoint(location, account)
                 time.sleep(1)
             else:
-                lprint('[-] Login refresh (102)')
+                #lprint('[-] Login refresh (102)')
                 do_login(account)
                 set_api_endpoint(location, account)
                 time.sleep(1)
