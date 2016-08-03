@@ -32,3 +32,7 @@
 	The criterium for a location being empty is all of the surrounding cells having no spawn points inside, so it doesn't depend on where exactly you scan or when.
 	Also cells are only removed during the first run, because logically there can't be empty ones in the subsequent ones.
 	Right now removed locations are not being stored, so if you restart the tool, it'll rescan everything.
+	
+9. "Error: The settings file is not in a valid format, No JSON object could be decoded." Any advice?
+	-You messed up the settings file format. Validate the file with this: http://jsonlint.com/
+	Mind your commas and brackets, don't use fancy quotation marks. Change it step by step and revalidate to find the error.
