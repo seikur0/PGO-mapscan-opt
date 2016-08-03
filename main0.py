@@ -146,7 +146,7 @@ def do_settings():
             lprint('[-] The location parameter will be ignored.')
 
     if wID is None:
-        wID = 0
+        wID = 1
     else:
         wID = int(wID)
 
@@ -480,8 +480,9 @@ def heartbeat(location, account):
         if newResponse.status_code == 1:
             heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
             heartbeat.ParseFromString(newResponse.returns[0])
+
             for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
-                for testit in cell.spawn_points:
+                if len(cell.ListFields()) > 2:
                     return heartbeat
             return None
         elif newResponse.status_code == 2: # got regular profile info instead of heartbeat
