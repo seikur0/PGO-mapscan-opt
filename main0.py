@@ -655,14 +655,15 @@ def main():
                 location = this_ll.lat().degrees, this_ll.lng().degrees, ALT_C
                 h = heartbeat(location, self.account)
                 count = 0
-                while h is None and (not firstrun or count < tries):
+                while h is None and count < tries:
                     count += 1
                     time.sleep(time_small)
                     h = heartbeat(location, self.account)
                 time.sleep(time_hb)
                 if h is None:
-                    lprint('[+] Empty location removed. lat/lng: {}, {}'.format(this_ll.lat().degrees, this_ll.lng().degrees))
-                    all_ll[all_ll.index(this_ll)] = None
+                    if firstrun:
+                        lprint('[+] Empty location removed. lat/lng: {}, {}'.format(this_ll.lat().degrees, this_ll.lng().degrees))
+                        all_ll[all_ll.index(this_ll)] = None
                 else:
                     countmax = max(countmax, count)
                     countall += count
