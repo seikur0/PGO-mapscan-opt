@@ -183,7 +183,12 @@ def do_settings():
         for a in range (len(keys)):
             try:
                 this_pb = Pushbullet(keys[a])
-                pb.append(this_pb)
+                if allsettings['pushbullet']['use_channels'] is True:
+                    for channel in this_pb.channels:
+                        if channel.channel_tag in allsettings['pushbullet']['channel_tags']:
+                            pb.append(channel)
+                else:
+                    pb.append(this_pb)
             except Exception as e:
                 lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a+1, e))
                 lprint('[-] This pushbullet will be disabled.')
@@ -283,7 +288,7 @@ def login_ptc(account):
     LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
     pattern = re.compile("access_token=(?P<access_token>.+?)&expires=(?P<expire_in>[0-9]+)")
     r = None
-    
+
     while True:
         try:
             session = requests.session()
@@ -394,11 +399,14 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
             p_ret.ParseFromString(r.content)
             return p_ret
         except requests.ConnectionError as e:
-            lprint('[-] Connection error, error: {}'.format(e))
-            lprint(type(e.args[0]))
-            lprint(dir(e.args[0]))
-            if e.errno == 10054:
-                time.sleep(2)
+            if re.search('10054', str(e)) is None:
+                lprint('[-] Uncaught connection error, error: {}'.format(e))
+                if r is not None:
+                    lprint('[-] Uncaught connection error, http code: {}'.format(r.status_code))
+                else:
+                    lprint('[-] Error happened before network request.')
+                lprint('[-] Retrying...')
+            time.sleep(2)
         except Exception as e:
             lprint('[-] Uncaught connection error, error: {}'.format(e))
             if r is not None:
