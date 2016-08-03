@@ -343,7 +343,7 @@ def login_ptc(account):
             time.sleep(1)
 
 def do_login(account):
-    account['api_endpoint'] = None
+    account['api_endpoint'] = API_URL
     account['auth_ticket'] = None
 
     if account['type'] == 'ptc':
