@@ -16,7 +16,7 @@
   * Add that api key and the pokemon ids you wish to be notified about to the settings file
 
 ## Informations
-* This scanning algorithm is all about hexagons. By interpreting the cirle created by the sight radius of 100m as a hexagon, you can fill the room of scan areas with ~80% efficiency in comparison to the base api demo, which had about 40%. The algorithm scans areas from a center point towards the outside in a circle/spiral pattern, so the whole scan area is approximately a circle as well, actually a kind of hexagon again. Furthermore I optimized the code, so it uses less resources and is also stable. No matter which bugs Niantic might have, it shouldn't crash and continue to scan if possible. Also multithreading now.
+* This scanning algorithm is all about hexagons. By interpreting the cirle created by the maximum sight radius as a hexagon, you can fill the room of scan areas with ~80% efficiency in comparison to the base api demo, which had about 40%. The algorithm scans areas from a center point towards the outside in a circle/spiral pattern, so the whole scan area is approximately a circle as well, actually a kind of hexagon again. Furthermore I optimized the code, so it uses less resources and is also stable. No matter which bugs Niantic might have, it shouldn't crash and continue to scan if possible. Also multithreading now.
 
 * Arguments are not required, but if used, they overwrite the settings in the 'usersettings.json' file, standard id without arguments is 0
   * '-id': is the id of the worker(s) and determines stuff like the name of the output files and the place where it will scan, account settings are read from the 'usersettings.json' file
