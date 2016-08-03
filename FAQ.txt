@@ -29,7 +29,7 @@
 	-When the servers return an empty location, it rescans up to 5 times immediately after that in a 1 second interval. So only coming up empty for all of these scans gets an area removed as empty.
 	It may not be perfect, but for me the non-empty cells only came to a maximum of try 3 until servers sent them back non-empty. If you're worried, increase the "tries" variable in main0.py to
 	something like 10, but it will increase the scan time during the first scan.
-	The criterium for a location being empty is all of the surrounding cells having no spawn points inside, so it doesn't depend on where exactly you scan or when.
+	The criterium for a location being empty is all of the surrounding cells having no pokemon things at all inside, so it doesn't depend on where exactly you scan or when.
 	Also cells are only removed during the first run, because logically there can't be empty ones in the subsequent ones.
 	Right now removed locations are not being stored, so if you restart the tool, it'll rescan everything.
 	
