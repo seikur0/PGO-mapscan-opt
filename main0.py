@@ -714,7 +714,6 @@ def main():
                             lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
 
                             if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M:%S")
                                 remaining_seconds = int(wild.time_till_hidden_ms / 1000.0)
                                 minutes, seconds = divmod(remaining_seconds, 60)
                                 try:
@@ -722,6 +721,7 @@ def main():
                                     notification_text = "{} ({}m{}s) @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], minutes, seconds, location.address)
                                 except:
                                     notification_text = '{} ({}m{}s) found!'.format(POKEMONS[wild.pokemon_data.pokemon_id], minutes, seconds)
+                                disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 for pushacc in pb:
                                     pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
