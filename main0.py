@@ -183,12 +183,7 @@ def do_settings():
         for a in range (len(keys)):
             try:
                 this_pb = Pushbullet(keys[a])
-                if allsettings['pushbullet']['use_channels'] is True:
-                    for channel in this_pb.channels:
-                        if channel.channel_tag in allsettings['pushbullet']['channel_tags']:
-                            pb.append(channel)
-                else:
-                    pb.append(this_pb)
+                pb.append(this_pb)
             except Exception as e:
                 lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a+1, e))
                 lprint('[-] This pushbullet will be disabled.')
@@ -287,7 +282,8 @@ def login_ptc(account):
     LOGIN_URL = 'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'
     LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
     pattern = re.compile("access_token=(?P<access_token>.+?)&expires=(?P<expire_in>[0-9]+)")
-
+    r = None
+    
     while True:
         try:
             session = requests.session()
@@ -339,6 +335,7 @@ def login_ptc(account):
 
 def do_login(account):
     account['api_endpoint'] = None
+    account['auth_ticket'] = None
 
     if account['type'] == 'ptc':
         lprint('[{}] Login for ptc account: {}'.format(account['num'], account['user']))
@@ -383,9 +380,12 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
                 if r.status_code == 403:
                     lprint('[-] Access denied, your IP is blocked by the N-company.')
                     sys.exit()
+                if r.status_code == 502:
+                    return None
                 if retry_after == MAXWAIT:
-                    pass # insert some smart way to handle exception later
-                lprint('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after))
+                    lprint('[-] Request error, http code: {}. Please convey this error to the tool creator.'.format(r.status_code))
+                    return None
+                lprint('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after)) #502 endless loop
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 r = session.post(api_endpoint, data=protobuf, verify=False)
@@ -395,7 +395,8 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
             return p_ret
         except requests.ConnectionError as e:
             lprint('[-] Connection error, error: {}'.format(e))
-            lprint(e.args[0])
+            lprint(type(e.args[0]))
+            lprint(dir(e.args[0]))
             if e.errno == 10054:
                 time.sleep(2)
         except Exception as e:
@@ -439,11 +440,17 @@ def get_profile(location, account, api, useauth, *reqq):
     newResponse = api_req(location, account, api, account['access_token'], req, useauth=useauth)
 
     retry_after = 1
-    while newResponse.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
-        lprint('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
+    while newResponse is None or newResponse.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
+        if newResponse is None:
+            lprint('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code, retry_after))
+            do_login(account)
+            set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
+            time.sleep(1)
+        else:
+            lprint('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
         time.sleep(retry_after)
         retry_after = min(retry_after * 2, MAXWAIT)
-        newResponse = api_req(location, account, api, account['access_token'], req, useauth=useauth)
+        newResponse = api_req(location, account, account['api_endpoint'], account['access_token'], req, useauth=account['auth_ticket'])
     return newResponse
 
 
@@ -584,7 +591,7 @@ def main():
                 nextperc = percinterval
                 curT = int(time.time())
 
-                lprint('')
+                lprint('\n\n')
                 lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.now().strftime('%H:%M:%S'),infostring))
 
                 for this_ll in all_ll:
@@ -734,13 +741,11 @@ def main():
                             lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
 
                             if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                remaining_seconds = int(wild.time_till_hidden_ms / 1000.0)
-                                minutes, seconds = divmod(remaining_seconds, 60)
                                 try:
                                     location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
-                                    notification_text = "{} ({}m{}s) @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], minutes, seconds, location.address)
+                                    notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location.address)
                                 except:
-                                    notification_text = '{} ({}m{}s) found!'.format(POKEMONS[wild.pokemon_data.pokemon_id], minutes, seconds)
+                                    notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 for pushacc in pb:
