@@ -720,7 +720,9 @@ def main():
                                 except:
                                     notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M:%S")
-                                time_text = 'disappears at: {}'.format(disappear_time)
+                                remaining_seconds = int(wild.time_till_hidden_ms / 1000.0)
+                                minutes, seconds = divmod(remaining_seconds, 60)
+                                time_text = 'disappears in {}m{}s (@ {})'.format(minutes, seconds, disappear_time)
                                 for pushacc in pb:
                                     pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
 
