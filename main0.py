@@ -393,6 +393,8 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
                     return None
                 if retry_after == MAXWAIT:
                     lprint('[-] Request error, http code: {}. Please convey this error to the tool creator.'.format(r.status_code))
+                    do_login(account)
+                    set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
                     return None
                 lprint('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after)) #502 endless loop
                 time.sleep(retry_after)
@@ -403,7 +405,7 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
             p_ret.ParseFromString(r.content)
             return p_ret
         except requests.ConnectionError as e:
-            if re.search('10054', str(e)) is None:
+            if re.search('Connection aborted', str(e)) is None:
                 lprint('[-] Uncaught connection error, error: {}'.format(e))
                 if r is not None:
                     lprint('[-] Uncaught connection error, http code: {}'.format(r.status_code))
@@ -454,9 +456,10 @@ def get_profile(location, account, api, useauth, *reqq):
     retry_after = 1
     while newResponse is None or newResponse.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         if newResponse is None:
+            time.sleep(1)
             lprint('[-] Response error, retrying in {} seconds'.format(retry_after))
-            do_login(account)
-            set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
+            #do_login(account)
+            #set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
             time.sleep(1)
         else:
             lprint('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
