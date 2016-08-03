@@ -146,7 +146,7 @@ def do_settings():
             lprint('[-] The location parameter will be ignored.')
 
     if wID is None:
-        wID = 1
+        wID = 0
     else:
         wID = int(wID)
 
