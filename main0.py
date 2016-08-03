@@ -573,7 +573,7 @@ def main():
             emptytime = int(time.time()) + emptymaxtime - interval
             try:
                 location = geolocator.reverse('{},{}'.format(LAT_C, LNG_C))
-                infostring = 'ID: {}, Location: ({}), Interval: {} s'.format(wID, location, interval)
+                infostring = 'ID: {}, Location: ({}), Interval: {} s'.format(wID, location.address, interval)
             except:
                 infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {} s'.format(wID, LAT_C, LNG_C, interval)
 
