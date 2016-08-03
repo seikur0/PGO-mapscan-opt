@@ -454,7 +454,7 @@ def get_profile(location, account, api, useauth, *reqq):
     retry_after = 1
     while newResponse is None or newResponse.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         if newResponse is None:
-            lprint('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code, retry_after))
+            lprint('[-] Response error, retrying in {} seconds'.format(retry_after))
             do_login(account)
             set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
             time.sleep(1)
