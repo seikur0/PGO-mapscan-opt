@@ -722,7 +722,7 @@ def main():
                                     notification_text = "{} ({}m{}s) @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], minutes, seconds, location.address)
                                 except:
                                     notification_text = '{} ({}m{}s) found!'.format(POKEMONS[wild.pokemon_data.pokemon_id], minutes, seconds)
-                                time_text = 'disappears at {}'.format(disappear_time)
+                                time_text = 'disappears at: {}'.format(disappear_time)
                                 for pushacc in pb:
                                     pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
 
