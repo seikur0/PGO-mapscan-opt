@@ -90,14 +90,15 @@ LAT_C, LNG_C, ALT_C = [None, None, None]
 
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 
-time_hb = 3.8
+time_hb = 5
 time_small = 1
-tries = 5
+tries = 7
 percinterval = 2
 curR = None
 maxR = None
 firstrun = True
 countmax = 0
+countall = 0
 all_ll = None
 
 scannum = None
@@ -338,12 +339,11 @@ def login_ptc(account):
             time.sleep(2)
 
 def do_login(account):
-    if account.get('session') is None:
-        session = requests.session()
-        session.verify = False
-        account['session'] = session
-
+    session = requests.session()
+    session.verify = False
+    account['session'] = session
     account['api_endpoint'] = None
+
     if account['type'] == 'ptc':
         lprint('[{}] Login for ptc account: {}'.format(account['num'], account['user']))
         login_ptc(account)
@@ -456,7 +456,6 @@ def set_api_endpoint(location, account):
         if response.status_code == 102:
             print(response)
             lprint('[-] Error, invalid session, retrying...')
-            time.sleep(1)
             do_login(account)
             time.sleep(1)
         else:
@@ -488,22 +487,20 @@ def heartbeat(location, account):
                 for testit in cell.spawn_points:
                     return heartbeat
             return None
-        elif newResponse.status_code == 2:
+        elif newResponse.status_code == 2: # got regular profile info instead of heartbeat
                 #lprint('[+] Received profile infos.')
                 #account['api_endpoint'] = 'https://{}/rpc'.format(newResponse.api_url)
                 #account['profile'] = newResponse.returns[0]
                 #account['settings'] = newResponse.returns[4]
                 time.sleep(1)
         elif newResponse.status_code == 102:
-            #lprint(newResponse)
-            if time.time() > account['access_expire_timestamp']:
-                lprint('[-] Login refresh (102)')
-                do_login(account)
-                account['api_endpoint'] = None
+            if time.time() > account['auth_ticket'].expire_timestamp_ms/1000:
+                lprint('[-] Authorization refresh (102)')
                 set_api_endpoint(location, account)
                 time.sleep(1)
-            elif time.time() > account['auth_ticket'].expire_timestamp_ms/1000:
-                lprint('[-] Authorization refresh (102)')
+            else:
+                lprint('[-] Login refresh (102)')
+                do_login(account)
                 set_api_endpoint(location, account)
                 time.sleep(1)
         elif newResponse.status_code == 53: # returned error due to too many connections
@@ -559,6 +556,7 @@ def main():
             global firstrun
             global scannum
             global countmax
+            global countall
 
             firstrun = True
             maxR=len(all_ll)
@@ -581,6 +579,10 @@ def main():
                         nextperc = perc + percinterval
 
                 addlocation.join()
+                addpokemon.join()
+                lprint('[+] Finished: 100 %')
+                lprint('')
+
                 if firstrun:
                     a = 0
                     while a < len(all_ll):
@@ -592,13 +594,13 @@ def main():
                     maxR = len(all_ll)
                     firstrun = False
 
-                #lprint('[-] Non-empty heartbeats reached a maximum of {} tries.'.format(countmax))
-                #if tries-countmax < 2:
-                    #lprint('[-] It is advised to increase the tries variable.')
-                #countmax = 0
+                lprint('[+] Non-empty heartbeats reached a maximum of {} retries.'.format(countmax))
+                lprint('[+] Average number of retries was {}.'.format(round(float(countall)/maxR,2)))
+                countmax = 0
+                countall = 0
 
-                addpokemon.join()
-                lprint('[+] Finished: 100 %')
+
+
 
                 list_unique.intersection_update(list_seen)
                 list_seen.clear()
@@ -629,6 +631,7 @@ def main():
         def run(self):
             global curR
             global countmax
+            global countall
             do_login(self.account)
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
             location = origin.lat().degrees, origin.lng().degrees, ALT_C
@@ -664,6 +667,7 @@ def main():
                     all_ll[all_ll.index(this_ll)] = None
                 else:
                     countmax = max(countmax, count)
+                    countall += count
                     for cell in h.map_cells:
                         for wild in cell.wild_pokemons:
                             addpokemon.put(wild)
@@ -719,6 +723,7 @@ def main():
                                 disappear_time = str(datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M"))
                                 location_text = "disappears at: " + disappear_time
                                 for pushacc in pb:
+                                    pushacc.push_link('<<Pokemon: {}>> <<Timer: {}s>>'.format(POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
                                     pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=location_text)
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
