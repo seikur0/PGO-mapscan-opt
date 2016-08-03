@@ -445,7 +445,7 @@ def set_api_endpoint(location, account):
             do_login(account)
             time.sleep(1)
         else:
-            if response.status_code in [53,2]:
+            if response.status_code == 53:
                 account['api_endpoint'] = 'https://{}/rpc'.format(response.api_url)
             account['auth_ticket'] = response.auth_ticket
             return
