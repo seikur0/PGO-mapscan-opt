@@ -1,4 +1,4 @@
-import requests
+import requests, errno
 import re
 import json
 import argparse
@@ -264,6 +264,10 @@ def login_google(account):
             access_token = login2['Auth']
             account['access_expire_timestamp'] = login2['Expiry']
             account['access_token'] = access_token
+            session = requests.session()
+            session.verify = False
+            session.headers.update({'User-Agent': 'niantic'})  # session.headers.update({'User-Agent': 'Niantic App'})
+            account['session'] = session
             return
         except Exception as e:
             lprint('[-] Unexpected google login error: {}'.format(e))
@@ -381,8 +385,12 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
             p_ret = POGOProtos.Networking.Envelopes_pb2.ResponseEnvelope()
             p_ret.ParseFromString(r.content)
             return p_ret
-
-        except Exception, e:
+        except requests.ConnectionError as e:
+            lprint('[-] Connection error, error: {}'.format(e))
+            lprint(e.errno)
+            if e.errno == 10054:
+                time.sleep(2)
+        except Exception as e:
             lprint('[-] Uncaught connection error, error: {}'.format(e))
             if r is not None:
                 lprint('[-] Uncaught connection error, http code: {}'.format(r.status_code))
@@ -583,7 +591,7 @@ def main():
                     maxR = len(all_ll)
                     firstrun = False
 
-                lprint('[+] Non-empty heartbeats reached a maximum of {} retries.'.format(countmax))
+                lprint('[+] Non-empty heartbeats reached a maximum of {} retries, allowed: {}.'.format(countmax, tries))
                 lprint('[+] Average number of retries was {}.'.format(round(float(countall)/maxR,2)))
                 countmax = 0
                 countall = 0
