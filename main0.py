@@ -96,10 +96,11 @@ tries = 8
 percinterval = 2
 curR = None
 maxR = None
-firstrun = True
 countmax = 0
 countall = 0
+empty_thisrun = 0
 all_ll = None
+empty_ll = None
 
 scannum = None
 login_simu = False
@@ -144,6 +145,8 @@ def do_settings():
         else:
             lprint('[-] Error: The coordinates for the specified location couldn\'t be retrieved, http code: {}'.format(r.status_code))
             lprint('[-] The location parameter will be ignored.')
+
+
 
     if wID is None:
         wID = 0
@@ -387,7 +390,7 @@ def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
             return p_ret
         except requests.ConnectionError as e:
             lprint('[-] Connection error, error: {}'.format(e))
-            lprint(e.errno)
+            lprint(e.args[0])
             if e.errno == 10054:
                 time.sleep(2)
         except Exception as e:
@@ -448,7 +451,6 @@ def set_api_endpoint(location, account):
 
         response = get_profile(location, account, api_url, None)
         if response.status_code == 102:
-            print(response)
             lprint('[-] Error, invalid session, retrying...')
             do_login(account)
             time.sleep(1)
@@ -551,23 +553,34 @@ def main():
         def run(self):
             global curR
             global maxR
-            global firstrun
             global scannum
             global countmax
             global countall
+            global empty_thisrun
 
-            firstrun = True
             maxR=len(all_ll)
 
             lprint('')
             lprint('[+] Distributing {} locations to {} threads.'.format(len(all_ll), threadnum))
 
+            emptymaxtime = 7200
+            runs = 0
+            emptytime = int(time.time()) + emptymaxtime - interval
+            try:
+                location = geolocator.reverse('{},{}'.format(LAT_C, LNG_C))
+                infostring = 'ID: {}, Location: ({}), Interval: {} s'.format(wID, location, interval)
+            except:
+                infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {} s'.format(wID, LAT_C, LNG_C, interval)
+
+
             while True:
-                lprint('')
-                lprint('[+] Time: {}'.format(datetime.now().strftime('%H:%M:%S')))
+                runs +=1
                 curR = 0
                 nextperc = percinterval
                 curT = int(time.time())
+
+                lprint('')
+                lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.now().strftime('%H:%M:%S'),infostring))
 
                 for this_ll in all_ll:
                     addlocation.put(this_ll)
@@ -581,24 +594,24 @@ def main():
                 lprint('[+] Finished: 100 %')
                 lprint('')
 
-                if firstrun:
-                    a = 0
-                    while a < len(all_ll):
-                        if all_ll[a] is None:
-                            all_ll.remove(all_ll[a])
-                        else:
-                            a +=1
-                    lprint('[+] {}/{} non-empty locations in scan range remaining.'.format(len(all_ll), maxR))
-                    maxR = len(all_ll)
-                    firstrun = False
-
+                lprint('[+] {} of {} cells detected as empty during last run.'.format(empty_thisrun, maxR))
                 lprint('[+] Non-empty heartbeats reached a maximum of {} retries, allowed: {}.'.format(countmax, tries))
                 lprint('[+] Average number of retries was {}.'.format(round(float(countall)/maxR,2)))
+
+                if curT > emptytime:
+                    l = 0
+                    while l < len(all_ll):
+                        if empty_ll[l] == runs: #within whole time came up as empty, standard setting 2 hours
+                            all_ll.pop(l)
+                            empty_ll.pop(l)
+                        else:
+                            l += 1
+                    lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR-len(all_ll),runs,emptymaxtime))
+                    maxR = len(all_ll)
+
                 countmax = 0
                 countall = 0
-
-
-
+                empty_thisrun = 0
 
                 list_unique.intersection_update(list_seen)
                 list_seen.clear()
@@ -630,6 +643,8 @@ def main():
             global curR
             global countmax
             global countall
+            global empty_ll
+            global empty_thisrun
             do_login(self.account)
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
             location = origin.lat().degrees, origin.lng().degrees, ALT_C
@@ -661,10 +676,10 @@ def main():
                     h = heartbeat(location, self.account)
                 time.sleep(time_hb)
                 if h is None:
-                    if firstrun:
-                        lprint('[+] Empty location removed. lat/lng: {}, {}'.format(this_ll.lat().degrees, this_ll.lng().degrees))
-                        all_ll[all_ll.index(this_ll)] = None
+                    empty_ll[all_ll.index(this_ll)] += 1
+                    empty_thisrun += 1
                 else:
+                    empty_ll[all_ll.index(this_ll)] = 0
                     countmax = max(countmax, count)
                     countall += count
                     for cell in h.map_cells:
@@ -744,10 +759,12 @@ def main():
 #########################################################################
 #########################################################################
     global all_ll
+    global empty_ll
     accounts = do_settings()
 
     origin = LatLng.from_degrees(LAT_C, LNG_C)
     all_ll = [origin]
+    empty_ll = []
 
     latrad = origin.lat().radians
     HEX_M = 3.0 ** 0.5 / 2.0 * HEX_R
@@ -779,6 +796,7 @@ def main():
 
                 all_ll.append(LatLng.from_degrees(lat, lng))
 
+    empty_ll = [0]*len(all_ll)
     list_seen = set([])
     list_unique = set([])
 
