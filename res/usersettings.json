@@ -45,7 +45,10 @@
   "_comment13": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
   "login_simu": false,
   
-  "_comment14": "The profiles. Each with their own id, login info, and coordinates.",
+  "_comment14": "Port that the webserver will use. Set to 0 to disable.",
+  "port": 8000,  
+  
+  "_comment15": "The profiles. Each with their own id, login info, and coordinates.",
   "profiles": [
     {
       "id": 0,

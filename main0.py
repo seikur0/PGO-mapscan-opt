@@ -25,6 +25,7 @@ from shutil import move
 import threading
 import Queue
 
+import pokesite
 
 def getNeighbors(location):
     level = 15
@@ -89,6 +90,7 @@ workdir = os.path.dirname(os.path.realpath(__file__))
 LAT_C, LNG_C, ALT_C = [None, None, None]
 
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
+port = None
 
 time_hb = 5
 time_small = 1
@@ -115,7 +117,7 @@ def do_settings():
     global PUSHPOKS
     global scannum
     global login_simu
-
+    global port
     global wID
 
     parser = argparse.ArgumentParser()
@@ -199,6 +201,8 @@ def do_settings():
             pb = None
 
     LANGUAGE = allsettings['language']
+
+    port = allsettings['port']
 
     if HEX_NUM is None:
         HEX_NUM = allsettings['range']
@@ -776,6 +780,13 @@ def main():
             finally:
                 if 'f' in vars() and not f.closed:
                     f.close()
+
+    class webserver(threading.Thread):
+        def __init__(self, port):
+            threading.Thread.__init__(self)
+            self.port = port
+        def run(self):
+            pokesite.server_start(port)
 #########################################################################
 #########################################################################
     global all_ll
@@ -835,7 +846,14 @@ def main():
         for i in range(0, threadnum):
             synch_li.put(True)
 
-
+    if port > 0:
+        try:
+            newthread = webserver(port)
+            newthread.daemon = True
+            newthread.start()
+        except Exception as e:
+            print('[-] Webserver couldn\'t be started, error: {}'.format(e))
+            sys.exit()
 
     for i in range(0,threadnum):
         newthread = collector(i, accounts[i])

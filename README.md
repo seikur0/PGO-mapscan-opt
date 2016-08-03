@@ -8,9 +8,10 @@
   * if it still fails and you're using windows, you may need to install these runtimes from Microsoft: http://aka.ms/vcpython27
 * 'python main0.py' to run the program
 
-* 'python -m SimpleHTTPServer 8000' to run the local map server and make it accessible from your browser
-* Open browser to 'http://localhost:8000'
-  * If you get a socket bind error, choose a different port number instead of 8000
+* The program will host the website with your map on 'http://localhost:8000'.
+* That port can be changed in the settings file or set to 0 to disable this feature.
+  * If you get a socket bind error, choose a different port number instead of 8000.
+  * Server can also be started manually at any time with the included pokesite.py file.
 
 * If you wish to use pushbullet you will need an API key from https://www.pushbullet.com/#settings
   * Add that api key and the pokemon ids you wish to be notified about to the settings file
