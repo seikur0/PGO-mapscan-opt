@@ -782,11 +782,12 @@ def main():
                     f.close()
 
     class webserver(threading.Thread):
-        def __init__(self, port):
+        def __init__(self, port, workdir):
             threading.Thread.__init__(self)
             self.port = port
+            self.workdir = workdir
         def run(self):
-            pokesite.server_start(port)
+            pokesite.server_start(port, workdir)
 #########################################################################
 #########################################################################
     global all_ll
@@ -848,7 +849,7 @@ def main():
 
     if port > 0:
         try:
-            newthread = webserver(port)
+            newthread = webserver(port, workdir)
             newthread.daemon = True
             newthread.start()
         except Exception as e:

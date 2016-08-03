@@ -2,12 +2,13 @@ from twisted.web.server import Site
 from twisted.web.static import File
 from twisted.internet import reactor
 import sys
+import os
 
 resource = None
 factory = None
 
-def server_start(port):
-    resource = File("")
+def server_start(port, workdir):
+    resource = File(workdir)
     factory = Site(resource)
     sys.stdout.write('[+] Webserver started, listening on port {}.\n'.format(port))
     reactor.listenTCP(port, factory)
@@ -20,4 +21,5 @@ def server_end():
     reactor.close()
 
 if __name__ == '__main__':
-    server_start(8000)
+    workdir = os.path.dirname(os.path.realpath(__file__))
+    server_start(8000, workdir)
