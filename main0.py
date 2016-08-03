@@ -714,14 +714,13 @@ def main():
                             if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
                                 try:
                                     location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
-                                    notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " @ " + location.address
+                                    notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location.address)
                                 except:
-                                    notification_text = POKEMONS[wild.pokemon_data.pokemon_id] + " found!"
-                                disappear_time = str(datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M"))
-                                location_text = "disappears at: " + disappear_time
+                                    notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
+                                disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M:%S")
+                                time_text = 'disappears at: {}'.format(disappear_time)
                                 for pushacc in pb:
-                                    pushacc.push_link('<<Pokemon: {}>> <<Timer: {}s>>'.format(POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0)), 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude))
-                                    pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=location_text)
+                                    pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
