@@ -18,7 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Settings.proto',
   package='POGOProtos.Settings',
-  #syntax='proto3',
+  syntax='proto3',
   serialized_pb=_b('\n\x19POGOProtos.Settings.proto\x12\x13POGOProtos.Settings\"&\n\x16\x44ownloadSettingsAction\x12\x0c\n\x04hash\x18\x01 \x01(\t\"\xe4\x01\n\x0c\x46ortSettings\x12 \n\x18interaction_range_meters\x18\x01 \x01(\x01\x12\"\n\x1amax_total_deployed_pokemon\x18\x02 \x01(\x05\x12#\n\x1bmax_player_deployed_pokemon\x18\x03 \x01(\x05\x12!\n\x19\x64\x65ploy_stamina_multiplier\x18\x04 \x01(\x01\x12 \n\x18\x64\x65ploy_attack_multiplier\x18\x05 \x01(\x01\x12$\n\x1c\x66\x61r_interaction_range_meters\x18\x06 \x01(\x01\"\xa2\x02\n\x0eGlobalSettings\x12\x38\n\rfort_settings\x18\x02 \x01(\x0b\x32!.POGOProtos.Settings.FortSettings\x12\x36\n\x0cmap_settings\x18\x03 \x01(\x0b\x32 .POGOProtos.Settings.MapSettings\x12:\n\x0elevel_settings\x18\x04 \x01(\x0b\x32\".POGOProtos.Settings.LevelSettings\x12\x42\n\x12inventory_settings\x18\x05 \x01(\x0b\x32&.POGOProtos.Settings.InventorySettings\x12\x1e\n\x16minimum_client_version\x18\x06 \x01(\t\"\x80\x01\n\x11InventorySettings\x12\x13\n\x0bmax_pokemon\x18\x01 \x01(\x05\x12\x15\n\rmax_bag_items\x18\x02 \x01(\x05\x12\x14\n\x0c\x62\x61se_pokemon\x18\x03 \x01(\x05\x12\x16\n\x0e\x62\x61se_bag_items\x18\x04 \x01(\x05\x12\x11\n\tbase_eggs\x18\x05 \x01(\x05\"Q\n\rLevelSettings\x12\x1b\n\x13trainer_cp_modifier\x18\x02 \x01(\x01\x12#\n\x1btrainer_difficulty_modifier\x18\x03 \x01(\x01\"\x8f\x02\n\x0bMapSettings\x12\x1d\n\x15pokemon_visible_range\x18\x01 \x01(\x01\x12\x1d\n\x15poke_nav_range_meters\x18\x02 \x01(\x01\x12\x1e\n\x16\x65ncounter_range_meters\x18\x03 \x01(\x01\x12+\n#get_map_objects_min_refresh_seconds\x18\x04 \x01(\x02\x12+\n#get_map_objects_max_refresh_seconds\x18\x05 \x01(\x02\x12+\n#get_map_objects_min_distance_meters\x18\x06 \x01(\x02\x12\x1b\n\x13google_maps_api_key\x18\x07 \x01(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -48,7 +48,7 @@ _DOWNLOADSETTINGSACTION = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -114,7 +114,7 @@ _FORTSETTINGS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -173,7 +173,7 @@ _GLOBALSETTINGS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -232,7 +232,7 @@ _INVENTORYSETTINGS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -270,7 +270,7 @@ _LEVELSETTINGS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -343,7 +343,7 @@ _MAPSETTINGS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

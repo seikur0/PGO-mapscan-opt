@@ -6,6 +6,9 @@
 * 'pip install -r requirements.txt'
   * if it fails 'pip install --user -r requirements.txt' (mostly for unix systems)
   * if it still fails and you're using windows, you may need to install these runtimes from Microsoft: http://aka.ms/vcpython27
+* With the unknown6 now being required you need a library file named 'encrypt.so'.
+  * As for instructions how to get it, please look here: https://github.com/PokemonGoF/PokemonGo-Bot/issues/2966
+  * When you have the appropriate file (32 bit for 32 bit Python installed!), name it 'encrypt.so' and put it into the res subfolder.
 * 'python main0.py' to run the program
 
 * The program will host the website with your map on 'http://localhost:8000'.
@@ -40,6 +43,7 @@
 * Pushbullet support also for multiple receivers
 * Multithreading (way to small entry for this awesome feature)
 * Accounts not being able to log in was fixed (some people had problems)
+* unknown6 integration
 
 ## FAQ
 * https://github.com/seikur0/PGO-mapscan-opt/blob/master/FAQ.txt
@@ -52,6 +56,8 @@
 To Tejado, who made the original pokemongo api demo, which I based my project on: https://github.com/tejado/pgoapi
 
 To AeonLucid for creating and expanding the POGO Protos Library: https://github.com/AeonLucid/POGOProtos
+
+To the heroes of the unknown6 team.
 
 To HEKTakun, I'm using his awesome pokemon icons for the map.
 

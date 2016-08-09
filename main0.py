@@ -15,6 +15,7 @@ from datetime import datetime
 import sys
 import math
 import os
+import random
 
 from pushbullet import Pushbullet
 from geopy.geocoders import Nominatim
@@ -22,10 +23,16 @@ from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
 
+from uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature
+import ctypes
+
 import threading
 import Queue
 
 import pokesite
+
+def get_time():
+    return int(round(time.time() * 1000))
 
 def getNeighbors(location):
     level = 15
@@ -92,9 +99,9 @@ LAT_C, LNG_C, ALT_C = [None, None, None]
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 port = None
 
-time_hb = 5
+time_hb = 6
 time_small = 1
-tries = 8
+tries = 4
 percinterval = 2
 curR = None
 maxR = None
@@ -106,6 +113,10 @@ empty_ll = None
 
 scannum = None
 login_simu = False
+
+signature_lib = None
+locktime = 0.03
+lock_network = None
 
 def do_settings():
     global LANGUAGE
@@ -165,7 +176,7 @@ def do_settings():
             sys.exit()
         f.close()
     finally:
-        if f is not None and not f.closed:
+        if 'f' in vars() and not f.closed:
             f.close()
 
     login_simu = allsettings['login_simu']
@@ -277,7 +288,7 @@ def login_google(account):
             account['access_expire_timestamp'] = login2['Expiry']
             account['access_token'] = access_token
             session = requests.session()
-            session.verify = False
+            session.verify = True
             session.headers.update({'User-Agent': 'niantic'})  # session.headers.update({'User-Agent': 'Niantic App'})
             account['session'] = session
             return
@@ -292,11 +303,11 @@ def login_ptc(account):
     LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
     pattern = re.compile("access_token=(?P<access_token>.+?)&expires=(?P<expire_in>[0-9]+)")
     r = None
-
+    step = 0
     while True:
         try:
             session = requests.session()
-            session.verify = False
+            session.verify = True
             session.headers.update({'User-Agent': 'niantic'})  # session.headers.update({'User-Agent': 'Niantic App'})
 
             step = 0
@@ -343,9 +354,13 @@ def login_ptc(account):
             time.sleep(1)
 
 def do_login(account):
-    account['api_endpoint'] = API_URL
+    account['api_url'] = API_URL
     account['auth_ticket'] = None
+    account['login_time'] = int(round(time.time() * 1000))
 
+    lock_network.acquire()
+    time.sleep(locktime)
+    lock_network.release()
     if account['type'] == 'ptc':
         lprint('[{}] Login for ptc account: {}'.format(account['num'], account['user']))
         login_ptc(account)
@@ -357,73 +372,95 @@ def do_login(account):
         sys.exit()
 
 
-def api_req(location, account, api_endpoint, access_token, *mehs, **kw):
+def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     session = account['session']
     r = None
+
+    p_req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
+    p_req.request_id = get_time()*1000000+random.randint(1,999999)
+
+    p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
+
+    p_req.latitude, p_req.longitude, p_req.altitude = location
+
+    for s_req in reqs:
+        p_req.MergeFrom(s_req)
+
+    p_req.unknown12 = 989  # transaction id, anything works
+
+    if 'useauth' not in auth or not auth['useauth']:
+        p_req.auth_info.provider = account['type']
+        p_req.auth_info.token.contents = access_token
+        p_req.auth_info.token.unknown2 = 59
+    else:
+        p_req.auth_ticket.start = auth['useauth'].start
+        p_req.auth_ticket.expire_timestamp_ms = auth['useauth'].expire_timestamp_ms
+        p_req.auth_ticket.end = auth['useauth'].end
+
+        ticket_serialized = p_req.auth_ticket.SerializeToString()
+        sig = POGOProtos.Networking.Envelopes_pb2.Signature()
+        sig.location_hash1 = generateLocation1(ticket_serialized, location[0], location[1], location[2])
+        sig.location_hash2 = generateLocation2(location[0], location[1], location[2])
+
+        for req in p_req.requests:
+            req_hash = generateRequestHash(ticket_serialized, req.SerializeToString())
+            sig.request_hash.append(req_hash)
+
+        sig.unknown22 = os.urandom(32)
+        sig.timestamp = get_time()
+        sig.timestamp_since_start = get_time() - account['login_time']
+
+        signature_proto = sig.SerializeToString()
+        u6 = p_req.unknown6
+        u6.request_type = 6
+        u6.unknown2.encrypted_signature = generate_signature(signature_proto,signature_lib)
+
+    request_str = p_req.SerializeToString()
+
     while True:
         try:
-            p_req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
-            p_req.request_id = 1469378659230941192# anything works here as well 1469378659230941192
+            lock_network.acquire()
+            time.sleep(locktime)
+            lock_network.release()
 
-            p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
+            r = session.post(api_endpoint, data=request_str)
 
-            p_req.latitude, p_req.longitude, p_req.altitude = (location[0], location[1], location[2])
-
-            p_req.unknown12 = 989  # transaction id, anything works
-            if 'useauth' not in kw or not kw['useauth']:
-                p_req.auth_info.provider = account['type']
-                p_req.auth_info.token.contents = access_token
-                p_req.auth_info.token.unknown2 = 14
+            if r.status_code == 200:
+                p_ret = POGOProtos.Networking.Envelopes_pb2.ResponseEnvelope()
+                p_ret.ParseFromString(r.content)
+                return p_ret
+            elif r.status_code == 403:
+                lprint('[-] Access denied, your IP is blocked by the N-company.')
+                sys.exit()
+            elif r.status_code == 502:
+                #lprint('[-] Servers busy, retrying...')
+                time.sleep(1)
             else:
-                p_req.auth_ticket.start = kw['useauth'].start
-                p_req.auth_ticket.expire_timestamp_ms = kw['useauth'].expire_timestamp_ms
-                p_req.auth_ticket.end = kw['useauth'].end
+                lprint('[-] Unexpected network error, http code: {}'.format(r.status_code))
+                return None
 
-            for meh in mehs:
-                p_req.MergeFrom(meh)
-            protobuf = p_req.SerializeToString()
 
-            r = session.post(api_endpoint, data=protobuf, verify=False)
-            retry_after = 1
-            while r.status_code != 200:
-                if r.status_code == 403:
-                    lprint('[-] Access denied, your IP is blocked by the N-company.')
-                    sys.exit()
-                if r.status_code == 502:
-                    return None
-                if retry_after == MAXWAIT:
-                    lprint('[-] Request error, http code: {}. Please convey this error to the tool creator.'.format(r.status_code))
-                    do_login(account)
-                    set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
-                    return None
-                lprint('[-] Connection error {}, retrying in {} seconds'.format(r.status_code, retry_after)) #502 endless loop
-                time.sleep(retry_after)
-                retry_after = min(retry_after * 2, MAXWAIT)
-                r = session.post(api_endpoint, data=protobuf, verify=False)
-
-            p_ret = POGOProtos.Networking.Envelopes_pb2.ResponseEnvelope()
-            p_ret.ParseFromString(r.content)
-            return p_ret
         except requests.ConnectionError as e:
             if re.search('Connection aborted', str(e)) is None:
-                lprint('[-] Uncaught connection error, error: {}'.format(e))
+                lprint('[-] Unexpected connection error, error: {}'.format(e))
                 if r is not None:
-                    lprint('[-] Uncaught connection error, http code: {}'.format(r.status_code))
+                    lprint('[-] Unexpected connection error, http code: {}'.format(r.status_code))
                 else:
                     lprint('[-] Error happened before network request.')
                 lprint('[-] Retrying...')
-            time.sleep(2)
+            time.sleep(1)
         except Exception as e:
-            lprint('[-] Uncaught connection error, error: {}'.format(e))
+            lprint('[-] Unexpected connection error, error: {}'.format(e))
             if r is not None:
-                lprint('[-] Uncaught connection error, http code: {}'.format(r.status_code))
+                lprint('[-] Unexpected connection error, http code: {}'.format(r.status_code))
             else:
                 lprint('[-] Error happened before network request.')
             lprint('[-] Retrying...')
-            time.sleep(2)
+            time.sleep(1)
 
 
-def get_profile(location, account, api, useauth, *reqq):
+def get_profile(rtype, location, account, *reqq):
+    response = None
     req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
 
     req1 = req.requests.add()
@@ -451,91 +488,64 @@ def get_profile(location, account, api, useauth, *reqq):
     if len(reqq) >= 5:
         req5.MergeFrom(reqq[4])
 
-    newResponse = api_req(location, account, api, account['access_token'], req, useauth=useauth)
-
-    retry_after = 1
-    while newResponse is None or newResponse.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
-        if newResponse is None:
+    while response is None or response.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
+        response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
+        if response is None:
             time.sleep(1)
-            lprint('[-] Response error, retrying in {} seconds'.format(retry_after))
-            #do_login(account)
-            #set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
-            time.sleep(1)
+            lprint('[-] Response error, retrying...')
+            do_login(account)
+            set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
+        elif rtype == 1 and (response.status_code == 1 or response.status_code == 2):
+            return response
+        elif response.status_code == 53 or (response.status_code == 2 and rtype == 53):
+            if response.auth_ticket is not None and response.auth_ticket:
+                account['auth_ticket'] = response.auth_ticket
+            if response.api_url is not None and response.api_url:
+                account['api_url'] = 'https://{}/rpc'.format(response.api_url)
+            if rtype == 53 and account['auth_ticket'] is not None and account['api_url'] != API_URL:
+                return
+        elif rtype == 53:
+            pass
+        elif response.status_code == 102:
+            if get_time() > account['auth_ticket'].expire_timestamp_ms:
+                lprint('[-] Authorization refresh.')
+                set_api_endpoint(location, account)
+            else:
+                lprint('[-] Login refresh.')
+                do_login(account)
+                set_api_endpoint(location, account)
+            time.sleep(time_hb)
+        elif response.status_code == 52:
+            lprint('[-] Servers busy, retrying...')
         else:
-            lprint('[-] Response error, status code: {}, retrying in {} seconds'.format(newResponse.status_code,retry_after))
-        time.sleep(retry_after)
-        retry_after = min(retry_after * 2, MAXWAIT)
-        newResponse = api_req(location, account, account['api_endpoint'], account['access_token'], req, useauth=account['auth_ticket'])
-    return newResponse
+            lprint('[-] Response error, unexpected status code: {}, retrying...'.format(response.status_code))
+        time.sleep(1)
 
 
 def set_api_endpoint(location, account):
-    while True:
-        if account['api_endpoint'] is None or account['api_endpoint'] == '':
-            api_url = API_URL
-        else:
-            api_url = account['api_endpoint']
-
-        response = get_profile(location, account, api_url, None)
-        if response.status_code == 102:
-            lprint('[-] Error, invalid session, retrying...')
-            do_login(account)
-            time.sleep(1)
-        else:
-            if response.status_code in [53, 2]:
-                account['api_endpoint'] = 'https://{}/rpc'.format(response.api_url)
-            account['auth_ticket'] = response.auth_ticket
-            if response.api_url:
-                return
-            else:
-                time.sleep(1)
-
+        get_profile(53, location, account)
 
 def heartbeat(location, account):
-    while True:
-        m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
-        m1.request_type = POGOProtos.Networking.Envelopes_pb2.GET_MAP_OBJECTS
-        m11 = POGOProtos.Networking.Requests.Messages_pb2.GetMapObjectsMessage()
+    m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
+    m1.request_type = POGOProtos.Networking.Envelopes_pb2.GET_MAP_OBJECTS
+    m11 = POGOProtos.Networking.Requests.Messages_pb2.GetMapObjectsMessage()
 
-        walk = getNeighbors(location)
-        m11.cell_id.extend(walk)
+    walk = getNeighbors(location)
+    m11.cell_id.extend(walk)
 
-        m11.since_timestamp_ms.extend([0] * len(walk))
-        m11.latitude = location[0]
-        m11.longitude = location[1]
-        m1.request_message = m11.SerializeToString()
-        newResponse = get_profile(location, account, account['api_endpoint'], account['auth_ticket'], m1)
+    m11.since_timestamp_ms.extend([0] * len(walk))
+    m11.latitude = location[0]
+    m11.longitude = location[1]
+    m1.request_message = m11.SerializeToString()
+    response = get_profile(1, location, account, m1)
 
-        if newResponse.status_code == 1:
-            heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
-            heartbeat.ParseFromString(newResponse.returns[0])
+    heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
+    heartbeat.ParseFromString(response.returns[0])
 
-            for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
-                if len(cell.ListFields()) > 2:
-                    return heartbeat
-            return None
-        elif newResponse.status_code == 2: # got regular profile info instead of heartbeat
-                #lprint('[+] Received profile infos.')
-                #account['api_endpoint'] = 'https://{}/rpc'.format(newResponse.api_url)
-                #account['profile'] = newResponse.returns[0]
-                #account['settings'] = newResponse.returns[4]
-                time.sleep(1)
-        elif newResponse.status_code == 102:
-            if time.time() > account['auth_ticket'].expire_timestamp_ms/1000:
-                #lprint('[-] Authorization refresh (102)')
-                set_api_endpoint(location, account)
-                time.sleep(1)
-            else:
-                #lprint('[-] Login refresh (102)')
-                do_login(account)
-                set_api_endpoint(location, account)
-                time.sleep(1)
-        elif newResponse.status_code == 53: # returned error due to too many connections
-            time.sleep(1)
-        else:
-            lprint('[-] Heartbeat error, status code: {}'.format( newResponse.status_code))  # should not happen, probably unused
-            lprint('[-] Retrying...')
-            time.sleep(2)
+    for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
+        if len(cell.ListFields()) > 2:
+            return heartbeat
+    return None
 
 
 def prune_data():
@@ -584,6 +594,8 @@ def main():
             global countmax
             global countall
             global empty_thisrun
+            global time_hb
+            global tries
 
             maxR=len(all_ll)
 
@@ -623,7 +635,17 @@ def main():
 
                 lprint('[+] {} of {} cells detected as empty during last run.'.format(empty_thisrun, maxR))
                 lprint('[+] Non-empty heartbeats reached a maximum of {} retries, allowed: {}.'.format(countmax, tries))
-                lprint('[+] Average number of retries was {}.'.format(round(float(countall)/maxR,2)))
+                ave_retries = float(countall)/maxR
+                lprint('[+] Average number of retries was {}.'.format(round(ave_retries,2)))
+
+                if ave_retries >= 1.1:
+                    ave_retries = math.floor(ave_retries-0.1)
+                    time_hb += ave_retries
+                    countmax -= ave_retries
+                elif ave_retries < 0.1:
+                    time_hb -=1
+                    countmax += 1
+                tries = min(countmax + 2,6)
 
                 if curT > emptytime:
                     l = 0
@@ -676,17 +698,8 @@ def main():
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
             location = origin.lat().degrees, origin.lng().degrees, ALT_C
             set_api_endpoint(location, self.account)
-            lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_endpoint']))
-
-            #lprint('[{}] Login successful'.format(self.account['num']))
-
-            #settings = POGOProtos.Networking.Responses_pb2.DownloadSettingsResponse()
-            #settings.ParseFromString(self.account['settings'])
-
-            #profile = POGOProtos.Networking.Responses_pb2.GetPlayerResponse()
-            #profile.ParseFromString(self.account['profile'])
-
-            #lprint('[{}] Username: {}'.format(self.account['num'], profile.player_data.username))
+            lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_url']))
+            time.sleep(time_hb)
             # /////////////////
             synch_li.get()
             synch_li.task_done()
@@ -795,6 +808,12 @@ def main():
 #########################################################################
     global all_ll
     global empty_ll
+    global signature_lib
+    global lock_network
+
+    random.seed()
+
+    signature_lib = ctypes.cdll.LoadLibrary('{}/res/encrypt.so'.format(workdir))
     accounts = do_settings()
 
     origin = LatLng.from_degrees(LAT_C, LNG_C)
@@ -841,6 +860,8 @@ def main():
     addpokemon = Queue.Queue(threadnum)
     synch_li = Queue.Queue(threadnum)
     addlocation = Queue.Queue(threadnum)
+
+    lock_network = threading.Lock()
 
     newthread = joiner()
     newthread.daemon = True
