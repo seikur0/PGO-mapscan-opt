@@ -99,9 +99,9 @@ LAT_C, LNG_C, ALT_C = [None, None, None]
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 port = None
 
-time_hb = 6
-time_small = 1
-tries = 4
+time_hb = 8
+time_small = time_hb
+tries = 1
 percinterval = 2
 curR = None
 maxR = None
