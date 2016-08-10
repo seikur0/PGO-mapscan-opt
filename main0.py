@@ -725,7 +725,6 @@ def main():
             if acc_tos:
                 accept_tos(location,self.account)
                 time.sleep(time_hb)
-            lprint(self.account)
             # /////////////////
             synch_li.get()
             synch_li.task_done()
