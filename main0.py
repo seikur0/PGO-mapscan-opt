@@ -167,7 +167,7 @@ def do_settings():
         acc_tos = True
 
     if wID is None:
-        wID = 1
+        wID = 0
     else:
         wID = int(wID)
 
