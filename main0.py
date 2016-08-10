@@ -393,7 +393,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
     p_req.unknown12 = 989  # transaction id, anything works
 
-    if 'useauth' not in auth or not auth['useauth']:
+    if auth['useauth'] is None:
         p_req.auth_info.provider = account['type']
         p_req.auth_info.token.contents = access_token
         p_req.auth_info.token.unknown2 = 59
@@ -533,6 +533,7 @@ def get_profile(rtype, location, account, *reqq):
 
 
 def set_api_endpoint(location, account):
+    account['auth_ticket'] = None
     get_profile(53, location, account)
 
 def heartbeat(location, account):
@@ -629,10 +630,9 @@ def main():
             emptytime = int(time.time()) + emptymaxtime - interval
             try:
                 location = geolocator.reverse('{},{}'.format(LAT_C, LNG_C))
-                infostring = 'ID: {}, Location: ({}), Interval: {} s'.format(wID, location.address, interval)
+                infostring = 'ID: {}, Location: ({}), Interval: {} s, Range: {}'.format(wID, location.address, interval, HEX_NUM)
             except:
-                infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {} s'.format(wID, LAT_C, LNG_C, interval)
-
+                infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {} s, Range: {}'.format(wID, LAT_C, LNG_C, interval, HEX_NUM)
 
             while True:
                 runs +=1
