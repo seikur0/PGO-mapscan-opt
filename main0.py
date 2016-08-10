@@ -397,28 +397,29 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
         p_req.auth_info.provider = account['type']
         p_req.auth_info.token.contents = access_token
         p_req.auth_info.token.unknown2 = 59
+        ticket_serialized = p_req.auth_info.SerializeToString()
     else:
         p_req.auth_ticket.start = auth['useauth'].start
         p_req.auth_ticket.expire_timestamp_ms = auth['useauth'].expire_timestamp_ms
         p_req.auth_ticket.end = auth['useauth'].end
-
         ticket_serialized = p_req.auth_ticket.SerializeToString()
-        sig = POGOProtos.Networking.Envelopes_pb2.Signature()
-        sig.location_hash1 = generateLocation1(ticket_serialized, location[0], location[1], location[2])
-        sig.location_hash2 = generateLocation2(location[0], location[1], location[2])
 
-        for req in p_req.requests:
-            req_hash = generateRequestHash(ticket_serialized, req.SerializeToString())
-            sig.request_hash.append(req_hash)
+    sig = POGOProtos.Networking.Envelopes_pb2.Signature()
+    sig.location_hash1 = generateLocation1(ticket_serialized, location[0], location[1], location[2])
+    sig.location_hash2 = generateLocation2(location[0], location[1], location[2])
 
-        sig.unknown22 = os.urandom(32)
-        sig.timestamp = get_time()
-        sig.timestamp_since_start = get_time() - account['login_time']
+    for req in p_req.requests:
+        req_hash = generateRequestHash(ticket_serialized, req.SerializeToString())
+        sig.request_hash.append(req_hash)
 
-        signature_proto = sig.SerializeToString()
-        u6 = p_req.unknown6
-        u6.request_type = 6
-        u6.unknown2.encrypted_signature = generate_signature(signature_proto,signature_lib)
+    sig.unknown22 = os.urandom(32)
+    sig.timestamp = get_time()
+    sig.timestamp_since_start = get_time() - account['login_time']
+
+    signature_proto = sig.SerializeToString()
+    u6 = p_req.unknown6
+    u6.request_type = 6
+    u6.unknown2.encrypted_signature = generate_signature(signature_proto,signature_lib)
 
     request_str = p_req.SerializeToString()
 
@@ -465,7 +466,6 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
 
 def get_profile(rtype, location, account, *reqq):
-    response = None
     req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
 
     req1 = req.requests.add()
@@ -493,28 +493,30 @@ def get_profile(rtype, location, account, *reqq):
     if len(reqq) >= 5:
         req5.MergeFrom(reqq[4])
 
-    while response is None or response.status_code not in [1, 2, 53, 102]:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
+    while True:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
         if response is None:
             time.sleep(1)
             lprint('[-] Response error, retrying...')
+            time.sleep(time_hb)
             do_login(account)
             set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
             time.sleep(time_hb)
         elif rtype == 1 and (response.status_code == 1 or response.status_code == 2):
             return response
-        elif response.status_code == 53 or (response.status_code == 2 and rtype == 53):
-            if response.auth_ticket is not None and response.auth_ticket:
+        elif rtype == 53:  #response.status_code == 53 or (response.status_code in [1,2] and
+            if response.auth_ticket is not None and response.auth_ticket.expire_timestamp_ms > 0:
                 account['auth_ticket'] = response.auth_ticket
             if response.api_url is not None and response.api_url:
                 account['api_url'] = 'https://{}/rpc'.format(response.api_url)
             if rtype == 53 and account['auth_ticket'] is not None and account['api_url'] != API_URL:
                 return
-        elif rtype == 53:
-            pass
+        #elif rtype == 53:
+            #pass
         elif rtype ==0 and response.status_code == 2:
             return
         elif response.status_code == 102:
+            time.sleep(time_hb)
             if get_time() > account['auth_ticket'].expire_timestamp_ms:
                 lprint('[-] Authorization refresh.')
                 set_api_endpoint(location, account)
@@ -531,7 +533,7 @@ def get_profile(rtype, location, account, *reqq):
 
 
 def set_api_endpoint(location, account):
-        get_profile(53, location, account)
+    get_profile(53, location, account)
 
 def heartbeat(location, account):
     m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
@@ -545,20 +547,16 @@ def heartbeat(location, account):
     m11.latitude = location[0]
     m11.longitude = location[1]
     m1.request_message = m11.SerializeToString()
-    while True:
-        try:
-            response = get_profile(1, location, account, m1)
 
-            heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
-            heartbeat.ParseFromString(response.returns[0])
+    response = get_profile(1, location, account, m1)
 
-            for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
-                if len(cell.ListFields()) > 2:
-                    return heartbeat
-            return None
-        except Exception as e:
-            lprint('[-] Heartbeat error: {}, retrying...'.format(e))
-            lprint(response)
+    heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
+    heartbeat.ParseFromString(response.returns[0])
+
+    for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
+        if len(cell.ListFields()) > 2:
+            return heartbeat
+    return None
 
 def accept_tos(location, account):
     m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
@@ -727,6 +725,7 @@ def main():
             if acc_tos:
                 accept_tos(location,self.account)
                 time.sleep(time_hb)
+            lprint(self.account)
             # /////////////////
             synch_li.get()
             synch_li.task_done()
