@@ -636,16 +636,16 @@ def main():
                 lprint('[+] {} of {} cells detected as empty during last run.'.format(empty_thisrun, maxR))
                 lprint('[+] Non-empty heartbeats reached a maximum of {} retries, allowed: {}.'.format(countmax, tries))
                 ave_retries = float(countall)/maxR
-                lprint('[+] Average number of retries was {}.'.format(round(ave_retries,2)))
+                lprint('[+] Average number of retries was {}, total number {}.'.format(round(ave_retries,2),countall))
 
-                if ave_retries >= 1.1:
-                    ave_retries = math.floor(ave_retries-0.1)
-                    time_hb += ave_retries
-                    countmax -= ave_retries
-                elif ave_retries < 0.1:
-                    time_hb -=1
-                    countmax += 1
-                tries = min(countmax + 2,6)
+                # if ave_retries >= 1.1:
+                #     ave_retries = math.floor(ave_retries-0.1)
+                #     time_hb += ave_retries
+                #     countmax -= ave_retries
+                # elif ave_retries < 0.1:
+                #     time_hb -=1
+                #     countmax += 1
+                # tries = min(countmax + 2,6)
 
                 if curT > emptytime:
                     l = 0
@@ -814,6 +814,9 @@ def main():
     random.seed()
 
     signature_lib = ctypes.cdll.LoadLibrary('{}/res/encrypt.so'.format(workdir))
+    signature_lib.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_size_t)]
+    signature_lib.restype = ctypes.c_int
+
     accounts = do_settings()
 
     origin = LatLng.from_degrees(LAT_C, LNG_C)

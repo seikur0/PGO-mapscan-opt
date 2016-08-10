@@ -25,32 +25,33 @@ import os
 import ctypes
 import six
 
+static_seed = 0x1B845238
+
 
 def d2h(f):
-    return hex(struct.unpack('<Q', struct.pack('<d', f))[0])[2:-1].decode("hex")
+    hex_str = hex(struct.unpack('<Q', struct.pack('<d', f))[0])[2:-1]
+    if len(hex_str) % 2:
+        hex_str = '0' + hex_str
+    return hex_str.decode('hex')
+
 
 def generateLocation1(authticket, lat, lng, alt):
-    firstHash = xxhash.xxh32(authticket, seed=0x1B845238).intdigest()
+    firstHash = xxhash.xxh32(authticket, seed=static_seed).intdigest()
     locationBytes = d2h(lat) + d2h(lng) + d2h(alt)
-    if not alt:
-        alt = "\x00\x00\x00\x00\x00\x00\x00\x00"
     return xxhash.xxh32(locationBytes, seed=firstHash).intdigest()
+
 
 def generateLocation2(lat, lng, alt):
     locationBytes = d2h(lat) + d2h(lng) + d2h(alt)
-    if not alt:
-        alt = "\x00\x00\x00\x00\x00\x00\x00\x00"
-    return xxhash.xxh32(locationBytes, seed=0x1B845238).intdigest()      #Hash of location using static seed 0x1B845238
+    return xxhash.xxh32(locationBytes, seed=static_seed).intdigest()
+
 
 def generateRequestHash(authticket, request):
-    firstHash = xxhash.xxh64(authticket, seed=0x1B845238).intdigest()
+    firstHash = xxhash.xxh64(authticket, seed=static_seed).intdigest()
     return xxhash.xxh64(request, seed=firstHash).intdigest()
 
+
 def generate_signature(signature_plain, signature_lib):
-
-    signature_lib.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_size_t)]
-    signature_lib.restype = ctypes.c_int
-
     iv = os.urandom(32)
 
     output_size = ctypes.c_size_t()
