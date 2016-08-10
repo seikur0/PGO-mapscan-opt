@@ -31,6 +31,7 @@
   * '-alt': altitude
   * '-loc': location, you can specify the name of a location and the coordinates will be set to that, overwrites -lat and -lng
   * '-s': scans, will quit after the specified number of scans, 1 for single scans
+  * '-tos': use this argument to make all accounts accept the tos at the start (only needed once for new accounts)
 
 ## What to do with collected data
 * 'python collector.py' will upload the backed up spawn files and share them

@@ -4,6 +4,7 @@ import json
 import argparse
 
 import POGOProtos
+import POGOProtos.Enums_pb2
 import POGOProtos.Networking
 import POGOProtos.Networking.Envelopes_pb2
 import POGOProtos.Networking.Responses_pb2
@@ -113,6 +114,7 @@ empty_ll = None
 
 scannum = None
 login_simu = False
+acc_tos = False
 
 signature_lib = None
 locktime = 0.03
@@ -130,6 +132,7 @@ def do_settings():
     global login_simu
     global port
     global wID
+    global acc_tos
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -140,6 +143,7 @@ def do_settings():
     parser.add_argument('-alt', '--altitude', help='altitude')
     parser.add_argument('-loc', '--location', help='location')
     parser.add_argument('-s', "--scannum", help="number of scans to run")
+    parser.add_argument('-tos', "--tosaccept", help="let accounts accept tos at start", action="store_true")
     args = parser.parse_args()
     wID = args.id
     HEX_NUM = args.range
@@ -159,10 +163,11 @@ def do_settings():
             lprint('[-] Error: The coordinates for the specified location couldn\'t be retrieved, http code: {}'.format(r.status_code))
             lprint('[-] The location parameter will be ignored.')
 
-
+    if args.tosaccept:
+        acc_tos = True
 
     if wID is None:
-        wID = 0
+        wID = 1
     else:
         wID = int(wID)
 
@@ -506,6 +511,8 @@ def get_profile(rtype, location, account, *reqq):
                 return
         elif rtype == 53:
             pass
+        elif rtype ==0 and response.status_code == 2:
+            return
         elif response.status_code == 102:
             if get_time() > account['auth_ticket'].expire_timestamp_ms:
                 lprint('[-] Authorization refresh.')
@@ -547,6 +554,17 @@ def heartbeat(location, account):
             return heartbeat
     return None
 
+def accept_tos(location, account):
+    m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
+    m1.request_type = POGOProtos.Networking.Envelopes_pb2.MARK_TUTORIAL_COMPLETE
+    m11 = POGOProtos.Networking.Requests.Messages_pb2.MarkTutorialCompleteMessage()
+
+    m11.tutorials_completed.append(POGOProtos.Enums_pb2.LEGAL_SCREEN)
+    m11.send_marketing_emails = False
+    m11.send_push_notifications = False
+
+    m1.request_message = m11.SerializeToString()
+    get_profile(0, location, account, m1)
 
 def prune_data():
     # prune despawned pokemon
@@ -700,6 +718,9 @@ def main():
             set_api_endpoint(location, self.account)
             lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_url']))
             time.sleep(time_hb)
+            if acc_tos:
+                accept_tos(location,self.account)
+                time.sleep(time_hb)
             # /////////////////
             synch_li.get()
             synch_li.task_done()
