@@ -1,4 +1,4 @@
-import requests, errno
+import requests
 import re
 import json
 import argparse
@@ -24,7 +24,7 @@ from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
 
-from uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature
+from uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature, d2h
 import ctypes
 
 import threading
@@ -500,6 +500,7 @@ def get_profile(rtype, location, account, *reqq):
             lprint('[-] Response error, retrying...')
             do_login(account)
             set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
+            time.sleep(time_hb)
         elif rtype == 1 and (response.status_code == 1 or response.status_code == 2):
             return response
         elif response.status_code == 53 or (response.status_code == 2 and rtype == 53):
@@ -544,15 +545,20 @@ def heartbeat(location, account):
     m11.latitude = location[0]
     m11.longitude = location[1]
     m1.request_message = m11.SerializeToString()
-    response = get_profile(1, location, account, m1)
+    while True:
+        try:
+            response = get_profile(1, location, account, m1)
 
-    heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
-    heartbeat.ParseFromString(response.returns[0])
+            heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
+            heartbeat.ParseFromString(response.returns[0])
 
-    for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
-        if len(cell.ListFields()) > 2:
-            return heartbeat
-    return None
+            for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
+                if len(cell.ListFields()) > 2:
+                    return heartbeat
+            return None
+        except Exception as e:
+            lprint('[-] Heartbeat error: {}, retrying...'.format(e))
+            lprint(response)
 
 def accept_tos(location, account):
     m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
