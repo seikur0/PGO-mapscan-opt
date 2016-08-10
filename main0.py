@@ -133,6 +133,7 @@ def do_settings():
     global port
     global wID
     global acc_tos
+    global exclude_ids
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -219,6 +220,8 @@ def do_settings():
     LANGUAGE = allsettings['language']
 
     port = allsettings['port']
+    
+    exclude_ids = allsettings[exclude_ids']
 
     if HEX_NUM is None:
         HEX_NUM = allsettings['range']
@@ -781,7 +784,8 @@ def main():
                             else:
                                 list_unique.add(wild.encounter_id)
                             f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0, wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0, wild.encounter_id))
-                            DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)])
+                            if wild.pokemon_data.pokemon_id not in exclude_ids:
+                                DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)])
                             other = LatLng.from_degrees(wild.latitude, wild.longitude)
                             diff = other - origin
                             difflat = diff.lat().degrees
