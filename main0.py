@@ -32,8 +32,10 @@ import Queue
 
 import pokesite
 
+
 def get_time():
     return int(round(time.time() * 1000))
+
 
 def getNeighbors(location):
     level = 15
@@ -53,18 +55,18 @@ def getNeighbors(location):
             origin.from_face_ij_same(face, i + size, j - size, j - size >= 0 and i + size < max_size).parent(level).id(),
             origin.from_face_ij_same(face, i - size, j + size, j + size < max_size and i - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i + size, j + size, j + size < max_size and i + size < max_size).parent(level).id()]
-            #origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
-            #origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
-            #origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
-            #origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
-            #origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
-            #origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
+    # origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
+    # origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
+    # origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
+    # origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
+    # origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
+    # origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
+    # origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
+    # origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
+    # origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
+    # origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
+    # origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
+    # origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
     return walk
 
 
@@ -84,6 +86,7 @@ safety = 0.999
 
 LOGGING = False
 DATA = []
+exclude_ids = None
 pb = None
 PUSHPOKS = None
 geolocator = Nominatim()
@@ -119,6 +122,7 @@ acc_tos = False
 signature_lib = None
 locktime = 0.03
 lock_network = None
+
 
 def do_settings():
     global LANGUAGE
@@ -199,7 +203,7 @@ def do_settings():
     if allsettings['pushbullet']['enabled'] is True:
         pb = []
         keys = allsettings['pushbullet']['api_key']
-        for a in range (len(keys)):
+        for a in range(len(keys)):
             try:
                 this_pb = Pushbullet(keys[a])
                 if allsettings['pushbullet']['use_channels'] is True:
@@ -209,7 +213,7 @@ def do_settings():
                 else:
                     pb.append(this_pb)
             except Exception as e:
-                lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a+1, e))
+                lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a + 1, e))
                 lprint('[-] This pushbullet will be disabled.')
 
         if len(pb) > 0:
@@ -220,8 +224,8 @@ def do_settings():
     LANGUAGE = allsettings['language']
 
     port = allsettings['port']
-    
-    exclude_ids = allsettings[exclude_ids']
+
+    exclude_ids = set(allsettings['exclude_ids'])
 
     if HEX_NUM is None:
         HEX_NUM = allsettings['range']
@@ -232,15 +236,15 @@ def do_settings():
     else:
         interval = int(interval)
 
-    #////////////////////////
+    # ////////////////////////
     idlist = []
     for i in range(0, len(allsettings['profiles'])):
-        if allsettings['profiles'][i]['id']==wID:
+        if allsettings['profiles'][i]['id'] == wID:
             idlist.append(i)
 
     accounts = []
     if len(idlist) > 0:
-        for i in range(0,len(idlist)):
+        for i in range(0, len(idlist)):
             account = {'num': i, 'type': allsettings['profiles'][idlist[i]]['type'], 'user': allsettings['profiles'][idlist[i]]['username'], 'pw': allsettings['profiles'][idlist[i]]['password']}
             accounts.append(account)
     else:
@@ -268,7 +272,6 @@ def getEarthRadius(latrad):
 
 
 def login_google(account):
-
     ANDROID_ID = '9774d56d682e549c'
     SERVICE = 'audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com'
     APP = 'com.nianticlabs.pokemongo'
@@ -347,7 +350,7 @@ def login_ptc(account):
             step = 6
             result = pattern.search(r.content)
             step = 7
-            account['access_expire_timestamp'] = int(result.groupdict()["expire_in"])+time.time()
+            account['access_expire_timestamp'] = int(result.groupdict()["expire_in"]) + time.time()
             account['access_token'] = result.groupdict()["access_token"]
             account['session'] = session
             return
@@ -360,6 +363,7 @@ def login_ptc(account):
                 lprint('[-] Error happened before network request.')
             lprint('[-] Retrying...')
             time.sleep(1)
+
 
 def do_login(account):
     account['api_url'] = API_URL
@@ -385,7 +389,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     r = None
 
     p_req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
-    p_req.request_id = get_time()*1000000+random.randint(1,999999)
+    p_req.request_id = get_time() * 1000000 + random.randint(1, 999999)
 
     p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
 
@@ -422,7 +426,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     signature_proto = sig.SerializeToString()
     u6 = p_req.unknown6
     u6.request_type = 6
-    u6.unknown2.encrypted_signature = generate_signature(signature_proto,signature_lib)
+    u6.unknown2.encrypted_signature = generate_signature(signature_proto, signature_lib)
 
     request_str = p_req.SerializeToString()
 
@@ -442,7 +446,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 lprint('[-] Access denied, your IP is blocked by the N-company.')
                 sys.exit()
             elif r.status_code == 502:
-                #lprint('[-] Servers busy, retrying...')
+                # lprint('[-] Servers busy, retrying...')
                 time.sleep(1)
             else:
                 lprint('[-] Unexpected network error, http code: {}'.format(r.status_code))
@@ -507,16 +511,16 @@ def get_profile(rtype, location, account, *reqq):
             time.sleep(time_hb)
         elif rtype == 1 and (response.status_code == 1 or response.status_code == 2):
             return response
-        elif rtype == 53:  #response.status_code == 53 or (response.status_code in [1,2] and
+        elif rtype == 53:  # response.status_code == 53 or (response.status_code in [1,2] and
             if response.auth_ticket is not None and response.auth_ticket.expire_timestamp_ms > 0:
                 account['auth_ticket'] = response.auth_ticket
             if response.api_url is not None and response.api_url:
                 account['api_url'] = 'https://{}/rpc'.format(response.api_url)
             if rtype == 53 and account['auth_ticket'] is not None and account['api_url'] != API_URL:
                 return
-        #elif rtype == 53:
-            #pass
-        elif rtype ==0 and response.status_code == 2:
+                # elif rtype == 53:
+                # pass
+        elif rtype == 0 and response.status_code == 2:
             return
         elif response.status_code == 102:
             time.sleep(time_hb)
@@ -539,6 +543,7 @@ def set_api_endpoint(location, account):
     account['auth_ticket'] = None
     get_profile(53, location, account)
 
+
 def heartbeat(location, account):
     m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
     m1.request_type = POGOProtos.Networking.Envelopes_pb2.GET_MAP_OBJECTS
@@ -557,10 +562,11 @@ def heartbeat(location, account):
     heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
     heartbeat.ParseFromString(response.returns[0])
 
-    for cell in heartbeat.map_cells: # tests if an empty heartbeat was returned
+    for cell in heartbeat.map_cells:  # tests if an empty heartbeat was returned
         if len(cell.ListFields()) > 2:
             return heartbeat
     return None
+
 
 def accept_tos(location, account):
     m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
@@ -574,12 +580,14 @@ def accept_tos(location, account):
     m1.request_message = m11.SerializeToString()
     get_profile(0, location, account, m1)
 
+
 def prune_data():
     # prune despawned pokemon
     cur_time = int(time.time())
     for i, poke in reversed(list(enumerate(DATA))):
         if cur_time > poke[4]:
             DATA.pop(i)
+
 
 def load_data(data_file):
     try:
@@ -595,6 +603,7 @@ def load_data(data_file):
         if 'f' in vars() and not f.closed:
             f.close()
 
+
 def write_data(data_file):
     try:
         f = open(data_file, 'w')
@@ -604,8 +613,10 @@ def write_data(data_file):
         if 'f' in vars() and not f.closed:
             f.close()
 
+
 def lprint(message):
-    sys.stdout.write(str(message)+'\n')
+    sys.stdout.write(str(message) + '\n')
+
 
 ##################################################################################################################################################
 ##################################################################################################################################################
@@ -613,6 +624,7 @@ def main():
     class locgiver(threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
+
         def run(self):
             global curR
             global maxR
@@ -623,7 +635,7 @@ def main():
             global time_hb
             global tries
 
-            maxR=len(all_ll)
+            maxR = len(all_ll)
 
             lprint('')
             lprint('[+] Distributing {} locations to {} threads.'.format(len(all_ll), threadnum))
@@ -638,13 +650,13 @@ def main():
                 infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {} s, Range: {}'.format(wID, LAT_C, LNG_C, interval, HEX_NUM)
 
             while True:
-                runs +=1
+                runs += 1
                 curR = 0
                 nextperc = percinterval
                 curT = int(time.time())
 
                 lprint('\n\n')
-                lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.now().strftime('%H:%M:%S'),infostring))
+                lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.now().strftime('%H:%M:%S'), infostring))
 
                 for this_ll in all_ll:
                     addlocation.put(this_ll)
@@ -660,8 +672,8 @@ def main():
 
                 lprint('[+] {} of {} cells detected as empty during last run.'.format(empty_thisrun, maxR))
                 lprint('[+] Non-empty heartbeats reached a maximum of {} retries, allowed: {}.'.format(countmax, tries))
-                ave_retries = float(countall)/maxR
-                lprint('[+] Average number of retries was {}, total number {}.'.format(round(ave_retries,2),countall))
+                ave_retries = float(countall) / maxR
+                lprint('[+] Average number of retries was {}, total number {}.'.format(round(ave_retries, 2), countall))
 
                 # if ave_retries >= 1.1:
                 #     ave_retries = math.floor(ave_retries-0.1)
@@ -675,12 +687,12 @@ def main():
                 if curT > emptytime:
                     l = 0
                     while l < len(all_ll):
-                        if empty_ll[l] == runs: #within whole time came up as empty, standard setting 2 hours
+                        if empty_ll[l] == runs:  # within whole time came up as empty, standard setting 2 hours
                             all_ll.pop(l)
                             empty_ll.pop(l)
                         else:
                             l += 1
-                    lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR-len(all_ll),runs,emptymaxtime))
+                    lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR - len(all_ll), runs, emptymaxtime))
                     maxR = len(all_ll)
 
                 countmax = 0
@@ -706,8 +718,9 @@ def main():
 
 
 
-#########################################################################
-#########################################################################
+                #########################################################################
+                #########################################################################
+
     class collector(threading.Thread):
         def __init__(self, name, account):
             threading.Thread.__init__(self)
@@ -726,7 +739,7 @@ def main():
             lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_url']))
             time.sleep(time_hb)
             if acc_tos:
-                accept_tos(location,self.account)
+                accept_tos(location, self.account)
                 time.sleep(time_hb)
             # /////////////////
             synch_li.get()
@@ -756,19 +769,21 @@ def main():
                 curR += 1
                 addlocation.task_done()
 
-#########################################################################
-#########################################################################
+                #########################################################################
+                #########################################################################
+
     class joiner(threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
+
         def run(self):
             data_file = '{}/res/data{}.json'.format(workdir, wID)
             stat_file = '{}/res/spawns{}.txt'.format(workdir, wID)
             POKEMONS = json.load(open('{}/res/{}.json'.format(workdir, LANGUAGE)))
             statheader = 'Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n'
 
-            interval_datwrite=5
-            nextdatwrite=time.time() + interval_datwrite
+            interval_datwrite = 5
+            nextdatwrite = time.time() + interval_datwrite
             load_data(data_file)
             try:
                 f = open(stat_file, 'a', 0)
@@ -787,7 +802,8 @@ def main():
                                 wild.time_till_hidden_ms = 901000
                             else:
                                 list_unique.add(wild.encounter_id)
-                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0, wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0, wild.encounter_id))
+                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0,
+                                                                                  wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0, wild.encounter_id))
                             if wild.pokemon_data.pokemon_id not in exclude_ids:
                                 DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)])
                             other = LatLng.from_degrees(wild.latitude, wild.longitude)
@@ -820,7 +836,7 @@ def main():
                                     f = open(stat_file, 'a', 0)
                                     f.write(statheader)
 
-                                nextdatwrite=time.time() + interval_datwrite
+                                nextdatwrite = time.time() + interval_datwrite
                     addpokemon.task_done()
             finally:
                 if 'f' in vars() and not f.closed:
@@ -831,10 +847,12 @@ def main():
             threading.Thread.__init__(self)
             self.port = port
             self.workdir = workdir
+
         def run(self):
             pokesite.server_start(port, workdir)
-#########################################################################
-#########################################################################
+            #########################################################################
+            #########################################################################
+
     global all_ll
     global empty_ll
     global signature_lib
@@ -859,21 +877,21 @@ def main():
     y_un = 1.0 * HEX_M / getEarthRadius(latrad) * safety * 180 / math.pi
 
     for a in range(1, HEX_NUM + 1):
-        for s in range(0,6):
+        for s in range(0, 6):
             for i in range(0, a):
-                if s==0:
+                if s == 0:
                     lat = LAT_C + y_un * (-2 * a + i)
                     lng = LNG_C + x_un * i
-                elif s==1:
+                elif s == 1:
                     lat = LAT_C + y_un * (-a + 2 * i)
                     lng = LNG_C + x_un * a
-                elif s==2:
+                elif s == 2:
                     lat = LAT_C + y_un * (a + i)
                     lng = LNG_C + x_un * (a - i)
-                elif s==3:
+                elif s == 3:
                     lat = LAT_C - y_un * (-2 * a + i)
                     lng = LNG_C - x_un * i
-                elif s==4:
+                elif s == 4:
                     lat = LAT_C - y_un * (-a + 2 * i)
                     lng = LNG_C - x_un * a
                 else:  # if s==5:
@@ -882,7 +900,7 @@ def main():
 
                 all_ll.append(LatLng.from_degrees(lat, lng))
 
-    empty_ll = [0]*len(all_ll)
+    empty_ll = [0] * len(all_ll)
     list_seen = set([])
     list_unique = set([])
 
@@ -912,7 +930,7 @@ def main():
             print('[-] Webserver couldn\'t be started, error: {}'.format(e))
             sys.exit()
 
-    for i in range(0,threadnum):
+    for i in range(0, threadnum):
         newthread = collector(i, accounts[i])
         newthread.daemon = True
         newthread.start()
@@ -930,6 +948,7 @@ def main():
 
     while True:
         newthread.join(5)
+
 
 if __name__ == '__main__':
     main()

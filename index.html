@@ -25,7 +25,6 @@
 	var LAT_C;
 	var LNG_C;
 	var LANGUAGE;
-	var excludeIDs = [];
 	var scalesize;
 	var loadids;
     var timenow;
@@ -72,11 +71,9 @@
                 // Add updated markers
                 for (var i = 0; i < pokdats.length; i++) {
                     var p = pokdats[i];
-                    var ban=0;
-                    while (ban<excludeIDs.length && p[0]!=excludeIDs[ban]){ban++;}
 
                     var timeleft = p[4]-timenow;
-                    if (ban>=excludeIDs.length&&timeleft>0) {
+                    if (timeleft>0) {
                         var cIcon= {
                                   url: respath + "icons/" + p[0] + ".png",
                                   size: iconSize,
@@ -169,7 +166,6 @@ function initSite() {
 	LAT_C=settings['profiles']['0']['coordinates']['lat'];
 	LNG_C=settings['profiles']['0']['coordinates']['lng'];
     LANGUAGE=settings['language'];
-    excludeIDs=settings['exclude_ids'];
     scalesize = Math.ceil(72*settings['icon_scalefactor']);
     loadids = settings['load_ids'];
     respath=settings['html_respath'];
