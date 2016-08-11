@@ -24,7 +24,7 @@ from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
 
-from uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature, d2h
+from uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature
 import ctypes
 
 import threading
@@ -120,7 +120,7 @@ login_simu = False
 acc_tos = False
 
 signature_lib = None
-locktime = 0.03
+locktime = None
 lock_network = None
 
 
@@ -296,7 +296,7 @@ def login_google(account):
                 login2 = perform_oauth(account['user'], login1.get('Token', ''), ANDROID_ID, SERVICE, APP, APP_SIG)
 
             access_token = login2['Auth']
-            account['access_expire_timestamp'] = login2['Expiry']
+            account['access_expire_timestamp'] = int(login2['Expiry'])
             account['access_token'] = access_token
             session = requests.session()
             session.verify = True
@@ -350,7 +350,7 @@ def login_ptc(account):
             step = 6
             result = pattern.search(r.content)
             step = 7
-            account['access_expire_timestamp'] = int(result.groupdict()["expire_in"]) + time.time()
+            account['access_expire_timestamp'] = 9000 + time.time() #account['access_expire_timestamp'] = int(result.groupdict()["expire_in"]) + time.time()
             account['access_token'] = result.groupdict()["access_token"]
             account['session'] = session
             return
@@ -390,7 +390,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
     p_req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
     p_req.request_id = get_time() * 1000000 + random.randint(1, 999999)
-
+	
     p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
 
     p_req.latitude, p_req.longitude, p_req.altitude = location
@@ -501,37 +501,32 @@ def get_profile(rtype, location, account, *reqq):
         req5.MergeFrom(reqq[4])
 
     while True:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
+        time.sleep(time_hb)
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
         if response is None:
             time.sleep(1)
             lprint('[-] Response error, retrying...')
-            time.sleep(time_hb)
             do_login(account)
             set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
-            time.sleep(time_hb)
         elif rtype == 1 and (response.status_code == 1 or response.status_code == 2):
             return response
-        elif rtype == 53:  # response.status_code == 53 or (response.status_code in [1,2] and
+        elif rtype == 53 or response.status_code == 53:
             if response.auth_ticket is not None and response.auth_ticket.expire_timestamp_ms > 0:
                 account['auth_ticket'] = response.auth_ticket
             if response.api_url is not None and response.api_url:
                 account['api_url'] = 'https://{}/rpc'.format(response.api_url)
             if rtype == 53 and account['auth_ticket'] is not None and account['api_url'] != API_URL:
                 return
-                # elif rtype == 53:
-                # pass
         elif rtype == 0 and response.status_code == 2:
             return
         elif response.status_code == 102:
-            time.sleep(time_hb)
-            if get_time() > account['auth_ticket'].expire_timestamp_ms:
-                lprint('[-] Authorization refresh.')
-                set_api_endpoint(location, account)
-            else:
+            timenow = time.time()
+            if timenow > account['access_expire_timestamp'] or timenow < account['auth_ticket'].expire_timestamp_ms:
                 lprint('[-] Login refresh.')
                 do_login(account)
-                set_api_endpoint(location, account)
-            time.sleep(time_hb)
+            else:
+                lprint('[-] Authorization refresh.')
+            set_api_endpoint(location, account)
         elif response.status_code == 52:
             lprint('[-] Servers busy, retrying...')
         else:
@@ -558,7 +553,6 @@ def heartbeat(location, account):
     m1.request_message = m11.SerializeToString()
 
     response = get_profile(1, location, account, m1)
-
     heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
     heartbeat.ParseFromString(response.returns[0])
 
@@ -737,10 +731,8 @@ def main():
             location = origin.lat().degrees, origin.lng().degrees, ALT_C
             set_api_endpoint(location, self.account)
             lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_url']))
-            time.sleep(time_hb)
             if acc_tos:
                 accept_tos(location, self.account)
-                time.sleep(time_hb)
             # /////////////////
             synch_li.get()
             synch_li.task_done()
@@ -755,7 +747,6 @@ def main():
                     count += 1
                     time.sleep(time_small)
                     h = heartbeat(location, self.account)
-                time.sleep(time_hb)
                 if h is None:
                     empty_ll[all_ll.index(this_ll)] += 1
                     empty_thisrun += 1
@@ -857,6 +848,7 @@ def main():
     global empty_ll
     global signature_lib
     global lock_network
+    global locktime
 
     random.seed()
 
@@ -906,6 +898,8 @@ def main():
 
     threadnum = len(accounts)
 
+    locktime = min(0.8* time_hb / threadnum, 0.1)
+
     threadList = []
     addpokemon = Queue.Queue(threadnum)
     synch_li = Queue.Queue(threadnum)
@@ -937,10 +931,12 @@ def main():
         threadList.append(newthread)
         if not login_simu:
             synch_li.put(True)
-            synch_li.join()
+            while not synch_li.empty():
+                synch_li.join(5)
 
     if login_simu:
-        synch_li.join()
+        while not synch_li.empty():
+            synch_li.join(5)
 
     newthread = locgiver()
     newthread.daemon = True
