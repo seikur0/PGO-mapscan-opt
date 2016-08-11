@@ -46,6 +46,8 @@
 * Multithreading (way to small entry for this awesome feature)
 * Accounts not being able to log in was fixed (some people had problems)
 * unknown6 integration
+* easy network hosting and minimized network traffic
+  * files for the website moved to a different folder to protect settings on public servers
 
 ## FAQ
 * https://github.com/seikur0/PGO-mapscan-opt/blob/master/FAQ.txt

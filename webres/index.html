@@ -33,7 +33,6 @@
     var iconOrigin;
     var iconAnchor;
     var iconScaledSize;
-    var respath;
     var timelefttext;
 /////////////////////////////////////////////////////////////////////
     function getFile(path, asynch, callback) {
@@ -52,7 +51,7 @@
     function refreshData() {
         for (var fileN=0;fileN<loadids.length;fileN++){
             timenow=Math.round((new Date()).getTime() / 1000);
-            filenow=respath+"data".concat(loadids[fileN].toString(),".json");
+            filenow="data".concat(loadids[fileN].toString(),".json");
             getFile(filenow, false, function(fileData) {
                 pokdats = JSON.parse(fileData);
 
@@ -75,7 +74,7 @@
                     var timeleft = p[4]-timenow;
                     if (timeleft>0) {
                         var cIcon= {
-                                  url: respath + "icons/" + p[0] + ".png",
+                                  url: "icons/" + p[0] + ".png",
                                   size: iconSize,
                                   origin: iconOrigin,
                                   anchor: iconAnchor,
@@ -139,7 +138,7 @@ function initMap() {
     zoom: 15,
     disableDoubleClickZoom: true
   });
-  getFile(respath+LANGUAGE+".json", false, function(tnames) {
+  getFile(LANGUAGE+".json", false, function(tnames) {
     pokenames=JSON.parse(tnames);
   });
   if (LANGUAGE=="german")
@@ -161,14 +160,13 @@ function initMap() {
 }
 
 function initSite() {
-  getFile("res/usersettings.json", false, function(tsettings) {
+  getFile("websettings.json", false, function(tsettings) {
     var settings=JSON.parse(tsettings);
-	LAT_C=settings['profiles']['0']['coordinates']['lat'];
-	LNG_C=settings['profiles']['0']['coordinates']['lng'];
+	LAT_C=settings['html_coords']['lat'];
+	LNG_C=settings['html_coords']['lng'];
     LANGUAGE=settings['language'];
     scalesize = Math.ceil(72*settings['icon_scalefactor']);
     loadids = settings['load_ids'];
-    respath=settings['html_respath'];
 
     document.getElementsByName("viewport").content = "width=device-width, initial-scale="+settings['mobile_scalefactor'].toString()+", maximum-scale="+settings['mobile_scalefactor'].toString();
     var script = document.createElement("script");

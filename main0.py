@@ -24,7 +24,7 @@ from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
 
-from uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature
+from res.uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature
 import ctypes
 
 import threading
@@ -263,6 +263,20 @@ def do_settings():
         ALT_C = allsettings['profiles'][idlist[0]]['coordinates']['alt']
     else:
         ALT_C = float(ALT_C)
+
+    copykeys = 'language','api_key','icon_scalefactor','mobile_scalefactor','load_ids'
+    websettings = dict()
+    for key in copykeys:
+        websettings[key] = allsettings[key]
+
+    websettings['html_coords'] = allsettings['profiles'][idlist[0]]['coordinates']
+    try:
+        f = open('{}/webres/websettings.json'.format(workdir), 'w')
+        json.dump(websettings, f, separators=(',', ':'))
+        f.close()
+    finally:
+        if 'f' in vars() and not f.closed:
+            f.close()
 
     return accounts
 
@@ -626,13 +640,13 @@ def main():
             global empty_thisrun
             global time_hb
             global tries
-
             maxR = len(all_ll)
 
             lprint('')
             lprint('[+] Distributing {} locations to {} threads.'.format(len(all_ll), threadnum))
 
             emptymaxtime = 7200
+            emptyremoved = False
             runs = 0
             emptytime = int(time.time()) + emptymaxtime - interval
             try:
@@ -676,7 +690,8 @@ def main():
                 #     countmax += 1
                 # tries = min(countmax + 2,6)
 
-                if curT > emptytime:
+                if not emptyremoved and curT > emptytime:
+                    emptyremoved = True
                     l = 0
                     while l < len(all_ll):
                         if empty_ll[l] == runs:  # within whole time came up as empty, standard setting 2 hours
@@ -767,9 +782,9 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            data_file = '{}/res/data{}.json'.format(workdir, wID)
+            data_file = '{}/webres/data{}.json'.format(workdir, wID)
             stat_file = '{}/res/spawns{}.txt'.format(workdir, wID)
-            POKEMONS = json.load(open('{}/res/{}.json'.format(workdir, LANGUAGE)))
+            POKEMONS = json.load(open('{}/webres/{}.json'.format(workdir, LANGUAGE)))
             statheader = 'Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n'
 
             interval_datwrite = 5

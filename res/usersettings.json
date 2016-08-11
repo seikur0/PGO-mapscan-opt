@@ -1,6 +1,6 @@
 {
   "_comment1": "Language, can be german/english",
-  "language": "german",
+  "language": "english",
 
   "_comment2": "The size in MB after which the spawn file gets renamed and a new one is used, set to 0 to disable.",
   "backup_size": 10,
@@ -26,10 +26,7 @@
   "_comment9": "The html page will only try to load the live data for ids listed here.",
   "load_ids": [0],
 
-  "_comment10": "The path to the res folder from the html point of view.",
-  "html_respath": "res/",
-
-  "_comment11": "Pushbullet settings. You need a Pushbullet API key for it. Can input multiple API keys, comma separated. Put ids of pokemon you want to be notified about into push_ids.",
+  "_comment10": "Pushbullet settings. You need a Pushbullet API key for it. Can input multiple API keys, comma separated. Put ids of pokemon you want to be notified about into push_ids.",
   "pushbullet":
   {
       "enabled": false,
@@ -39,16 +36,16 @@
       "push_ids": []
   },
   
-  "_comment12": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
+  "_comment11": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
   "scannum": 0,
   
-  "_comment13": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
-  "login_simu": false,
+  "_comment12": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
+  "login_simu": true,
   
-  "_comment14": "Port that the webserver will use. Set to 0 to disable.",
+  "_comment13": "Port that the webserver will use. Set to 0 to disable.",
   "port": 8000,  
   
-  "_comment15": "The profiles. Each with their own id, login info, and coordinates.",
+  "_comment14": "The profiles. Each with their own id, login info, and coordinates.",
   "profiles": [
     {
       "id": 0,
