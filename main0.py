@@ -932,11 +932,11 @@ def main():
         if not login_simu:
             synch_li.put(True)
             while not synch_li.empty():
-                synch_li.join(5)
+                time.sleep(1)
 
     if login_simu:
         while not synch_li.empty():
-            synch_li.join(5)
+            time.sleep(2)
 
     newthread = locgiver()
     newthread.daemon = True
