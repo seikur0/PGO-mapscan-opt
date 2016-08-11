@@ -19,7 +19,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Inventory.Item.proto',
   package='POGOProtos.Inventory.Item',
-  #syntax='proto3',
+  syntax='proto3',
   serialized_pb=_b('\n\x1fPOGOProtos.Inventory.Item.proto\x12\x19POGOProtos.Inventory.Item\"S\n\tItemAward\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\x12\n\nitem_count\x18\x02 \x01(\x05\"]\n\x08ItemData\x12\x32\n\x07item_id\x18\x01 \x01(\x0e\x32!.POGOProtos.Inventory.Item.ItemId\x12\r\n\x05\x63ount\x18\x02 \x01(\x05\x12\x0e\n\x06unseen\x18\x03 \x01(\x08*\xc7\x05\n\x06ItemId\x12\x10\n\x0cITEM_UNKNOWN\x10\x00\x12\x12\n\x0eITEM_POKE_BALL\x10\x01\x12\x13\n\x0fITEM_GREAT_BALL\x10\x02\x12\x13\n\x0fITEM_ULTRA_BALL\x10\x03\x12\x14\n\x10ITEM_MASTER_BALL\x10\x04\x12\x0f\n\x0bITEM_POTION\x10\x65\x12\x15\n\x11ITEM_SUPER_POTION\x10\x66\x12\x15\n\x11ITEM_HYPER_POTION\x10g\x12\x13\n\x0fITEM_MAX_POTION\x10h\x12\x10\n\x0bITEM_REVIVE\x10\xc9\x01\x12\x14\n\x0fITEM_MAX_REVIVE\x10\xca\x01\x12\x13\n\x0eITEM_LUCKY_EGG\x10\xad\x02\x12\x1a\n\x15ITEM_INCENSE_ORDINARY\x10\x91\x03\x12\x17\n\x12ITEM_INCENSE_SPICY\x10\x92\x03\x12\x16\n\x11ITEM_INCENSE_COOL\x10\x93\x03\x12\x18\n\x13ITEM_INCENSE_FLORAL\x10\x94\x03\x12\x13\n\x0eITEM_TROY_DISK\x10\xf5\x03\x12\x12\n\rITEM_X_ATTACK\x10\xda\x04\x12\x13\n\x0eITEM_X_DEFENSE\x10\xdb\x04\x12\x13\n\x0eITEM_X_MIRACLE\x10\xdc\x04\x12\x14\n\x0fITEM_RAZZ_BERRY\x10\xbd\x05\x12\x14\n\x0fITEM_BLUK_BERRY\x10\xbe\x05\x12\x15\n\x10ITEM_NANAB_BERRY\x10\xbf\x05\x12\x15\n\x10ITEM_WEPAR_BERRY\x10\xc0\x05\x12\x15\n\x10ITEM_PINAP_BERRY\x10\xc1\x05\x12\x18\n\x13ITEM_SPECIAL_CAMERA\x10\xa1\x06\x12#\n\x1eITEM_INCUBATOR_BASIC_UNLIMITED\x10\x85\x07\x12\x19\n\x14ITEM_INCUBATOR_BASIC\x10\x86\x07\x12!\n\x1cITEM_POKEMON_STORAGE_UPGRADE\x10\xe9\x07\x12\x1e\n\x19ITEM_ITEM_STORAGE_UPGRADE\x10\xea\x07*\xb2\x02\n\x08ItemType\x12\x12\n\x0eITEM_TYPE_NONE\x10\x00\x12\x16\n\x12ITEM_TYPE_POKEBALL\x10\x01\x12\x14\n\x10ITEM_TYPE_POTION\x10\x02\x12\x14\n\x10ITEM_TYPE_REVIVE\x10\x03\x12\x11\n\rITEM_TYPE_MAP\x10\x04\x12\x14\n\x10ITEM_TYPE_BATTLE\x10\x05\x12\x12\n\x0eITEM_TYPE_FOOD\x10\x06\x12\x14\n\x10ITEM_TYPE_CAMERA\x10\x07\x12\x12\n\x0eITEM_TYPE_DISK\x10\x08\x12\x17\n\x13ITEM_TYPE_INCUBATOR\x10\t\x12\x15\n\x11ITEM_TYPE_INCENSE\x10\n\x12\x16\n\x12ITEM_TYPE_XP_BOOST\x10\x0b\x12\x1f\n\x1bITEM_TYPE_INVENTORY_UPGRADE\x10\x0c\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -301,7 +301,7 @@ _ITEMAWARD = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -346,7 +346,7 @@ _ITEMDATA = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  #syntax='proto3',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

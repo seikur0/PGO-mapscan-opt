@@ -2,63 +2,59 @@
   "_comment1": "Language, can be german/english",
   "language": "german",
 
-  "_comment2": "If unique_coordinates is set to false, profile coordinates will be overwritten with standard_coordinates.",
-  "unique_coordinates": false,
-
-  "_comment3": "Used by the map as starting point and with unique_coordinates set to false for the scan.",
-  "standard_coordinates":
-    {
-        "lat": 0,
-        "lng": 0,
-        "alt": 0
-    },
-
-  "_comment4": "The size in MB after which the spawn file gets renamed and a new one is used, set to 0 to disable.",
+  "_comment2": "The size in MB after which the spawn file gets renamed and a new one is used, set to 0 to disable.",
   "backup_size": 10,
 
-  "_comment5": "Set to true to overwrite the coordinates for id 1 to 6 to scan around the id 0 pseudo-hexagon.",
-  "centralscan": false,
+  "_comment3": "Standard scan range, represented as layers around the center hexagon.",
+  "range": 30,
 
-  "_comment6": "Standard scan range, represented as layers around the center hexagon.",
-  "range": 20,
+  "_comment4": "How often it will scan. Can be higher under bad server conditions.",
+  "scaninterval": 900,
 
-  "_comment7": "How often it will scan. Can be higher under bad server conditions.",
-  "scaninterval": 300,
+  "_comment5": "Google API key.",
+  "api_key": "PUT_YOUR_GOOGLE_API_KEY_HERE",
 
-  "_comment8": "Google API browser key. (You can get one for free)",
-  "api_key": "PUT_YOUR_API_KEY_HERE",
-
-  "_comment9": "Pokemon with these ids won't be shown in the map. (data still gets collected)",
+  "_comment6": "Pokemon with these ids won't be shown in the map. (data still gets collected)",
   "exclude_ids": [10,11,12,13,14,15,16,17,18,19,20,21,22,41,42],
 
-  "_comment10": "Will scale icons by this factor.",
+  "_comment7": "Will scale icons by this factor.",
   "icon_scalefactor": 1.0,
 
-  "_comment11": "Will scale the whole user interface by this factor.",
+  "_comment8": "Will scale the whole user interface by this factor.",
   "mobile_scalefactor": 0.7,
 
-  "_comment12": "The html page will only try to load the live data for ids listed here.",
+  "_comment9": "The html page will only try to load the live data for ids listed here.",
   "load_ids": [0],
 
-  "comment13": "The path to the res folder from the html point of view.",
+  "_comment10": "The path to the res folder from the html point of view.",
   "html_respath": "res/",
 
-  "comment14": "Pushbullet settings. You need a Pushbullet API key for it. Put ids of pokemon you want to be notified about into push_ids.",
+  "_comment11": "Pushbullet settings. You need a Pushbullet API key for it. Can input multiple API keys, comma separated. Put ids of pokemon you want to be notified about into push_ids.",
   "pushbullet":
   {
       "enabled": false,
-      "api_key": "",
+      "api_key": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
+      "use_channels": false,
+      "channel_tags": [],
       "push_ids": []
-
   },
   
-  "_comment15": "The profiles. Each with their own id, login info, and coordinates. Add as many as you like.",
+  "_comment12": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
+  "scannum": 0,
+  
+  "_comment13": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
+  "login_simu": false,
+  
+  "_comment14": "Port that the webserver will use. Set to 0 to disable.",
+  "port": 8000,  
+  
+  "_comment15": "The profiles. Each with their own id, login info, and coordinates.",
   "profiles": [
     {
       "id": 0,
       "type": "ptc",
       "username": "agent0",
-      "password": "password",
+      "password": "pass",
       "coordinates":
           {
               "lat": 0,
@@ -67,10 +63,10 @@
           }
     },
     {
-      "id": 1,
+      "id": 0,
       "type": "ptc",
       "username": "agent1",
-      "password": "password",
+      "password": "pass",
       "coordinates":
           {
               "lat": 0,
@@ -79,10 +75,34 @@
           }
     },
     {
-      "id": 2,
+      "id": 0,
       "type": "google",
       "username": "agent2",
-      "password": "password",
+      "password": "pass",
+      "coordinates":
+          {
+              "lat": 0,
+              "lng": 0,
+              "alt": 0
+          }
+    },
+    {
+      "id": 0,
+      "type": "ptc",
+      "username": "agent3",
+      "password": "pass",
+      "coordinates":
+          {
+              "lat": 0,
+              "lng": 0,
+              "alt": 0
+          }
+    },
+    {
+      "id": 0,
+      "type": "google",
+      "username": "agent4",
+      "password": "pass",
       "coordinates":
           {
               "lat": 0,
