@@ -374,10 +374,8 @@ def do_login(account):
     time.sleep(locktime)
     lock_network.release()
     if account['type'] == 'ptc':
-        lprint('[{}] Login for ptc account: {}'.format(account['num'], account['user']))
         login_ptc(account)
     elif account['type'] == 'google':
-        lprint('[{}] Login for google account: {}'.format(account['num'], account['user']))
         login_google(account)
     else:
         lprint('[{}] Error: Login type should be either ptc or google.'.format(account['num']))
@@ -522,10 +520,10 @@ def get_profile(rtype, location, account, *reqq):
         elif response.status_code == 102:
             timenow = get_time()
             if timenow > account['access_expire_timestamp'] or timenow < account['auth_ticket'].expire_timestamp_ms:
-                lprint('[-] Login refresh.')
+                lprint('[+] Login refresh.')
                 do_login(account)
             else:
-                lprint('[-] Authorization refresh.')
+                lprint('[+] Authorization refresh.')
             set_api_endpoint(location, account)
         elif response.status_code == 52:
             lprint('[-] Servers busy, retrying...')
@@ -727,6 +725,7 @@ def main():
             global empty_ll
             global empty_thisrun
             do_login(self.account)
+            lprint('[{}] Login for {} account: {}'.format(self.account['num'], self.account['type'], self.account['user']))
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
             location = origin.lat().degrees, origin.lng().degrees, ALT_C
             set_api_endpoint(location, self.account)
