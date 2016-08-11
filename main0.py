@@ -296,7 +296,7 @@ def login_google(account):
                 login2 = perform_oauth(account['user'], login1.get('Token', ''), ANDROID_ID, SERVICE, APP, APP_SIG)
 
             access_token = login2['Auth']
-            account['access_expire_timestamp'] = int(login2['Expiry'])
+            account['access_expire_timestamp'] = int(login2['Expiry'])*1000
             account['access_token'] = access_token
             session = requests.session()
             session.verify = True
@@ -350,7 +350,7 @@ def login_ptc(account):
             step = 6
             result = pattern.search(r.content)
             step = 7
-            account['access_expire_timestamp'] = 9000 + time.time() #account['access_expire_timestamp'] = int(result.groupdict()["expire_in"]) + time.time()
+            account['access_expire_timestamp'] = 9000000 + get_time() #account['access_expire_timestamp'] = int(result.groupdict()["expire_in"])*1000 + get_time()
             account['access_token'] = result.groupdict()["access_token"]
             account['session'] = session
             return
@@ -520,7 +520,7 @@ def get_profile(rtype, location, account, *reqq):
         elif rtype == 0 and response.status_code == 2:
             return
         elif response.status_code == 102:
-            timenow = time.time()
+            timenow = get_time()
             if timenow > account['access_expire_timestamp'] or timenow < account['auth_ticket'].expire_timestamp_ms:
                 lprint('[-] Login refresh.')
                 do_login(account)
