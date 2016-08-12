@@ -815,7 +815,7 @@ def main():
 
                             spawnIDint = int(wild.spawn_point_id, 16)
                             org_tth = wild.time_till_hidden_ms
-                            if wild.time_till_hidden_ms < 0:
+                            if wild.time_till_hidden_ms < 0 or wild.time_till_hidden_ms > 7200000:
                                 wild.time_till_hidden_ms = 901000
                             else:
                                 list_unique.add(wild.encounter_id)
