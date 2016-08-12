@@ -442,6 +442,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
     request_str = p_req.SerializeToString()
 
+    loopcount = 0
     while True:
         try:
             lock_network.acquire()
@@ -458,8 +459,11 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 lprint('[-] Access denied, your IP is blocked by the N-company.')
                 sys.exit()
             elif r.status_code == 502:
-                # lprint('[-] Servers busy, retrying...')
-                time.sleep(1)
+                lprint('[-] Servers busy, retrying...')
+                time.sleep(2)
+                loopcount += 1
+                if loopcount > 4:
+                    return None
             else:
                 lprint('[-] Unexpected network error, http code: {}'.format(r.status_code))
                 return None
@@ -527,8 +531,16 @@ def get_profile(rtype, location, account, *reqq):
                 account['auth_ticket'] = response.auth_ticket
             if response.api_url is not None and response.api_url:
                 account['api_url'] = 'https://{}/rpc'.format(response.api_url)
-            if rtype == 53 and account['auth_ticket'] is not None and account['api_url'] != API_URL:
-                return
+            if account['auth_ticket'] is not None and account['api_url'] != API_URL:
+                if rtype == 53:
+                    return
+                else:
+                    lprint('[+] API endpoint changed.')
+            else:
+                time.sleep(1)
+                lprint('[-] auth/token error, refreshing login...')
+                do_login(account)
+                set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
         elif rtype == 0 and response.status_code == 2:
             return
         elif response.status_code == 102:
