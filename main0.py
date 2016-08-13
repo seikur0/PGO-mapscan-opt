@@ -514,11 +514,11 @@ def get_profile(rtype, location, account, *reqq):
     while True:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         time.sleep(time_hb)
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
-        if response is None:
+        if response is None or response.status_code == 3:
             time.sleep(1)
             lprint('[-] Response error, retrying...')
             do_login(account)
-            set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
+            set_api_endpoint(location, account)
         elif rtype == 1 and (response.status_code == 1 or response.status_code == 2):
             return response
         elif rtype == 53 or response.status_code == 53:
@@ -535,7 +535,7 @@ def get_profile(rtype, location, account, *reqq):
                 time.sleep(1)
                 lprint('[-] auth/token error, refreshing login...')
                 do_login(account)
-                set_api_endpoint(location, account)  # hopefully no infinite recursion loop :/
+                set_api_endpoint(location, account)
         elif rtype == 0 and response.status_code == 2:
             return
         elif response.status_code == 102:
@@ -767,6 +767,7 @@ def main():
                 addspawns.task_done()
 
             scandata.clear()
+
 #########################################################################
 #########################################################################
     class locgiver(threading.Thread):
