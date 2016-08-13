@@ -50,7 +50,7 @@ def generateLocation2(lat, lng, alt):
 
 def generateRequestHash(authticket, request):
     firstHash = xxhash.xxh64(authticket, seed=static_seed).intdigest()
-    return xxhash.xxh64(request, seed=firstHash).intdigest()
+    return ctypes.c_longlong(xxhash.xxh64(request, seed=firstHash).intdigest()).value
 
 
 def generate_signature(signature_plain, signature_lib):
