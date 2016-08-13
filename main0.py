@@ -562,7 +562,7 @@ def get_profile(rtype, location, account, *reqq):
             lprint('Account {}: {} was banned. It\'ll be logged out.'.format(account['num']+1,account['user']))
             lock_banfile.acquire()
             try:
-                f = open('{}/res/banned.txt'.format(workdir), 'a')
+                f = open('{}/res/banned{}.txt'.format(workdir, wID), 'a')
                 f.write(account['user'])
                 f.close()
             finally:
