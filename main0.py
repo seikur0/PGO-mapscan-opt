@@ -119,6 +119,8 @@ countall = 0
 empty_thisrun = 0
 all_ll = None
 empty_ll = None
+addlocation = None
+synch_li = None
 
 scannum = None
 login_simu = False
@@ -514,7 +516,7 @@ def get_profile(rtype, location, account, *reqq):
     while True:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         time.sleep(time_hb)
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
-        if response is None or response.status_code == 3:
+        if response is None:
             time.sleep(1)
             lprint('[-] Response error, retrying...')
             do_login(account)
@@ -548,6 +550,16 @@ def get_profile(rtype, location, account, *reqq):
             set_api_endpoint(location, account)
         elif response.status_code == 52:
             lprint('[-] Servers busy, retrying...')
+        elif response.status_code == 3:
+            if synch_li.empty():
+                this_ll = LatLng.from_degrees(location[0],location[1])
+                addlocation.put(this_ll)
+                addlocation.task_done()
+            else:
+                synch_li.get()
+                synch_li.task_done()
+            lprint('Account {}: {} was banned. It\'ll be logged out.'.format(account['num']+1,account['user']))
+            exit()
         else:
             lprint('[-] Response error, unexpected status code: {}, retrying...'.format(response.status_code))
         time.sleep(1)
@@ -776,6 +788,7 @@ def main():
 
         def run(self):
             global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime
+
             maxR = len(all_ll)
 
             lprint('')
@@ -864,6 +877,7 @@ def main():
 
         def run(self):
             global curR, countmax, countall, empty_ll, empty_thisrun
+
             do_login(self.account)
             lprint('[{}] Login for {} account: {}'.format(self.account['num'], self.account['type'], self.account['user']))
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
@@ -1020,7 +1034,7 @@ def main():
 #########################################################################
 #########################################################################
 
-    global all_ll, empty_ll, signature_lib, lock_network, locktime
+    global all_ll, empty_ll, signature_lib, lock_network, locktime, addlocation, synch_li
 
     random.seed()
 
