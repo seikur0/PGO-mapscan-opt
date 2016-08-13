@@ -129,6 +129,7 @@ acc_tos = False
 signature_lib = None
 locktime = None
 lock_network = None
+lock_banfile = None
 
 
 def do_settings():
@@ -559,6 +560,15 @@ def get_profile(rtype, location, account, *reqq):
                 synch_li.get()
                 synch_li.task_done()
             lprint('Account {}: {} was banned. It\'ll be logged out.'.format(account['num']+1,account['user']))
+            lock_banfile.acquire()
+            try:
+                f = open('{}/res/banned.txt'.format(workdir), 'a')
+                f.write(account['user'])
+                f.close()
+            finally:
+                if 'f' in vars() and not f.closed:
+                    f.close()
+            lock_banfile.release()
             exit()
         else:
             lprint('[-] Response error, unexpected status code: {}, retrying...'.format(response.status_code))
@@ -1034,7 +1044,7 @@ def main():
 #########################################################################
 #########################################################################
 
-    global all_ll, empty_ll, signature_lib, lock_network, locktime, addlocation, synch_li
+    global all_ll, empty_ll, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li
 
     random.seed()
 
@@ -1118,6 +1128,7 @@ def main():
     addforts = Queue.Queue(threadnum)
 
     lock_network = threading.Lock()
+    lock_banfile = threading.Lock()
 
     newthread = pokejoiner()
     newthread.daemon = True
