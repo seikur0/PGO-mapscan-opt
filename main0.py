@@ -161,7 +161,7 @@ def do_settings():
         acc_tos = True
 
     if wID is None:
-        wID = 1
+        wID = 0
     else:
         wID = int(wID)
 
@@ -703,13 +703,13 @@ def main():
                         else:
                             thisspawn.spawntime = ((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60)
                         thisspawn.type = 1
-                        lprint('Phase 2; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
+                        #lprint('Phase 2; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
                     if 0 < wild.time_till_hidden_ms <= 7200000:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
                     else:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms
                 elif thisspawn.phase == 2:
-                    lprint('Phase 2+; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
+                    #lprint('Phase 2+; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
 
 
     class locgiver(threading.Thread):
