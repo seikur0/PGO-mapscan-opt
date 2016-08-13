@@ -10,6 +10,9 @@ import POGOProtos.Networking.Envelopes_pb2
 import POGOProtos.Networking.Responses_pb2
 import POGOProtos.Networking.Requests
 import POGOProtos.Networking.Requests.Messages_pb2
+import POGOProtos.Map
+import POGOProtos.Map.Pokemon_pb2
+import POGOProtos.Data_pb2
 
 import time
 from datetime import datetime
@@ -110,6 +113,7 @@ percinterval = 2
 curR = None
 maxR = None
 starttime = None
+spawnlyzetime = 0
 countmax = 0
 countall = 0
 empty_thisrun = 0
@@ -353,7 +357,7 @@ def login_ptc(account):
             step = 6
             result = pattern.search(r.content)
             step = 7
-            account['access_expire_timestamp'] = 9000000 + get_time() #account['access_expire_timestamp'] = int(result.groupdict()["expire_in"])*1000 + get_time()
+            account['access_expire_timestamp'] = 7200000 + get_time() #account['access_expire_timestamp'] = int(result.groupdict()["expire_in"])*1000 + get_time()
             account['access_token'] = result.groupdict()["access_token"]
             account['session'] = session
             return
@@ -392,7 +396,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
     p_req = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope()
     p_req.request_id = get_time() * 1000000 + random.randint(1, 999999)
-	
+
     p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
 
     p_req.latitude, p_req.longitude, p_req.altitude = location
@@ -631,6 +635,7 @@ def lprint(message):
 ##################################################################################################################################################
 def main():
     SPAWN_UNDEF = -1
+    SPAWN_DEF = 1
     SPAWN_1x0 = 100
     SPAWN_1x15 = 101
     SPAWN_1x30 = 102
@@ -642,50 +647,55 @@ def main():
     class spawnpoint:
         def __init__(self, lat, lng, spawnid):
             self.type = SPAWN_UNDEF
-            self.spawntime = -1#
-            self.phasetime = -1#
-            self.lat = lat#
-            self.lng = lng#
-            self.spawnid = spawnid#
-            self.prev_encid = -1#
-            self.prev_time = starttime#
-            self.phase = 0#
-            self.pauses = 0#
-            self.pausetime = 0#
+            self.spawntime = -1
+            self.phasetime = -1
+            self.lat = lat
+            self.lng = lng
+            self.spawnid = spawnid
+            self.prev_encid = -1
+            self.prev_time = starttime
+            self.phase = 0
+            self.pauses = 0
+            self.pausetime = 0
 
-    class spawnalyzer(threading.Thread):
+#########################################################################
+#########################################################################
+    class spawnjoiner(threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
 
         def run(self):
+            thistime = -1
             spawns = []
-            list_spawn = []
+            list_spawns = []
 
-            while True:
+            while thistime < spawnlyzetime:
                 wild = addspawns.get()
 
                 spawnIDint = int(wild.spawn_point_id, 16)
-                if spawnIDint not in list_spawn:
-                    list_spawn.append(spawnIDint)
+                if spawnIDint not in list_spawns:
+                    list_spawns.append(spawnIDint)
                     spawns.append(spawnpoint(wild.latitude, wild.longitude, spawnIDint))
                     position = len(spawns) - 1
                 else:
-                    position = list_spawn.index(spawnIDint)
+                    position = list_spawns.index(spawnIDint)
                 thisspawn = spawns[position]
 
-                if thisspawn.phase < 2 and 0 < wild.time_till_hidden_ms <= 7200000:
+                if thisspawn.phasetime == -1:
+                    thisspawn.phasetime = wild.last_modified_timestamp_ms
+
+                if thisspawn.phase < 2 and wild.time_till_hidden_ms > 0:
                     thisspawn.spawntime = (((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0) / 60) % 15
 
                 if thisspawn.phase == 0:
                     if thisspawn.prev_encid != -1 and thisspawn.prev_encid != wild.encounter_id:
                         thisspawn.phase = 1
                         thisspawn.phasetime = wild.last_modified_timestamp_ms
-                        if 0 < wild.time_till_hidden_ms <= 7200000:
+                        if wild.time_till_hidden_ms > 0:
                             thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
                         else:
                             thisspawn.prev_time = wild.last_modified_timestamp_ms
                     thisspawn.prev_encid = wild.encounter_id
-
 
                 elif thisspawn.phase == 1:
                     thisspawn.pausetime = int(math.floor((wild.last_modified_timestamp_ms - thisspawn.prev_time - 1) / 900000.0)) * 15
@@ -702,37 +712,86 @@ def main():
                             thisspawn.spawntime %= 60
                         else:
                             thisspawn.spawntime = ((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60)
-                        thisspawn.type = 1
-                        #lprint('Phase 2; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
-                    if 0 < wild.time_till_hidden_ms <= 7200000:
+                        thisspawn.type = SPAWN_DEF
+                    if wild.time_till_hidden_ms > 0:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
                     else:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms
-                elif thisspawn.phase == 2:
-                    #lprint('Phase 2+; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
+                thistime = time.time()
 
+            for s in spawns:
+                if s.type == SPAWN_DEF:
+                    if s.phasetime == 60:
+                        if s.pauses == 0:
+                            s.type = SPAWN_1x60
+                        elif s.pauses == 1:
+                            if s.pausetime == 45:
+                                s.type = SPAWN_1x15
+                            elif s.pausetime == 30:
+                                s.type = SPAWN_1x30
+                            elif s.pausetime == 15:
+                                s.type = SPAWN_1x45
+                        elif s.pauses == 2:
+                            if s.pausetime == 15:
+                                s.type = SPAWN_2x15
+                else:
+                    if s.spawntime == -1:
+                        s.spawntime = ((s.phasetime / 1000.0) / 60) % 60
+                    s.phasetime = -1
+                    s.pauses = -1
+                    s.pausetime = -1
+                scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'phasetime': s.phasetime, 'pauses': s.pauses, 'pausetime': s.pausetime})
 
+            try:
+                f = open(scan_file, 'w', 0)
+                json.dump(scandata, f, indent=1, separators=(',', ': '))
+                lprint('Scandata was written to file.')
+                types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_UNDEF]
+                typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', 'UNDEF']
+
+                tallcount = len(scandata['spawns'])
+                lprint('Spawn point count: {}'.format(tallcount))
+                for t in range(0,len(types)):
+                    tcount = 0
+                    for s in scandata['spawns']:
+                        if s['type'] == types[t]:
+                            tcount += 1
+                    lprint('Type: {}, Count: {}, Percentage: {}%'.format(typestrs[t],tcount,round(100.0*tcount/tallcount,2)))
+                f.close()
+            finally:
+                if 'f' in vars() and not f.closed:
+                    f.close()
+
+            while not addspawns.empty():
+                addspawns.get()
+                addspawns.task_done()
+
+            scandata.clear()
+#########################################################################
+#########################################################################
     class locgiver(threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime
             maxR = len(all_ll)
 
             lprint('')
             lprint('[+] Distributing {} locations to {} threads.'.format(len(all_ll), threadnum))
 
             emptymaxtime = 7200
+            spawnmaxtime = 10800
             emptyremoved = False
             runs = 0
             emptytime = int(time.time()) + emptymaxtime - interval
+            spawnlyzetime = int(time.time()) + spawnmaxtime
             starttime = get_time()
             try:
                 location = geolocator.reverse('{},{}'.format(LAT_C, LNG_C))
-                infostring = 'ID: {}, Location: ({}), Interval: {} s, Range: {}'.format(wID, location.address, interval, HEX_NUM)
+                infostring = 'ID: {}, Location: ({}), Interval: {}s, Range: {}, Start: {}'.format(wID, location.address, interval, HEX_NUM, datetime.fromtimestamp(starttime/1000.0).strftime('%H:%M:%S'))
             except:
-                infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {} s, Range: {}'.format(wID, LAT_C, LNG_C, interval, HEX_NUM)
+                infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {}s, Range: {}, Start: {}'.format(wID, LAT_C, LNG_C, interval, HEX_NUM, datetime.fromtimestamp(starttime/1000.0).strftime('%H:%M:%S'))
 
             while True:
                 runs += 1
@@ -751,6 +810,7 @@ def main():
                         nextperc = perc + percinterval
 
                 addlocation.join()
+                addforts.join()
                 addpokemon.join()
                 lprint('[+] Finished: 100 %')
                 lprint('')
@@ -760,32 +820,17 @@ def main():
                 ave_retries = float(countall) / maxR
                 lprint('[+] Average number of retries was {}, total number {}.'.format(round(ave_retries, 2), countall))
 
-                # if ave_retries >= 1.1:
-                #     ave_retries = math.floor(ave_retries-0.1)
-                #     time_hb += ave_retries
-                #     countmax -= ave_retries
-                # elif ave_retries < 0.1:
-                #     time_hb -=1
-                #     countmax += 1
-                # tries = min(countmax + 2,6)
-
                 if not emptyremoved and curT > emptytime:
                     emptyremoved = True
                     l = 0
-                    try:
-                        f = open(scan_file, 'a', 0)
-                        f.write('#lat: {}\tlng: {}\trange: {}'.format(LAT_C,LNG_C,HEX_NUM))
-                        while l < len(all_ll):
-                            if empty_ll[l] == runs:  # within whole time came up as empty, standard setting 2 hours
-                                this_ll = all_ll.pop(l)
-                                f.write('lat: {}\tlng: {}'.format(this_ll.lat().degrees,this_ll.lng().degrees))
-                                empty_ll.pop(l)
-                            else:
-                                l += 1
-                        f.close()
-                    finally:
-                        if 'f' in vars() and not f.closed:
-                            f.close()
+                    while l < len(all_ll):
+                        if empty_ll[l] == runs:  # within whole time came up as empty, standard setting 2 hours
+                            this_ll = all_ll.pop(l)
+                            scandata['emptylocs'].append({'lat': this_ll.lat().degrees, 'lng': this_ll.lng().degrees})
+                            empty_ll.pop(l)
+                        else:
+                            l += 1
+
                     lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR - len(all_ll), runs, emptymaxtime))
                     maxR = len(all_ll)
 
@@ -809,12 +854,8 @@ def main():
                 time.sleep(curT)
                 prune_data()
 
-
-
-
-                #########################################################################
-                #########################################################################
-
+#########################################################################
+#########################################################################
     class collector(threading.Thread):
         def __init__(self, name, account):
             threading.Thread.__init__(self)
@@ -852,15 +893,47 @@ def main():
                     countmax = max(countmax, count)
                     countall += count
                     for cell in h.map_cells:
-                        for wild in cell.wild_pokemons:
-                            addpokemon.put(wild)
+                        for p in range(0,len(cell.wild_pokemons)):
+                            if cell.catchable_pokemons[p].expiration_timestamp_ms == -1:
+                                cell.wild_pokemons[p].time_till_hidden_ms = -1
+                            addpokemon.put(cell.wild_pokemons[p])
+                        for fort in cell.forts:
+                            addforts.put(fort)
                 curR += 1
                 addlocation.task_done()
 
-                #########################################################################
-                #########################################################################
+#########################################################################
+#########################################################################
+    class fortjoiner(threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
+        def run(self):
+            while True:
+                fort = addforts.get()
+                id_str = fort.id[:-3]
+                fortIDint = int(id_str, 16)
+                if fortIDint not in list_forts:
+                    list_forts.add(fortIDint)
+                    thisfort = {'id': fortIDint, 'lat': fort.latitude, 'lng': fort.longitude}
+                    if fort.type == 1:
+                        scandata['stops'].append(thisfort)
+                    else:
+                        scandata['gyms'].append(thisfort)
+                if fort.lure_info.active_pokemon_id > 0:
+                    newpokemon = POGOProtos.Map.Pokemon_pb2.WildPokemon()
+                    newpokemon.encounter_id = fort.lure_info.encounter_id
+                    newpokemon.pokemon_data.pokemon_id = fort.lure_info.active_pokemon_id
+                    newpokemon.latitude = fort.latitude
+                    newpokemon.longitude = fort.longitude
+                    newpokemon.last_modified_timestamp_ms = fort.last_modified_timestamp_ms
+                    newpokemon.spawn_point_id = id_str
+                    newpokemon.time_till_hidden_ms = (fort.lure_info.lure_expires_timestamp_ms - newpokemon.last_modified_timestamp_ms) % 300000
+                    addpokemon.put(newpokemon)
+                addforts.task_done()
 
-    class joiner(threading.Thread):
+#########################################################################
+#########################################################################
+    class pokejoiner(threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
 
@@ -883,11 +956,12 @@ def main():
                     if wild.encounter_id not in list_seen:
                         list_seen.add(wild.encounter_id)
                         if wild.encounter_id not in list_unique:
-                            addspawns.put(wild)
-
                             spawnIDint = int(wild.spawn_point_id, 16)
+                            if time.time() < spawnlyzetime and spawnIDint not in list_forts:
+                                addspawns.put(wild)
+
                             mod_tth = wild.time_till_hidden_ms
-                            if 0 < mod_tth <= 7200000:
+                            if mod_tth > 0:
                                 list_unique.add(wild.encounter_id)
                             else:
                                 mod_tth = 901000
@@ -931,6 +1005,8 @@ def main():
                 if 'f' in vars() and not f.closed:
                     f.close()
 
+#########################################################################
+#########################################################################
     class webserver(threading.Thread):
         def __init__(self, port, workdir):
             threading.Thread.__init__(self)
@@ -939,11 +1015,11 @@ def main():
 
         def run(self):
             pokesite.server_start(port, workdir)
-            #########################################################################
-            #########################################################################
+
+#########################################################################
+#########################################################################
 
     global all_ll, empty_ll, signature_lib, lock_network, locktime
-    scan_file = '{}/res/{}_{}.txt'.format(workdir, LAT_C, LNG_C)
 
     random.seed()
 
@@ -952,6 +1028,31 @@ def main():
     signature_lib.restype = ctypes.c_int
 
     accounts = do_settings()
+
+    scan_file = '{}/res/{}_{}_{}_{}.json'.format(workdir, LAT_C, LNG_C, HEX_NUM, HEX_R)
+    # try:
+    #     f = open(scan_file, 'r')
+    #     scandata = json.load(f)
+    #     f.close()
+    # finally:
+    #     if 'f' in vars() and not f.closed:
+    #         f.close()
+    #
+    # types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_UNDEF]
+    #
+    # tallcount = len(scandata['spawns'])
+    # lprint('Spawn point count: {}'.format(tallcount))
+    # for t in types:
+    #     tcount = 0
+    #     for s in scandata['spawns']:
+    #         if s['type'] == t:
+    #             tcount += 1
+    #     lprint('Type: {}, Count: {}, Percentage: {}%'.format(t,tcount,round(100.0*tcount/tallcount,2)))
+    #
+    # sys.exit()
+
+    list_forts = set([])
+    scandata = {'parameters': {'lat': LAT_C, 'lng': LNG_C, 'range': HEX_NUM, 'sight': HEX_R}, 'emptylocs': [], 'spawns': [], 'stops': [], 'gyms': []}
 
     origin = LatLng.from_degrees(LAT_C, LNG_C)
     all_ll = [origin]
@@ -999,14 +1100,19 @@ def main():
     synch_li = Queue.Queue(threadnum)
     addlocation = Queue.Queue(threadnum)
     addspawns = Queue.Queue(threadnum)
+    addforts = Queue.Queue(threadnum)
 
     lock_network = threading.Lock()
 
-    newthread = joiner()
+    newthread = pokejoiner()
     newthread.daemon = True
     newthread.start()
 
-    newthread = spawnalyzer()
+    newthread = fortjoiner()
+    newthread.daemon = True
+    newthread.start()
+
+    newthread = spawnjoiner()
     newthread.deaemon = True
     newthread.start()
 

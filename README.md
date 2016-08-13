@@ -48,6 +48,8 @@
 * unknown6 integration
 * easy network hosting and minimized network traffic
   * files for the website moved to a different folder to protect settings on public servers
+* preparation for intelligent spawn point scanning, which'll make scanning much more efficient
+  * let it run for 3 hours and it'll write the scan data like empty cells/spawnpoints/forts into a file (however the data won't be used yet)
 
 ## FAQ
 * https://github.com/seikur0/PGO-mapscan-opt/blob/master/FAQ.txt
