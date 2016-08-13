@@ -109,6 +109,7 @@ tries = 1
 percinterval = 2
 curR = None
 maxR = None
+starttime = None
 countmax = 0
 countall = 0
 empty_thisrun = 0
@@ -125,19 +126,7 @@ lock_network = None
 
 
 def do_settings():
-    global LANGUAGE
-    global LAT_C, LNG_C, ALT_C
-    global HEX_NUM
-    global interval
-    global F_LIMIT
-    global pb
-    global PUSHPOKS
-    global scannum
-    global login_simu
-    global port
-    global wID
-    global acc_tos
-    global exclude_ids
+    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -172,7 +161,7 @@ def do_settings():
         acc_tos = True
 
     if wID is None:
-        wID = 0
+        wID = 1
     else:
         wID = int(wID)
 
@@ -314,7 +303,7 @@ def login_google(account):
             account['access_token'] = access_token
             session = requests.session()
             session.verify = True
-            session.headers.update({'User-Agent': 'niantic'})  # session.headers.update({'User-Agent': 'Niantic App'})
+            session.headers.update({'User-Agent': 'Niantic App'}) #session.headers.update({'User-Agent': 'niantic'})
             account['session'] = session
             return
         except Exception as e:
@@ -333,7 +322,7 @@ def login_ptc(account):
         try:
             session = requests.session()
             session.verify = True
-            session.headers.update({'User-Agent': 'niantic'})  # session.headers.update({'User-Agent': 'Niantic App'})
+            session.headers.update({'User-Agent': 'Niantic App'})  # session.headers.update({'User-Agent': 'niantic'})
 
             step = 0
             r = session.get(LOGIN_URL)
@@ -383,6 +372,7 @@ def do_login(account):
     account['api_url'] = API_URL
     account['auth_ticket'] = None
     account['login_time'] = int(round(time.time() * 1000))
+    account['session_hash'] = os.urandom(32)
 
     lock_network.acquire()
     time.sleep(locktime)
@@ -431,9 +421,10 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
         req_hash = generateRequestHash(ticket_serialized, req.SerializeToString())
         sig.request_hash.append(req_hash)
 
-    sig.unknown22 = os.urandom(32)
+    sig.session_hash = account['session_hash'] #os.urandom(32)
     sig.timestamp = get_time()
     sig.timestamp_since_start = get_time() - account['login_time']
+    sig.unknown25 = -8537042734809897855
 
     signature_proto = sig.SerializeToString()
     u6 = p_req.unknown6
@@ -639,19 +630,94 @@ def lprint(message):
 ##################################################################################################################################################
 ##################################################################################################################################################
 def main():
+    SPAWN_UNDEF = -1
+    SPAWN_1x0 = 100
+    SPAWN_1x15 = 101
+    SPAWN_1x30 = 102
+    SPAWN_1x45 = 103
+    SPAWN_1x60 = 104
+    SPAWN_2x0 = 200
+    SPAWN_2x15 = 201
+
+    class spawnpoint:
+        def __init__(self, lat, lng, spawnid):
+            self.type = SPAWN_UNDEF
+            self.spawntime = -1#
+            self.phasetime = -1#
+            self.lat = lat#
+            self.lng = lng#
+            self.spawnid = spawnid#
+            self.prev_encid = -1#
+            self.prev_time = starttime#
+            self.phase = 0#
+            self.pauses = 0#
+            self.pausetime = 0#
+
+    class spawnalyzer(threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
+
+        def run(self):
+            spawns = []
+            list_spawn = []
+
+            while True:
+                wild = addspawns.get()
+
+                spawnIDint = int(wild.spawn_point_id, 16)
+                if spawnIDint not in list_spawn:
+                    list_spawn.append(spawnIDint)
+                    spawns.append(spawnpoint(wild.latitude, wild.longitude, spawnIDint))
+                    position = len(spawns) - 1
+                else:
+                    position = list_spawn.index(spawnIDint)
+                thisspawn = spawns[position]
+
+                if thisspawn.phase < 2 and 0 < wild.time_till_hidden_ms <= 7200000:
+                    thisspawn.spawntime = (((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0) / 60) % 15
+
+                if thisspawn.phase == 0:
+                    if thisspawn.prev_encid != -1 and thisspawn.prev_encid != wild.encounter_id:
+                        thisspawn.phase = 1
+                        thisspawn.phasetime = wild.last_modified_timestamp_ms
+                        if 0 < wild.time_till_hidden_ms <= 7200000:
+                            thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
+                        else:
+                            thisspawn.prev_time = wild.last_modified_timestamp_ms
+                    thisspawn.prev_encid = wild.encounter_id
+
+
+                elif thisspawn.phase == 1:
+                    thisspawn.pausetime = int(math.floor((wild.last_modified_timestamp_ms - thisspawn.prev_time - 1) / 900000.0)) * 15
+                    if thisspawn.pausetime > 0:
+                        thisspawn.pauses += 1
+                    if thisspawn.prev_encid != wild.encounter_id:
+                        thisspawn.phase = 2
+                        thisspawn.phasetime = int(round((wild.last_modified_timestamp_ms - thisspawn.phasetime) / 900000.0))*15
+                        if thisspawn.spawntime != -1:
+                            quarter = (((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60) / 15) + 4
+                            thisspawn.spawntime += math.floor(quarter)  * 15
+                            if thisspawn.spawntime > 15 * quarter:
+                                thisspawn.spawntime -= 15
+                            thisspawn.spawntime %= 60
+                        else:
+                            thisspawn.spawntime = ((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60)
+                        thisspawn.type = 1
+                        lprint('Phase 2; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
+                    if 0 < wild.time_till_hidden_ms <= 7200000:
+                        thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
+                    else:
+                        thisspawn.prev_time = wild.last_modified_timestamp_ms
+                elif thisspawn.phase == 2:
+                    lprint('Phase 2+; spawnID: {}, lat: {}, lng: {}, phasetime: {}, pauses: {}, pausetime: {}, spawntime: {}'.format(thisspawn.spawnid, thisspawn.lat, thisspawn.lng, thisspawn.phasetime, thisspawn.pauses, thisspawn.pausetime, thisspawn.spawntime))
+
+
     class locgiver(threading.Thread):
         def __init__(self):
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR
-            global maxR
-            global scannum
-            global countmax
-            global countall
-            global empty_thisrun
-            global time_hb
-            global tries
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime
             maxR = len(all_ll)
 
             lprint('')
@@ -661,6 +727,7 @@ def main():
             emptyremoved = False
             runs = 0
             emptytime = int(time.time()) + emptymaxtime - interval
+            starttime = get_time()
             try:
                 location = geolocator.reverse('{},{}'.format(LAT_C, LNG_C))
                 infostring = 'ID: {}, Location: ({}), Interval: {} s, Range: {}'.format(wID, location.address, interval, HEX_NUM)
@@ -705,12 +772,20 @@ def main():
                 if not emptyremoved and curT > emptytime:
                     emptyremoved = True
                     l = 0
-                    while l < len(all_ll):
-                        if empty_ll[l] == runs:  # within whole time came up as empty, standard setting 2 hours
-                            all_ll.pop(l)
-                            empty_ll.pop(l)
-                        else:
-                            l += 1
+                    try:
+                        f = open(scan_file, 'a', 0)
+                        f.write('#lat: {}\tlng: {}\trange: {}'.format(LAT_C,LNG_C,HEX_NUM))
+                        while l < len(all_ll):
+                            if empty_ll[l] == runs:  # within whole time came up as empty, standard setting 2 hours
+                                this_ll = all_ll.pop(l)
+                                f.write('lat: {}\tlng: {}'.format(this_ll.lat().degrees,this_ll.lng().degrees))
+                                empty_ll.pop(l)
+                            else:
+                                l += 1
+                        f.close()
+                    finally:
+                        if 'f' in vars() and not f.closed:
+                            f.close()
                     lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR - len(all_ll), runs, emptymaxtime))
                     maxR = len(all_ll)
 
@@ -746,11 +821,7 @@ def main():
             self.account = account
 
         def run(self):
-            global curR
-            global countmax
-            global countall
-            global empty_ll
-            global empty_thisrun
+            global curR, countmax, countall, empty_ll, empty_thisrun
             do_login(self.account)
             lprint('[{}] Login for {} account: {}'.format(self.account['num'], self.account['type'], self.account['user']))
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
@@ -812,23 +883,24 @@ def main():
                     if wild.encounter_id not in list_seen:
                         list_seen.add(wild.encounter_id)
                         if wild.encounter_id not in list_unique:
+                            addspawns.put(wild)
 
                             spawnIDint = int(wild.spawn_point_id, 16)
-                            org_tth = wild.time_till_hidden_ms
-                            if wild.time_till_hidden_ms < 0 or wild.time_till_hidden_ms > 7200000:
-                                wild.time_till_hidden_ms = 901000
-                            else:
+                            mod_tth = wild.time_till_hidden_ms
+                            if 0 < mod_tth <= 7200000:
                                 list_unique.add(wild.encounter_id)
-                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0 - 900.0,
-                                                                                  wild.last_modified_timestamp_ms / 1000.0, org_tth / 1000.0, wild.encounter_id))
+                            else:
+                                mod_tth = 901000
+                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 - 900.0,
+                                                                                  wild.last_modified_timestamp_ms / 1000.0, wild.time_till_hidden_ms / 1000.0, wild.encounter_id))
                             if wild.pokemon_data.pokemon_id not in exclude_ids:
-                                DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)])
+                                DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)])
                             other = LatLng.from_degrees(wild.latitude, wild.longitude)
                             diff = other - origin
                             difflat = diff.lat().degrees
                             difflng = diff.lng().degrees
                             direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
-                            lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(wild.time_till_hidden_ms / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
+                            lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
 
                             if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
                                 try:
@@ -836,7 +908,7 @@ def main():
                                     notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location.address)
                                 except:
                                     notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
-                                disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0)).strftime("%H:%M:%S")
+                                disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 for pushacc in pb:
                                     pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
@@ -870,11 +942,8 @@ def main():
             #########################################################################
             #########################################################################
 
-    global all_ll
-    global empty_ll
-    global signature_lib
-    global lock_network
-    global locktime
+    global all_ll, empty_ll, signature_lib, lock_network, locktime
+    scan_file = '{}/res/{}_{}.txt'.format(workdir, LAT_C, LNG_C)
 
     random.seed()
 
@@ -921,7 +990,6 @@ def main():
     empty_ll = [0] * len(all_ll)
     list_seen = set([])
     list_unique = set([])
-
     threadnum = len(accounts)
 
     locktime = min(0.8* time_hb / threadnum, 0.1)
@@ -930,11 +998,16 @@ def main():
     addpokemon = Queue.Queue(threadnum)
     synch_li = Queue.Queue(threadnum)
     addlocation = Queue.Queue(threadnum)
+    addspawns = Queue.Queue(threadnum)
 
     lock_network = threading.Lock()
 
     newthread = joiner()
     newthread.daemon = True
+    newthread.start()
+
+    newthread = spawnalyzer()
+    newthread.deaemon = True
     newthread.start()
 
     if login_simu:

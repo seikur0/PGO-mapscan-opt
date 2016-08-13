@@ -85,7 +85,7 @@
                         if (s< spawns.length){
                             markers[s].infotext = "<b>"+pokenames[p[0]]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
                             if (markers[s].validTill != p[4]) {
-                                if (markers[s].validTill ==0) {
+                                if (markers[s].validTill ==0 || markers[s].id != p[0]) {
                                     markers[s].id=p[0];
                                     markers[s].icon = cIcon;
                                     markers[s].setOpacity(1.0);
