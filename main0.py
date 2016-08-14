@@ -522,7 +522,7 @@ def get_profile(rtype, location, account, *reqq):
             lprint('[-] Response error, retrying...')
             do_login(account)
             set_api_endpoint(location, account)
-        elif rtype == 1 and (response.status_code == 1 or response.status_code == 2):
+        elif rtype == 1 and response.status_code in [1,2]:
             return response
         elif rtype == 53 or response.status_code == 53:
             if response.auth_ticket is not None and response.auth_ticket.expire_timestamp_ms > 0:
@@ -539,7 +539,7 @@ def get_profile(rtype, location, account, *reqq):
                 lprint('[-] auth/token error, refreshing login...')
                 do_login(account)
                 set_api_endpoint(location, account)
-        elif rtype == 0 and response.status_code == 2:
+        elif rtype == 0 and response.status_code in [1,2]:
             return
         elif response.status_code == 102:
             timenow = get_time()
