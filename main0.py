@@ -553,8 +553,9 @@ def get_profile(rtype, location, account, *reqq):
             lprint('[-] Servers busy, retrying...')
         elif response.status_code == 3:
             if synch_li.empty():
-                this_ll = LatLng.from_degrees(location[0],location[1])
-                addlocation.put(this_ll)
+                for this_ll in all_ll:
+                    if this_ll.lat().degrees == location[0] and this_ll.lng().degrees == location[1]:
+                        addlocation.put(this_ll)
                 addlocation.task_done()
             else:
                 synch_li.get()
