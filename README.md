@@ -11,6 +11,9 @@
   * As for instructions how to get it, please look here: https://github.com/PokemonGoF/PokemonGo-Bot/issues/2966
   * When you have the appropriate file (32 bit for 32 bit Python installed!), name it 'encrypt.so' and put it into the res subfolder.
 * 'python main0.py' to run the program
+* intelligent spawn point scanning:
+  * let it run for 3 hours and it'll write the scan data like empty cells/spawnpoints/forts into a file
+  * during that time the scan interval should stay below 10 minutes, below 15 minutes may work too, no guarantee though
 
 * The program will host the website with your map on 'http://localhost:8000'.
 * That port can be changed in the settings file or set to 0 to disable this feature.
@@ -48,8 +51,7 @@
 * unknown6 integration
 * easy network hosting and minimized network traffic
   * files for the website moved to a different folder to protect settings on public servers
-* preparation for intelligent spawn point scanning, which'll make scanning much more efficient
-  * let it run for 3 hours and it'll write the scan data like empty cells/spawnpoints/forts into a file (however the data won't be used yet)
+* intelligent spawn point scanning is out, after the learning phase you'll need something like 5 times less accounts
 
 ## FAQ
 * https://github.com/seikur0/PGO-mapscan-opt/blob/master/FAQ.txt

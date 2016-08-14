@@ -26,6 +26,7 @@ from geopy.geocoders import Nominatim
 from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
+from operator import itemgetter
 
 from res.uk6 import generateLocation1, generateLocation2, generateRequestHash, generate_signature
 import ctypes
@@ -39,6 +40,9 @@ import pokesite
 def get_time():
     return int(round(time.time() * 1000))
 
+def get_time_wrap():
+    return int(round(time.time() * 1000)) % 3600000
+
 
 def getNeighbors(location):
     level = 15
@@ -48,7 +52,6 @@ def getNeighbors(location):
     size = origin.get_size_ij(level)
 
     face, i, j = origin.to_face_ij_orientation()[0:3]
-
     walk = [origin.id(),
             origin.from_face_ij_same(face, i, j - size, j - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i, j + size, j + size < max_size).parent(level).id(),
@@ -58,18 +61,18 @@ def getNeighbors(location):
             origin.from_face_ij_same(face, i + size, j - size, j - size >= 0 and i + size < max_size).parent(level).id(),
             origin.from_face_ij_same(face, i - size, j + size, j + size < max_size and i - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i + size, j + size, j + size < max_size and i + size < max_size).parent(level).id()]
-    # origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
-    # origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
-    # origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
-    # origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
-    # origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
-    # origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
-    # origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
-    # origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
-    # origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
-    # origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
-    # origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
-    # origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
+            # origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
+            # origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
+            # origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
+            # origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
+            # origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
+            # origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
+            # origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
+            # origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
+            # origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
+            # origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
+            # origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
+            # origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
     return walk
 
 
@@ -113,12 +116,14 @@ percinterval = 2
 curR = None
 maxR = None
 starttime = None
+runs = 0
+location_str = ''
 spawnlyzetime = 0
 countmax = 0
 countall = 0
 empty_thisrun = 0
-all_ll = None
-empty_ll = None
+all_loc = None
+empty_loc = None
 addlocation = None
 synch_li = None
 
@@ -130,7 +135,9 @@ signature_lib = None
 locktime = None
 lock_network = None
 lock_banfile = None
-
+smartscan = False
+emptyremoved = False
+silent = False
 
 def do_settings():
     global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids
@@ -553,9 +560,7 @@ def get_profile(rtype, location, account, *reqq):
             lprint('[-] Servers busy, retrying...')
         elif response.status_code == 3:
             if synch_li.empty():
-                for this_ll in all_ll:
-                    if this_ll.lat().degrees == location[0] and this_ll.lng().degrees == location[1]:
-                        addlocation.put(this_ll)
+                addlocation.put([location[0],location[1]])
                 addlocation.task_done()
             else:
                 synch_li.get()
@@ -666,6 +671,7 @@ def main():
     SPAWN_1x60 = 104
     SPAWN_2x0 = 200
     SPAWN_2x15 = 201
+    VSPAWN_2x15 = 2011
 
     class spawnpoint:
         def __init__(self, lat, lng, spawnid):
@@ -689,8 +695,6 @@ def main():
 
         def run(self):
             thistime = -1
-            spawns = []
-            list_spawns = []
 
             while thistime < spawnlyzetime:
                 wild = addspawns.get()
@@ -741,55 +745,157 @@ def main():
                     else:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms
                 thistime = time.time()
-
-            for s in spawns:
-                if s.type == SPAWN_DEF:
-                    if s.phasetime == 60:
-                        if s.pauses == 0:
-                            s.type = SPAWN_1x60
-                        elif s.pauses == 1:
-                            if s.pausetime == 45:
-                                s.type = SPAWN_1x15
-                            elif s.pausetime == 30:
-                                s.type = SPAWN_1x30
-                            elif s.pausetime == 15:
-                                s.type = SPAWN_1x45
-                        elif s.pauses == 2:
-                            if s.pausetime == 15:
-                                s.type = SPAWN_2x15
-                else:
-                    if s.spawntime == -1:
-                        s.spawntime = ((s.phasetime / 1000.0) / 60) % 60
-                    s.phasetime = -1
-                    s.pauses = -1
-                    s.pausetime = -1
-                scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'phasetime': s.phasetime, 'pauses': s.pauses, 'pausetime': s.pausetime})
-
-            try:
-                f = open(scan_file, 'w', 0)
-                json.dump(scandata, f, indent=1, separators=(',', ': '))
-                lprint('Scandata was written to file.')
-                types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_UNDEF]
-                typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', 'UNDEF']
-
-                tallcount = len(scandata['spawns'])
-                lprint('Spawn point count: {}'.format(tallcount))
-                for t in range(0,len(types)):
-                    tcount = 0
-                    for s in scandata['spawns']:
-                        if s['type'] == types[t]:
-                            tcount += 1
-                    lprint('Type: {}, Count: {}, Percentage: {}%'.format(typestrs[t],tcount,round(100.0*tcount/tallcount,2)))
-                f.close()
-            finally:
-                if 'f' in vars() and not f.closed:
-                    f.close()
-
-            while not addspawns.empty():
-                addspawns.get()
                 addspawns.task_done()
+#########################################################################
+#########################################################################
+    class smartlocgiver(threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
 
-            scandata.clear()
+        def run(self):
+            global smartscan, curR, countmax, countall, empty_thisrun, tries, silent
+            curR = 0
+            smartscan = True
+            all_sort = []
+
+            types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_UNDEF]
+            typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', 'UNDEF']
+            typecount = [0,0,0,0,0,0]
+            tallcount = len(scandata['spawns'])
+
+            pointnum = tallcount
+            vleft = 0
+            for s in range(0, tallcount):
+                spawn = scandata['spawns'][s]
+                list_spawns.append(spawn['id'])
+                all_sort.append([int(spawn['spawntime']*60000), s])
+                for t in range(0, len(types)):
+                    if spawn['type'] == types[t]:
+                        typecount[t] += 1
+                if spawn['type'] == SPAWN_2x15:
+                    vspawn = spawn.copy()
+                    vspawn['spawntime'] = (vspawn['spawntime'] + 30) % 60
+                    vspawn['type'] = VSPAWN_2x15
+                    scandata['spawns'].append(vspawn)
+                    all_sort.append([int(vspawn['spawntime'] * 60000), pointnum])
+                    pointnum += 1
+                    vleft += 1
+
+            vtotal = vleft
+            infostring = 'ID: {}, {}, Range: {}, Start: {}'.format(wID, location_str, HEX_NUM, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
+
+            lprint('\n[+] Starting intelligent scan mode.\n')
+            lprint('[+] Spawn point count: {}'.format(tallcount))
+            for t in range(0, len(types)):
+                lprint('[+] Type: {}, Count: {}, Percentage: {}%'.format(typestrs[t], typecount[t], round(100.0 * typecount[t] / tallcount, 2)))
+
+            lprint('\n\n')
+            all_sort = sorted(all_sort, key=itemgetter(0))
+
+            indx_sort = 0
+            curT = get_time() % 3600000
+            if curT <= all_sort[pointnum-1][0]:
+                while curT > all_sort[indx_sort][0]:
+                    indx_sort += 1
+
+            wrapindx = indx_sort
+            if indx_sort == 0:
+                indx_sort = pointnum -1
+            else:
+                indx_sort -= 1
+
+            lprint('[+] Catch up phase, 0/2 complete.')
+            lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+            catchup = -1.5 * threadnum
+            caughtup = False
+            nextperc = percinterval
+            curT = get_time()
+            while indx_sort != wrapindx:
+                spawn = scandata['spawns'][all_sort[indx_sort][1]]
+                actT = get_time()
+                if (actT-curT) < (actT - all_sort[indx_sort][0]) % 3600000 < (spawn['phasetime'] - spawn['pausetime'] - 5) * 60000:
+                    addlocation.put([spawn['lat'], spawn['lng']])
+                    if spawn['type'] == VSPAWN_2x15:
+                        vleft -= 1
+                indx_sort -= 1
+                if indx_sort == -1:
+                    indx_sort = pointnum -1
+                catchup += 1
+                if (100.0 * catchup / pointnum * 5) >= nextperc:
+                    perc = math.floor((100.0 * catchup / pointnum * 5) / percinterval) * percinterval
+                    if perc < 100:
+                        lprint('[+] Phase complete: {} %'.format(perc))
+                    nextperc = perc + percinterval
+
+            lprint('[+] Phase complete: 100 %')
+
+            lprint('\n[+] Catch up phase, 1/2 complete.')
+            lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+
+            while not caughtup or vleft > 0:
+                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000.0) % 3600000
+                if timediff < 1800000:
+                    if not caughtup:
+                        lprint('\n[+] Catch up phase 2/2 complete. Map is now live.')
+                        lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+                        caughtup = True
+                        tries = 3
+                    time.sleep(((all_sort[indx_sort][0] - get_time()) % 3600000) / 1000.0)
+                elif timediff < (3600000 - (time_hb + 1) * 1000.0):
+                    lprint('{} s behind.'.format(round((3600000-timediff) / 1000.0, 2)))
+
+                spawn = scandata['spawns'][all_sort[indx_sort][1]]
+                addlocation.put([spawn['lat'],spawn['lng']])
+                if spawn['type'] == VSPAWN_2x15:
+                    vleft -= 1
+                indx_sort += 1
+                if indx_sort == pointnum:
+                    indx_sort = 0
+
+            addlocation.join()
+            addforts.join()
+            addpokemon.join()
+            del scandata['spawns'][pointnum-vtotal:]
+            del all_sort[:]
+            pointnum = len(scandata['spawns'])
+
+            for s in range(0, pointnum):
+                spawn = scandata['spawns'][s]
+                all_sort.append([int(spawn['spawntime']*60000), s])
+            all_sort = sorted(all_sort, key=itemgetter(0))
+            indx_sort = 0
+            curT = get_time() % 3600000
+            if curT <= all_sort[pointnum-1][0]:
+                while curT > all_sort[indx_sort][0]:
+                    indx_sort += 1
+
+            lprint('\n[+] Catch up phase, cleanup finished.')
+            lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+
+            lprint('[+] Switching to silent mode.\n')
+            silent = True
+
+            while True:
+                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000.0) % 3600000
+                if timediff < 1800000:
+                    time.sleep(((all_sort[indx_sort][0] - get_time()) % 3600000) / 1000.0)
+                elif timediff < (3600000 - (time_hb + 1) * 1000.0):
+                    lprint('{} s behind.'.format(round((3600000-timediff) / 1000.0, 2)))
+
+                spawn = scandata['spawns'][all_sort[indx_sort][1]]
+                addlocation.put([spawn['lat'], spawn['lng']])
+
+                indx_sort += 1
+                if indx_sort == pointnum:
+                    indx_sort = 0
+
+                    countmax = 0
+                    countall = 0
+                    empty_thisrun = 0
+
+                    list_unique.intersection_update(list_seen)
+                    list_seen.clear()
+                    lprint('\n[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
 #########################################################################
 #########################################################################
@@ -798,26 +904,30 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str
+            starttime = get_time()
+            runs = 0
+            try:
+                location_str = 'Location: ({})'.format(geolocator.reverse('{},{}'.format(LAT_C, LNG_C)).address)
+            except:
+                location_str = 'Lat: {}, Lng: {}'.format(LAT_C, LNG_C)
 
-            maxR = len(all_ll)
+            if smartscan:
+                emptyremoved = True
+                exit()
 
+            maxR = len(all_loc)
+
+            infostring = 'ID: {}, {}, Interval: {} s, Range: {}, Start: {}'.format(wID, location_str, interval, HEX_NUM, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
             lprint('')
-            lprint('[+] Distributing {} locations to {} threads.'.format(len(all_ll), threadnum))
+            lprint('[+] Distributing {} locations to {} threads.'.format(len(all_loc), threadnum))
 
             emptymaxtime = 7200
             spawnmaxtime = 10800
-            emptyremoved = False
-            runs = 0
             emptytime = int(time.time()) + emptymaxtime - interval
             spawnlyzetime = int(time.time()) + spawnmaxtime
-            starttime = get_time()
-            try:
-                location = geolocator.reverse('{},{}'.format(LAT_C, LNG_C))
-                infostring = 'ID: {}, Location: ({}), Interval: {}s, Range: {}, Start: {}'.format(wID, location.address, interval, HEX_NUM, datetime.fromtimestamp(starttime/1000.0).strftime('%H:%M:%S'))
-            except:
-                infostring = 'ID: {}, Lat: {}, Lng: {}, Interval: {}s, Range: {}, Start: {}'.format(wID, LAT_C, LNG_C, interval, HEX_NUM, datetime.fromtimestamp(starttime/1000.0).strftime('%H:%M:%S'))
 
+            ##################################################################################################################################################
             while True:
                 runs += 1
                 curR = 0
@@ -827,8 +937,8 @@ def main():
                 lprint('\n\n')
                 lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.now().strftime('%H:%M:%S'), infostring))
 
-                for this_ll in all_ll:
-                    addlocation.put(this_ll)
+                for this_loc in all_loc:
+                    addlocation.put(this_loc)
                     if (100.0 * curR / maxR) >= nextperc:
                         perc = math.floor((100.0 * curR / maxR) / percinterval) * percinterval
                         lprint('[+] Finished: {} %'.format(perc))
@@ -845,20 +955,22 @@ def main():
                 ave_retries = float(countall) / maxR
                 lprint('[+] Average number of retries was {}, total number {}.'.format(round(ave_retries, 2), countall))
 
+                #########################################################################
                 if not emptyremoved and curT > emptytime:
                     emptyremoved = True
                     l = 0
-                    while l < len(all_ll):
-                        if empty_ll[l] == runs:  # within whole time came up as empty, standard setting 2 hours
-                            this_ll = all_ll.pop(l)
-                            scandata['emptylocs'].append({'lat': this_ll.lat().degrees, 'lng': this_ll.lng().degrees})
-                            empty_ll.pop(l)
+                    while l < len(all_loc):
+                        if empty_loc[l] == runs:  # within whole time came up as empty, standard setting 2 hours
+                            this_loc = all_loc.pop(l)
+                            scandata['emptylocs'].append({'lat': this_loc[0], 'lng': this_loc[1]})
+                            empty_loc.pop(l)
                         else:
                             l += 1
 
-                    lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR - len(all_ll), runs, emptymaxtime))
-                    maxR = len(all_ll)
+                    lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR - len(all_loc), runs, emptymaxtime))
+                    maxR = len(all_loc)
 
+                #########################################################################
                 countmax = 0
                 countall = 0
                 empty_thisrun = 0
@@ -869,6 +981,45 @@ def main():
                 curT = int(time.time()) - curT
                 lprint('[+] Scan Time: {} s'.format(curT))
 
+                #########################################################################
+                if curT > spawnlyzetime:
+                    addspawns.join()
+                    for s in spawns:
+                        if s.type == SPAWN_DEF:
+                            if s.phasetime == 60:
+                                if s.pauses == 0:
+                                    s.type = SPAWN_1x60
+                                elif s.pauses == 1:
+                                    if s.pausetime == 45:
+                                        s.type = SPAWN_1x15
+                                    elif s.pausetime == 30:
+                                        s.type = SPAWN_1x30
+                                    elif s.pausetime == 15:
+                                        s.type = SPAWN_1x45
+                                elif s.pauses == 2:
+                                    if s.pausetime == 15:
+                                        s.type = SPAWN_2x15
+                        else:
+                            if s.spawntime == -1:
+                                s.spawntime = ((s.phasetime / 1000.0) / 60) % 60
+                            s.phasetime = -1
+                            s.pauses = -1
+                            s.pausetime = -1
+                        scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'phasetime': s.phasetime, 'pauses': s.pauses, 'pausetime': s.pausetime})
+                    del spawns
+                    try:
+                        f = open(scan_file, 'w', 0)
+                        json.dump(scandata, f, indent=1, separators=(',', ': '))
+                        lprint('Scandata was written to file.')
+                        f.close()
+                    finally:
+                        if 'f' in vars() and not f.closed:
+                            f.close()
+                    del all_loc[:]
+                    del list_spawns[:]
+                    del empty_loc
+                    exit()
+                #########################################################################
                 if scannum > 0:
                     scannum -= 1
                     if scannum == 0:
@@ -887,12 +1038,12 @@ def main():
             self.account = account
 
         def run(self):
-            global curR, countmax, countall, empty_ll, empty_thisrun
+            global curR, countmax, countall, empty_loc, empty_thisrun
 
             do_login(self.account)
             lprint('[{}] Login for {} account: {}'.format(self.account['num'], self.account['type'], self.account['user']))
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
-            location = origin.lat().degrees, origin.lng().degrees, ALT_C
+            location = LAT_C, LNG_C , ALT_C
             set_api_endpoint(location, self.account)
             lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_url']))
             if acc_tos:
@@ -903,8 +1054,8 @@ def main():
 
             # ////////////////////
             while True:
-                this_ll = addlocation.get()
-                location = this_ll.lat().degrees, this_ll.lng().degrees, ALT_C
+                this_loc = addlocation.get()
+                location = this_loc[0], this_loc[1], ALT_C
                 h = heartbeat(location, self.account)
                 count = 0
                 while h is None and count < tries:
@@ -912,12 +1063,16 @@ def main():
                     time.sleep(time_small)
                     h = heartbeat(location, self.account)
                 if h is None:
-                    empty_ll[all_ll.index(this_ll)] += 1
-                    empty_thisrun += 1
+                    if not smartscan:
+                        empty_loc[all_loc.index(this_loc)] += 1
+                        empty_thisrun += 1
+                    else:
+                        lprint('[-] Non-empty cell returned as empty.')
                 else:
-                    empty_ll[all_ll.index(this_ll)] = 0
-                    countmax = max(countmax, count)
-                    countall += count
+                    if not smartscan:
+                        empty_loc[all_loc.index(this_loc)] = 0
+                        countmax = max(countmax, count)
+                        countall += count
                     for cell in h.map_cells:
                         for p in range(0,len(cell.wild_pokemons)):
                             if cell.catchable_pokemons[p].expiration_timestamp_ms == -1:
@@ -937,14 +1092,15 @@ def main():
             while True:
                 fort = addforts.get()
                 id_str = fort.id[:-3]
-                fortIDint = int(id_str, 16)
-                if fortIDint not in list_forts:
-                    list_forts.add(fortIDint)
-                    thisfort = {'id': fortIDint, 'lat': fort.latitude, 'lng': fort.longitude}
-                    if fort.type == 1:
-                        scandata['stops'].append(thisfort)
-                    else:
-                        scandata['gyms'].append(thisfort)
+                if not emptyremoved:
+                    fortIDint = int(id_str, 16)
+                    if fortIDint not in list_forts:
+                        list_forts.add(fortIDint)
+                        thisfort = {'id': fortIDint, 'lat': fort.latitude, 'lng': fort.longitude}
+                        if fort.type == 1:
+                            scandata['stops'].append(thisfort)
+                        else:
+                            scandata['gyms'].append(thisfort)
                 if fort.lure_info.active_pokemon_id > 0:
                     newpokemon = POGOProtos.Map.Pokemon_pb2.WildPokemon()
                     newpokemon.encounter_id = fort.lure_info.encounter_id
@@ -987,6 +1143,13 @@ def main():
                                 addspawns.put(wild)
 
                             mod_tth = wild.time_till_hidden_ms
+                            if smartscan:
+                                list_unique.add(wild.encounter_id)
+                                if spawnIDint in list_spawns:
+                                    spawn = scandata['spawns'][list_spawns.index(spawnIDint)]
+                                    if spawn['type'] != SPAWN_UNDEF:
+                                        finished_ms = (wild.last_modified_timestamp_ms - spawn['spawntime'] * 60000) % 3600000
+                                        mod_tth = int((spawn['phasetime'] - spawn['pausetime']) * 60000 - finished_ms)
                             if mod_tth > 0:
                                 list_unique.add(wild.encounter_id)
                             else:
@@ -995,12 +1158,15 @@ def main():
                                                                                   wild.last_modified_timestamp_ms / 1000.0, wild.time_till_hidden_ms / 1000.0, wild.encounter_id))
                             if wild.pokemon_data.pokemon_id not in exclude_ids:
                                 DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)])
-                            other = LatLng.from_degrees(wild.latitude, wild.longitude)
-                            diff = other - origin
-                            difflat = diff.lat().degrees
-                            difflng = diff.lng().degrees
-                            direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
-                            lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), int(origin.get_distance(other).radians * 6366468.241830914), direction))
+                            if not silent:
+                                other_ll = LatLng.from_degrees(wild.latitude, wild.longitude)
+                                origin_ll = LatLng.from_degrees(LAT_C, LNG_C)
+                                diff = other_ll - origin_ll
+                                difflat = diff.lat().degrees
+                                difflng = diff.lng().degrees
+                                distance = int(origin_ll.get_distance(other_ll).radians * 6366468.241830914)
+                                direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
+                                lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), distance, direction))
 
                             if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
                                 try:
@@ -1045,7 +1211,7 @@ def main():
 #########################################################################
 #########################################################################
 
-    global all_ll, empty_ll, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li
+    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan
 
     random.seed()
 
@@ -1055,73 +1221,16 @@ def main():
 
     accounts = do_settings()
 
-    scan_file = '{}/res/{}_{}_{}_{}.json'.format(workdir, LAT_C, LNG_C, HEX_NUM, HEX_R)
-    # try:
-    #     f = open(scan_file, 'r')
-    #     scandata = json.load(f)
-    #     f.close()
-    # finally:
-    #     if 'f' in vars() and not f.closed:
-    #         f.close()
-    #
-    # types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_UNDEF]
-    #
-    # tallcount = len(scandata['spawns'])
-    # lprint('Spawn point count: {}'.format(tallcount))
-    # for t in types:
-    #     tcount = 0
-    #     for s in scandata['spawns']:
-    #         if s['type'] == t:
-    #             tcount += 1
-    #     lprint('Type: {}, Count: {}, Percentage: {}%'.format(t,tcount,round(100.0*tcount/tallcount,2)))
-    #
-    # sys.exit()
-
+    spawns = []
+    list_spawns = []
     list_forts = set([])
-    scandata = {'parameters': {'lat': LAT_C, 'lng': LNG_C, 'range': HEX_NUM, 'sight': HEX_R}, 'emptylocs': [], 'spawns': [], 'stops': [], 'gyms': []}
 
-    origin = LatLng.from_degrees(LAT_C, LNG_C)
-    all_ll = [origin]
-    empty_ll = []
-
-    latrad = origin.lat().radians
-    HEX_M = 3.0 ** 0.5 / 2.0 * HEX_R
-
-    x_un = 1.5 * HEX_R / getEarthRadius(latrad) / math.cos(latrad) * safety * 180 / math.pi
-    y_un = 1.0 * HEX_M / getEarthRadius(latrad) * safety * 180 / math.pi
-
-    for a in range(1, HEX_NUM + 1):
-        for s in range(0, 6):
-            for i in range(0, a):
-                if s == 0:
-                    lat = LAT_C + y_un * (-2 * a + i)
-                    lng = LNG_C + x_un * i
-                elif s == 1:
-                    lat = LAT_C + y_un * (-a + 2 * i)
-                    lng = LNG_C + x_un * a
-                elif s == 2:
-                    lat = LAT_C + y_un * (a + i)
-                    lng = LNG_C + x_un * (a - i)
-                elif s == 3:
-                    lat = LAT_C - y_un * (-2 * a + i)
-                    lng = LNG_C - x_un * i
-                elif s == 4:
-                    lat = LAT_C - y_un * (-a + 2 * i)
-                    lng = LNG_C - x_un * a
-                else:  # if s==5:
-                    lat = LAT_C - y_un * (a + i)
-                    lng = LNG_C - x_un * (a - i)
-
-                all_ll.append(LatLng.from_degrees(lat, lng))
-
-    empty_ll = [0] * len(all_ll)
     list_seen = set([])
     list_unique = set([])
     threadnum = len(accounts)
-
+    threadList = []
     locktime = min(0.8* time_hb / threadnum, 0.1)
 
-    threadList = []
     addpokemon = Queue.Queue(threadnum)
     synch_li = Queue.Queue(threadnum)
     addlocation = Queue.Queue(threadnum)
@@ -1131,16 +1240,67 @@ def main():
     lock_network = threading.Lock()
     lock_banfile = threading.Lock()
 
+    scan_file = '{}/res/{}_{}_{}_{}.json'.format(workdir, LAT_C, LNG_C, HEX_NUM, HEX_R)
+    try:
+        f = open(scan_file, 'r')
+        scandata = json.load(f)
+        f.close()
+        smartscan = True
+    except Exception as e:
+        smartscan = False
+        lprint('Can\'t load location database file: {}'.format(e))
+        lprint('After a learning phase of 3 hours this file will be created and it\'ll make subsequent scans with the same parameters very efficient.\n')
+        scandata = {'parameters': {'lat': LAT_C, 'lng': LNG_C, 'range': HEX_NUM, 'sight': HEX_R}, 'emptylocs': [], 'spawns': [], 'stops': [], 'gyms': []}
+    finally:
+        if 'f' in vars() and not f.closed:
+            f.close()
+
+    if not smartscan:
+        all_loc = [[LAT_C, LNG_C]]
+        empty_loc = []
+
+        latrad = LAT_C * math.pi / 180
+        HEX_M = 3.0 ** 0.5 / 2.0 * HEX_R
+
+        x_un = 1.5 * HEX_R / getEarthRadius(latrad) / math.cos(latrad) * safety * 180 / math.pi
+        y_un = 1.0 * HEX_M / getEarthRadius(latrad) * safety * 180 / math.pi
+
+        for a in range(1, HEX_NUM + 1):
+            for s in range(0, 6):
+                for i in range(0, a):
+                    if s == 0:
+                        lat = LAT_C + y_un * (-2 * a + i)
+                        lng = LNG_C + x_un * i
+                    elif s == 1:
+                        lat = LAT_C + y_un * (-a + 2 * i)
+                        lng = LNG_C + x_un * a
+                    elif s == 2:
+                        lat = LAT_C + y_un * (a + i)
+                        lng = LNG_C + x_un * (a - i)
+                    elif s == 3:
+                        lat = LAT_C - y_un * (-2 * a + i)
+                        lng = LNG_C - x_un * i
+                    elif s == 4:
+                        lat = LAT_C - y_un * (-a + 2 * i)
+                        lng = LNG_C - x_un * a
+                    else:  # if s==5:
+                        lat = LAT_C - y_un * (a + i)
+                        lng = LNG_C - x_un * (a - i)
+
+                    all_loc.append([lat, lng])
+
+        empty_loc = [0] * len(all_loc)
+
+        newthread = spawnjoiner()
+        newthread.deaemon = True
+        newthread.start()
+
     newthread = pokejoiner()
     newthread.daemon = True
     newthread.start()
 
     newthread = fortjoiner()
     newthread.daemon = True
-    newthread.start()
-
-    newthread = spawnjoiner()
-    newthread.deaemon = True
     newthread.start()
 
     if login_simu:
@@ -1153,7 +1313,7 @@ def main():
             newthread.daemon = True
             newthread.start()
         except Exception as e:
-            print('[-] Webserver couldn\'t be started, error: {}'.format(e))
+            lprint('[-] Webserver couldn\'t be started, error: {}\n'.format(e))
             sys.exit()
 
     for i in range(0, threadnum):
@@ -1174,9 +1334,16 @@ def main():
     newthread.daemon = True
     newthread.start()
 
-    while True:
+    while newthread.isAlive():
         newthread.join(5)
 
+    if smartscan:
+        newthread = smartlocgiver()
+        newthread.daemon = True
+        newthread.start()
+
+        while newthread.isAlive():
+            newthread.join(5)
 
 if __name__ == '__main__':
     main()

@@ -18,7 +18,7 @@ def server_start(port, workdir):
     mywebsite = WFile(workdir + '/webres')
     root = EncodingResourceWrapper(mywebsite, [GzipEncoderFactory()])
     factory = Site(root)
-    sys.stdout.write('[+] Webserver started, listening on port {}.\n'.format(port))
+    sys.stdout.write('[+] Webserver started, listening on port {}.\n\n'.format(port))
     reactor.listenTCP(port, factory)
     reactor.addSystemEventTrigger('before', 'shutdown', server_end)
     reactor.run(installSignalHandlers=False)
