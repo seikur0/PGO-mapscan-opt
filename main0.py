@@ -294,13 +294,12 @@ def login_google(account):
     SERVICE = 'audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com'
     APP = 'com.nianticlabs.pokemongo'
     APP_SIG = '321187995bc7cdc2b5fc91b11a96e2baa8602c62'
-
     while True:
         try:
             retry_after = 1
             login1 = perform_master_login(account['user'], account['pw'], ANDROID_ID)
             while login1.get('Token') is None:
-                lprint('[-] Google Login error, retrying in {} seconds (step 1)'.format(retry_after))
+                lprint('[{}] Google Login error, retrying in {} seconds (step 1)'.format(account['num'], retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 login1 = perform_master_login(account['user'], account['pw'], ANDROID_ID)
@@ -308,7 +307,7 @@ def login_google(account):
             retry_after = 1
             login2 = perform_oauth(account['user'], login1.get('Token'), ANDROID_ID, SERVICE, APP, APP_SIG)
             while login2.get('Auth') is None:
-                lprint('[-] Google Login error, retrying in {} seconds (step 2)'.format(retry_after))
+                lprint('[{}] Google Login error, retrying in {} seconds (step 2)'.format(account['num'], retry_after))
                 time.sleep(retry_after)
                 retry_after = min(retry_after * 2, MAXWAIT)
                 login2 = perform_oauth(account['user'], login1.get('Token', ''), ANDROID_ID, SERVICE, APP, APP_SIG)
@@ -322,8 +321,8 @@ def login_google(account):
             account['session'] = session
             return
         except Exception as e:
-            lprint('[-] Unexpected google login error: {}'.format(e))
-            lprint('[-] Retrying...')
+            lprint('[{}] Unexpected google login error: {}'.format(account['num'], e))
+            lprint('[{}] Retrying...'.format(account['num']))
             time.sleep(1)
 
 
@@ -374,12 +373,12 @@ def login_ptc(account):
             return
 
         except Exception as e:
-            lprint('[-] Ptc login error in step {}: {}'.format(step, e))
+            lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
             if r is not None:
-                lprint('[-] Connection error, http code: {}'.format(r.status_code))
+                lprint('[{}] Connection error, http code: {}'.format(account['num'], r.status_code))
             else:
-                lprint('[-] Error happened before network request.')
-            lprint('[-] Retrying...')
+                lprint('[{}] Error happened before network request.'.format(account['num']))
+            lprint('[{}] Retrying...'.format(account['num']))
             time.sleep(1)
 
 
