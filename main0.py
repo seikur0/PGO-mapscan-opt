@@ -904,7 +904,7 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str, empty_loc, spawns
             starttime = get_time()
             runs = 0
             try:
@@ -978,8 +978,7 @@ def main():
                 list_unique.intersection_update(list_seen)
                 list_seen.clear()
 
-                curT = int(time.time()) - curT
-                lprint('[+] Scan Time: {} s'.format(curT))
+                lprint('[+] Scan Time: {} s'.format(int(time.time()) - curT))
 
                 #########################################################################
                 if curT > spawnlyzetime:
@@ -1025,7 +1024,8 @@ def main():
                     if scannum == 0:
                         sys.exit()
 
-                curT = max(interval - curT, 0)
+                #imo curT should always just be curT and not be messed with - or else bugs
+                curT = max(interval - int(time.time()) + curT, 0)
                 lprint('[+] Sleeping for {} seconds...'.format(curT))
                 time.sleep(curT)
                 prune_data()
@@ -1211,7 +1211,7 @@ def main():
 #########################################################################
 #########################################################################
 
-    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan
+    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan, spawns
 
     random.seed()
 
