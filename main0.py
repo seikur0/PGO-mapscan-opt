@@ -739,6 +739,8 @@ def main():
                             thisspawn.spawntime %= 60
                         else:
                             thisspawn.spawntime = ((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60)
+                        if thisspawn.pauses == 0:
+                            thisspawn.pausetime = wild.last_modified_timestamp_ms - thisspawn.prev_time
                         thisspawn.type = SPAWN_DEF
                     if wild.time_till_hidden_ms > 0:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
@@ -904,7 +906,7 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str, empty_loc
             starttime = get_time()
             runs = 0
             try:
@@ -978,9 +980,6 @@ def main():
                 list_unique.intersection_update(list_seen)
                 list_seen.clear()
 
-                curT = int(time.time()) - curT
-                lprint('[+] Scan Time: {} s'.format(curT))
-
                 #########################################################################
                 if curT > spawnlyzetime:
                     addspawns.join()
@@ -1019,7 +1018,11 @@ def main():
                     del list_spawns[:]
                     del empty_loc
                     exit()
+
                 #########################################################################
+                curT = int(time.time()) - curT
+                lprint('[+] Scan Time: {} s'.format(curT))
+
                 if scannum > 0:
                     scannum -= 1
                     if scannum == 0:
