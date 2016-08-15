@@ -906,7 +906,7 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str, empty_loc
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str, empty_loc, spawns
             starttime = get_time()
             runs = 0
             try:
@@ -938,7 +938,6 @@ def main():
 
                 lprint('\n\n')
                 lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.now().strftime('%H:%M:%S'), infostring))
-
                 for this_loc in all_loc:
                     addlocation.put(this_loc)
                     if (100.0 * curR / maxR) >= nextperc:
