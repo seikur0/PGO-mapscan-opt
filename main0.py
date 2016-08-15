@@ -138,6 +138,7 @@ lock_banfile = None
 smartscan = False
 emptyremoved = False
 silent = False
+spawns = []
 
 def do_settings():
     global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids
@@ -1223,7 +1224,6 @@ def main():
 
     accounts = do_settings()
 
-    spawns = []
     list_spawns = []
     list_forts = set([])
 
