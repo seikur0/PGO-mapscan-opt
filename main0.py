@@ -1104,7 +1104,7 @@ def main():
                             scandata['stops'].append(thisfort)
                         else:
                             scandata['gyms'].append(thisfort)
-                if fort.lure_info.active_pokemon_id > 0:
+                if False:#fort.lure_info.active_pokemon_id > 0:
                     newpokemon = POGOProtos.Map.Pokemon_pb2.WildPokemon()
                     newpokemon.encounter_id = fort.lure_info.encounter_id
                     newpokemon.pokemon_data.pokemon_id = fort.lure_info.active_pokemon_id
