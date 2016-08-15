@@ -570,7 +570,7 @@ def get_profile(rtype, location, account, *reqq):
             lock_banfile.acquire()
             try:
                 f = open('{}/res/banned{}.txt'.format(workdir, wID), 'a')
-                f.write(account['user'])
+                f.write('{}\n'.format(account['user']))
                 f.close()
             finally:
                 if 'f' in vars() and not f.closed:
@@ -1081,8 +1081,9 @@ def main():
                             if cell.catchable_pokemons[p].expiration_timestamp_ms == -1:
                                 cell.wild_pokemons[p].time_till_hidden_ms = -1
                             addpokemon.put(cell.wild_pokemons[p])
-                        for fort in cell.forts:
-                            addforts.put(fort)
+                        if not emptyremoved:
+                            for fort in cell.forts:
+                                addforts.put(fort)
                 curR += 1
                 addlocation.task_done()
 
@@ -1092,28 +1093,18 @@ def main():
         def __init__(self):
             threading.Thread.__init__(self)
         def run(self):
-            while True:
+            while not emptyremoved:
                 fort = addforts.get()
                 id_str = fort.id[:-3]
-                if not emptyremoved:
-                    fortIDint = int(id_str, 16)
-                    if fortIDint not in list_forts:
-                        list_forts.add(fortIDint)
-                        thisfort = {'id': fortIDint, 'lat': fort.latitude, 'lng': fort.longitude}
-                        if fort.type == 1:
-                            scandata['stops'].append(thisfort)
-                        else:
-                            scandata['gyms'].append(thisfort)
-                if False:#fort.lure_info.active_pokemon_id > 0:
-                    newpokemon = POGOProtos.Map.Pokemon_pb2.WildPokemon()
-                    newpokemon.encounter_id = fort.lure_info.encounter_id
-                    newpokemon.pokemon_data.pokemon_id = fort.lure_info.active_pokemon_id
-                    newpokemon.latitude = fort.latitude
-                    newpokemon.longitude = fort.longitude
-                    newpokemon.last_modified_timestamp_ms = fort.last_modified_timestamp_ms
-                    newpokemon.spawn_point_id = id_str
-                    newpokemon.time_till_hidden_ms = (fort.lure_info.lure_expires_timestamp_ms - newpokemon.last_modified_timestamp_ms) % 300000
-                    addpokemon.put(newpokemon)
+
+                fortIDint = int(id_str, 16)
+                if fortIDint not in list_forts:
+                    list_forts.add(fortIDint)
+                    thisfort = {'id': fortIDint, 'lat': fort.latitude, 'lng': fort.longitude}
+                    if fort.type == 1:
+                        scandata['stops'].append(thisfort)
+                    else:
+                        scandata['gyms'].append(thisfort)
                 addforts.task_done()
 
 #########################################################################
@@ -1142,16 +1133,20 @@ def main():
                         list_seen.add(wild.encounter_id)
                         if wild.encounter_id not in list_unique:
                             spawnIDint = int(wild.spawn_point_id, 16)
-                            if time.time() < spawnlyzetime and spawnIDint not in list_forts:
+                            if time.time() < spawnlyzetime:
                                 addspawns.put(wild)
 
                             mod_tth = wild.time_till_hidden_ms
+                            addinfo = 0
                             if smartscan:
                                 list_unique.add(wild.encounter_id)
                                 if spawnIDint in list_spawns:
                                     spawn = scandata['spawns'][list_spawns.index(spawnIDint)]
                                     if spawn['type'] != SPAWN_UNDEF:
                                         finished_ms = (wild.last_modified_timestamp_ms - spawn['spawntime'] * 60000) % 3600000
+                                        if spawn['type'] == SPAWN_2x15 and finished_ms < 1800000:
+                                            addinfo = 1
+                                            finished_ms += 1800000
                                         mod_tth = int((spawn['phasetime'] - spawn['pausetime']) * 60000 - finished_ms)
                             if mod_tth > 0:
                                 list_unique.add(wild.encounter_id)
@@ -1159,8 +1154,14 @@ def main():
                                 mod_tth = 901000
                             f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 - 900.0,
                                                                                   wild.last_modified_timestamp_ms / 1000.0, wild.time_till_hidden_ms / 1000.0, wild.encounter_id))
+                            if addinfo: #accomodates for the 2x15 spawn's second time
+                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + 1800000 + mod_tth) / 1000.0 - 900.0,
+                                                                                      (wild.last_modified_timestamp_ms + 1800000) / 1000.0, wild.time_till_hidden_ms / 1000.0, wild.encounter_id))
                             if wild.pokemon_data.pokemon_id not in exclude_ids:
-                                DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)])
+                                if addinfo:
+                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0),addinfo])
+                                else:
+                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)])
                             if not silent:
                                 other_ll = LatLng.from_degrees(wild.latitude, wild.longitude)
                                 origin_ll = LatLng.from_degrees(LAT_C, LNG_C)
@@ -1179,6 +1180,8 @@ def main():
                                     notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
+                                if addinfo:
+                                    time_text += '\nwill then reappear after 15 m for 15 m.'
                                 for pushacc in pb:
                                     pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
 
@@ -1310,13 +1313,9 @@ def main():
             synch_li.put(True)
 
     if port > 0:
-        try:
-            newthread = webserver(port, workdir)
-            newthread.daemon = True
-            newthread.start()
-        except Exception as e:
-            lprint('[-] Webserver couldn\'t be started, error: {}\n'.format(e))
-            sys.exit()
+        newthread = webserver(port, workdir)
+        newthread.daemon = True
+        newthread.start()
 
     for i in range(0, threadnum):
         newthread = collector(i, accounts[i])

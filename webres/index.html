@@ -34,6 +34,7 @@
     var iconAnchor;
     var iconScaledSize;
     var timelefttext;
+    var timehiddentext;
 /////////////////////////////////////////////////////////////////////
     function getFile(path, asynch, callback) {
         var xhr = new XMLHttpRequest();
@@ -63,8 +64,19 @@
                             markers[i].setMap(null);
                             markers[i].validTill = 0;
                         }else
-                            markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
-
+                            var hidden = false
+                            if (markers[i].addinfo == 1){
+                                if (timeleft > 1800) {
+                                    timeleft -= 1800;
+                                }else if ( timeleft > 900) {
+                                    timeleft -= 900;
+                                    var hidden = true
+                                }
+                            }
+                            if (hidden)
+                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                            else
+                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
                     }
                 }
                 // Add updated markers
@@ -73,6 +85,10 @@
 
                     var timeleft = p[4]-timenow;
                     if (timeleft>0) {
+                        if (p.length == 6)
+                            var newaddinfo = p[5];
+                        else
+                            var newaddinfo = 0;
                         var cIcon= {
                                   url: "icons/" + p[0] + ".png",
                                   size: iconSize,
@@ -90,6 +106,7 @@
                                     markers[s].icon = cIcon;
                                     markers[s].setOpacity(1.0);
                                     markers[s].setMap(map);
+                                    markers[s].addinfo=newaddinfo;
                                 }
                                 markers[s].validTill = p[4];
                             }
@@ -102,7 +119,8 @@
         						infotext: "<b>"+pokenames[p[0]]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s",
         						validTill: p[4],
         						spawnID: p[1],
-        						icon: cIcon
+        						icon: cIcon,
+        						addinfo: newaddinfo
         					});
         					marker.addListener('click', function() {
         						infowindow.close();
@@ -141,10 +159,13 @@ function initMap() {
   getFile(LANGUAGE+".json", false, function(tnames) {
     pokenames=JSON.parse(tnames);
   });
-  if (LANGUAGE=="german")
+  if (LANGUAGE=="german") {
     timelefttext = "Zeit &#252;brig: ";
-  else if (LANGUAGE=="english")
+    timehiddentext = "Versteckt f&#252;r: ";
+  }else if (LANGUAGE=="english") {
     timelefttext = "Time left: ";
+    timehiddentext = "Hidden for: ";
+  }
   infowindow = new google.maps.InfoWindow();
   iconSize = new google.maps.Size(scalesize, scalesize);
   iconOrigin= new google.maps.Point(0, 0);

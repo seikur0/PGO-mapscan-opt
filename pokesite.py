@@ -18,10 +18,15 @@ def server_start(port, workdir):
     mywebsite = WFile(workdir + '/webres')
     root = EncodingResourceWrapper(mywebsite, [GzipEncoderFactory()])
     factory = Site(root)
-    sys.stdout.write('[+] Webserver started, listening on port {}.\n\n'.format(port))
-    reactor.listenTCP(port, factory)
-    reactor.addSystemEventTrigger('before', 'shutdown', server_end)
-    reactor.run(installSignalHandlers=False)
+    try:
+        reactor.listenTCP(port, factory)
+        sys.stdout.write('[+] Webserver started, listening on port {}.\n\n'.format(port))
+        reactor.addSystemEventTrigger('before', 'shutdown', server_end)
+        reactor.run(installSignalHandlers=False)
+    except Exception as e:
+        print('[-] Webserver couldn\'t be started, error: {}\n'.format(e))
+        print('[+] Webserver can be deactivated in the settings file.')
+        sys.exit()
 
 def server_end():
     reactor.close()
