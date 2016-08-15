@@ -907,7 +907,7 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str, empty_loc, spawns
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str, empty_loc, spawns, smartscan
             starttime = get_time()
             runs = 0
             try:
@@ -1017,6 +1017,7 @@ def main():
                     del all_loc[:]
                     del list_spawns[:]
                     del empty_loc
+                    smartscan = True
                     exit()
 
                 #########################################################################
