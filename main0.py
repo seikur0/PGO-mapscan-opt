@@ -1159,7 +1159,7 @@ def main():
                                                                                       (wild.last_modified_timestamp_ms + 1800000) / 1000.0, wild.time_till_hidden_ms / 1000.0, wild.encounter_id))
                             if wild.pokemon_data.pokemon_id not in exclude_ids:
                                 if addinfo:
-                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth + 180000) / 1000.0),addinfo])
+                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth + 1800000) / 1000.0),addinfo])
                                 else:
                                     DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)])
                             if not silent:
