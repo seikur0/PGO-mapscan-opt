@@ -40,10 +40,6 @@ import pokesite
 def get_time():
     return int(round(time.time() * 1000))
 
-def get_time_wrap():
-    return int(round(time.time() * 1000)) % 3600000
-
-
 def getNeighbors(location):
     level = 15
     origin = CellId.from_lat_lng(LatLng.from_degrees(location[0], location[1])).parent(level)
@@ -110,7 +106,6 @@ SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 port = None
 
 time_hb = 8
-time_small = time_hb
 tries = 1
 percinterval = 2
 curR = None
@@ -1063,7 +1058,6 @@ def main():
                 count = 0
                 while h is None and count < tries:
                     count += 1
-                    time.sleep(time_small)
                     h = heartbeat(location, self.account)
                 if h is None:
                     if not smartscan:
