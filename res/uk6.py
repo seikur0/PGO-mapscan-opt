@@ -31,7 +31,7 @@ static_seed = 0x1B845238
 def d2h(f):
     if not f:
         return '\x00\x00\x00\x00\x00\x00\x00\x00'
-    hex_str = hex(struct.unpack('<Q', struct.pack('<d', f))[0])[2:-1]
+    hex_str = hex(struct.unpack('<Q', struct.pack('<d', f))[0])[2:].replace('L','')
     if len(hex_str) % 2:
         hex_str = '0' + hex_str
     return hex_str.decode('hex')
