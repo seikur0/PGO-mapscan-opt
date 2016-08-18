@@ -56,29 +56,6 @@
             getFile(filenow, false, function(fileData) {
                 pokdats = JSON.parse(fileData);
 
-                // Clear void markers
-                for (var i = 0; i < markers.length; i++) {
-                    if (markers[i].validTill != 0) {
-                        timeleft = markers[i].validTill-timenow;
-                        if (timeleft <= 0) {
-                            markers[i].setMap(null);
-                            markers[i].validTill = 0;
-                        }else
-                            var hidden = false
-                            if (markers[i].addinfo == 1){
-                                if (timeleft > 1800) {
-                                    timeleft -= 1800;
-                                }else if ( timeleft > 900) {
-                                    timeleft -= 900;
-                                    var hidden = true
-                                }
-                            }
-                            if (hidden)
-                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
-                            else
-                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
-                    }
-                }
                 // Add updated markers
                 for (var i = 0; i < pokdats.length; i++) {
                     var p = pokdats[i];
@@ -99,7 +76,6 @@
                         var s = 0;
                         while (s< spawns.length && spawns[s]!=p[1]){s++;}
                         if (s< spawns.length){
-                            markers[s].infotext = "<b>"+pokenames[p[0]]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
                             if (markers[s].validTill != p[4]) {
                                 if (markers[s].validTill ==0 || markers[s].id != p[0]) {
                                     markers[s].id=p[0];
@@ -139,6 +115,29 @@
         				}
                     }
         		}
+				// Update info text of markers and clear void ones
+                for (var i = 0; i < markers.length; i++) {
+                    if (markers[i].validTill != 0) {
+                        var timeleft = markers[i].validTill-timenow;
+                        if (timeleft <= 0) {
+                            markers[i].setMap(null);
+                            markers[i].validTill = 0;
+                        }else
+                            var hidden = false
+                            if (markers[i].addinfo == 1){
+                                if (timeleft > 1800) {
+                                    timeleft -= 1800;
+                                }else if ( timeleft > 900) {
+                                    timeleft -= 900;
+                                    hidden = true
+                                }
+                            }
+                            if (hidden)
+                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ "<font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s" + "</font>";
+                            else
+                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                    }
+                }
     	    });
         }
         anchor=infowindow.get('anchor');
