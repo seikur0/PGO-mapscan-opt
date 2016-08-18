@@ -63,20 +63,7 @@
                         if (timeleft <= 0) {
                             markers[i].setMap(null);
                             markers[i].validTill = 0;
-                        }else
-                            var hidden = false
-                            if (markers[i].addinfo == 1){
-                                if (timeleft > 1800) {
-                                    timeleft -= 1800;
-                                }else if ( timeleft > 900) {
-                                    timeleft -= 900;
-                                    var hidden = true
-                                }
-                            }
-                            if (hidden)
-                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
-                            else
-                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                        }
                     }
                 }
                 // Add updated markers
@@ -137,6 +124,19 @@
         					markers.push(marker);
         					spawns.push(p[1]);
         				}
+                            var hidden = false
+                            if (markers[i].addinfo == 1){
+                                if (timeleft > 1800) {
+                                    timeleft -= 1800;
+                                }else if ( timeleft > 900) {
+                                    timeleft -= 900;
+                                    var hidden = true
+                                }
+                            }
+                            if (hidden)
+                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
+                            else
+                                markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
                     }
         		}
     	    });
