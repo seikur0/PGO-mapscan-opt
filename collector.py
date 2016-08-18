@@ -11,6 +11,7 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.python import log
+import sys
 
 ignore_file = "res/.uploader.ignore"
 
@@ -141,21 +142,21 @@ def gotProtocol(p):
 
     print('')
     p.transport.loseConnection()
-    print("Transfered {} pokemon sightings!".format(update_tick.counter))
-    print("Transfer done, waiting for data to be send by the os!")
+    print("Transferred {} pokemon sightings!".format(update_tick.counter))
+    print("Transfer done, waiting for data to be sent by the os!")
     yield shutdown(1 + (update_tick.counter / 100))
     print("Thanks for helping out!")
 
 
 def update_tick(dot='#', linenum=None, current=None):
     update_tick.counter += 1
-    print(dot, end='', flush=True)
+    sys.stdout.write(dot)
     if update_tick.counter % 100 == 0:
         print('')
         if linenum and current:
             perc = int((float(current) / float(linenum) * 10000) / 100)
-            print("You have send {}/{} from this file ({}%)!".format(current, linenum, perc))
-        print('Already send {} pokemon this session!'.format(update_tick.counter))
+            print("You have sent {}/{} pokemon from this file ({}%)!".format(current, linenum, perc))
+        print('Already sent {} pokemon this session!'.format(update_tick.counter))
 
 
 update_tick.counter = 0
