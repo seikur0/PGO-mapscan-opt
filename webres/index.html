@@ -136,16 +136,15 @@
                                 markers.push(marker);
                                 spawns.push(p[1]);
                             }
-                            if (markers[i].addinfo == 1) {
+                            if (markers[s].addinfo == 1) {
                                 if (timeleft > 1800) {
                                     timeleft -= 1800;
-                                    markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s" + willreturntext;
+                                    markers[s].infotext = "<b>" + pokenames[markers[s].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s" + willreturntext;
                                 } else if (timeleft > 900) {
                                     timeleft -= 900;
-                                    markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
+                                    markers[s].infotext = "<b>" + pokenames[markers[s].id] + "</b><br>" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
                                 }
                             }
-                            else
                         }
                     }
                 });
