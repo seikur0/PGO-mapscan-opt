@@ -46,6 +46,7 @@
         var iconScaledSize;
         var timelefttext;
         var timehiddentext;
+        var willreturntext;
         /////////////////////////////////////////////////////////////////////
         function getFile(path, asynch, callback) {
             var xhr = new XMLHttpRequest();
@@ -135,19 +136,16 @@
                                 markers.push(marker);
                                 spawns.push(p[1]);
                             }
-                            var hidden = false
                             if (markers[i].addinfo == 1) {
                                 if (timeleft > 1800) {
                                     timeleft -= 1800;
+                                    markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s" + willreturntext;
                                 } else if (timeleft > 900) {
                                     timeleft -= 900;
-                                    var hidden = true
+                                    markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
                                 }
                             }
-                            if (hidden)
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
                             else
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
                         }
                     }
                 });
@@ -173,9 +171,11 @@
             if (LANGUAGE == "german") {
                 timelefttext = "Zeit &#252;brig: ";
                 timehiddentext = "Versteckt f&#252;r: ";
+                willreturntext = "<br><i>(kehrt nach 15m)</i>";
             } else if (LANGUAGE == "english") {
                 timelefttext = "Time left: ";
                 timehiddentext = "Hidden for: ";
+                willreturntext = "<br><i>(will return after 15m)</i>";
             }
             infowindow = new google.maps.InfoWindow();
             iconSize = new google.maps.Size(scalesize, scalesize);
