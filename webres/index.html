@@ -115,24 +115,24 @@
                     }
         		}
 				// Update info text of markers and clear void ones
-                for (var i = 0; i < markers.length; i++) {
-                    if (markers[i].validTill != 0) {
-                        var timeleft = markers[i].validTill-timenow;
-                        if (timeleft <= 0) {
-                            markers[i].setMap(null);
-                            markers[i].validTill = 0;
-                        }else
-                            if (markers[i].addinfo == 1 && timeleft > 1800) {
-                                timeleft -= 1800;
+				for (var i = 0; i < markers.length; i++) {
+					if (markers[i].validTill != 0) {
+						var timeleft = markers[i].validTill-timenow;
+						if (timeleft <= 0) {
+							markers[i].setMap(null);
+							markers[i].validTill = 0;
+						}else
+							if (markers[i].addinfo == 1 && timeleft > 1800) {
+								timeleft -= 1800;
 								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>" + timereturntext;
 							}else if (markers[i].addinfo == 1 && timeleft > 900) {
 								timeleft -= 900;
 								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s</font>";
 							}else{
 								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
-							}      
-                    }
-                }
+							}
+					}
+				}
     	    });
         }
         anchor=infowindow.get('anchor');
