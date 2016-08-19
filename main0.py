@@ -134,6 +134,7 @@ smartscan = False
 emptyremoved = False
 silent = False
 spawns = []
+safetysecs = 2
 
 def do_settings():
     global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids
@@ -735,7 +736,7 @@ def main():
                         else:
                             thisspawn.spawntime = ((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60)
                         if thisspawn.pauses == 0:
-                            thisspawn.pausetime = wild.last_modified_timestamp_ms - thisspawn.prev_time
+                            thisspawn.pausetime = (wild.last_modified_timestamp_ms - thisspawn.prev_time) / 60000.0
                         thisspawn.type = SPAWN_DEF
                     if wild.time_till_hidden_ms > 0:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
@@ -830,16 +831,18 @@ def main():
             lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
             while not caughtup or vleft > 0:
-                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000.0) % 3600000
+                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000) % 3600000
                 if timediff < 1800000:
                     if not caughtup:
                         lprint('\n[+] Catch up phase 2/2 complete. Map is now live.')
                         lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
                         caughtup = True
                         tries = 3
-                    time.sleep(((all_sort[indx_sort][0] - get_time()) % 3600000) / 1000.0)
-                elif timediff < (3600000 - (time_hb + 1) * 1000.0):
-                    lprint('{} s behind.'.format(round((3600000-timediff) / 1000.0, 2)))
+                    time.sleep(timediff / 1000.0 + safetysecs)
+                elif timediff > (3600000 - safetysecs * 1000):
+                    time.sleep(timediff/ 1000.0 - 3600 + safetysecs)
+                elif timediff < (3600000 - (time_hb + 1) * 1000):
+                    lprint('{} s behind.'.format(3600 - safetysecs - round(timediff / 1000.0, 2)))
 
                 spawn = scandata['spawns'][all_sort[indx_sort][1]]
                 addlocation.put([spawn['lat'],spawn['lng']])
@@ -873,11 +876,13 @@ def main():
             silent = True
 
             while True:
-                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000.0) % 3600000
+                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000) % 3600000
                 if timediff < 1800000:
-                    time.sleep(((all_sort[indx_sort][0] - get_time()) % 3600000) / 1000.0)
-                elif timediff < (3600000 - (time_hb + 1) * 1000.0):
-                    lprint('{} s behind.'.format(round((3600000-timediff) / 1000.0, 2)))
+                    time.sleep(timediff / 1000.0 + safetysecs)
+                elif timediff > (3600000 - safetysecs * 1000):
+                    time.sleep(timediff/ 1000.0 - 3600 + safetysecs)
+                elif timediff < (3600000 - (time_hb + 1) * 1000):
+                    lprint('{} s behind.'.format(3600 - safetysecs - round(timediff / 1000.0, 2)))
 
                 spawn = scandata['spawns'][all_sort[indx_sort][1]]
                 addlocation.put([spawn['lat'], spawn['lng']])
@@ -1036,7 +1041,7 @@ def main():
             self.account = account
 
         def run(self):
-            global curR, countmax, countall, empty_loc, empty_thisrun
+            global curR, countmax, countall, empty_loc, empty_thisrun, safetysecs
 
             do_login(self.account)
             lprint('[{}] Login for {} account: {}'.format(self.account['num'], self.account['type'], self.account['user']))
