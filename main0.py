@@ -134,7 +134,7 @@ smartscan = False
 emptyremoved = False
 silent = False
 spawns = []
-safetysecs = 2
+safetysecs = 3
 
 def do_settings():
     global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids
@@ -556,7 +556,7 @@ def get_profile(rtype, location, account, *reqq):
             lprint('[-] Servers busy, retrying...')
         elif response.status_code == 3:
             if synch_li.empty():
-                addlocation.put([location[0],location[1]])
+                #addlocation.put([location[0],location[1]])
                 addlocation.task_done()
             else:
                 synch_li.get()
@@ -594,7 +594,6 @@ def heartbeat(location, account):
     m11.latitude = location[0]
     m11.longitude = location[1]
     m1.request_message = m11.SerializeToString()
-
     response = get_profile(1, location, account, m1)
     heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
     heartbeat.ParseFromString(response.returns[0])
