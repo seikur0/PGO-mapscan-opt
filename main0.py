@@ -370,15 +370,12 @@ def login_ptc(account):
 
         except Exception as e:
             lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
-            lprint(r.content)
-            lprint(r.history)
-            exit()
             if r is not None:
-                lprint('[{}] Connection error, http code: {}'.format(account['num'], r.status_code))
+                lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, r.content))
             else:
                 lprint('[{}] Error happened before network request.'.format(account['num']))
             lprint('[{}] Retrying...'.format(account['num']))
-            time.sleep(10)
+            time.sleep(2)
 
 
 def do_login(account):
@@ -1216,7 +1213,7 @@ def main():
 #########################################################################
 #########################################################################
 
-    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan, DATA, LAT_C, LNG_C
+    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan
 
     random.seed()
 
@@ -1352,3 +1349,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+	
