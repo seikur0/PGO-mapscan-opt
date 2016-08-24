@@ -105,7 +105,7 @@ LAT_C, LNG_C, ALT_C = [None, None, None]
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 port = None
 
-time_hb = 8
+time_hb = 10
 tries = 1
 percinterval = 2
 curR = None
@@ -370,12 +370,15 @@ def login_ptc(account):
 
         except Exception as e:
             lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
+            lprint(r.content)
+            lprint(r.history)
+            exit()
             if r is not None:
                 lprint('[{}] Connection error, http code: {}'.format(account['num'], r.status_code))
             else:
                 lprint('[{}] Error happened before network request.'.format(account['num']))
             lprint('[{}] Retrying...'.format(account['num']))
-            time.sleep(1)
+            time.sleep(10)
 
 
 def do_login(account):
@@ -1093,12 +1096,10 @@ def main():
         def run(self):
             while not emptyremoved:
                 fort = addforts.get()
-                id_str = fort.id[:-3]
 
-                fortIDint = int(id_str, 16)
-                if fortIDint not in list_forts:
-                    list_forts.add(fortIDint)
-                    thisfort = {'id': fortIDint, 'lat': fort.latitude, 'lng': fort.longitude}
+                if fort.id not in list_forts:
+                    list_forts.add(fort.id)
+                    thisfort = {'id': fort.id, 'lat': fort.latitude, 'lng': fort.longitude}
                     if fort.type == 1:
                         scandata['stops'].append(thisfort)
                     else:
@@ -1215,7 +1216,7 @@ def main():
 #########################################################################
 #########################################################################
 
-    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan
+    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan, DATA, LAT_C, LNG_C
 
     random.seed()
 
@@ -1242,7 +1243,6 @@ def main():
 
     lock_network = threading.Lock()
     lock_banfile = threading.Lock()
-
     scan_file = '{}/res/{}_{}_{}_{}.json'.format(workdir, LAT_C, LNG_C, HEX_NUM, HEX_R)
     try:
         f = open(scan_file, 'r')
@@ -1258,16 +1258,22 @@ def main():
         if 'f' in vars() and not f.closed:
             f.close()
 
+    latrad = LAT_C * math.pi / 180
+    HEX_M = 3.0 ** 0.5 / 2.0 * HEX_R
+
+    x_un = 1.5 * HEX_R / getEarthRadius(latrad) / math.cos(latrad) * safety * 180 / math.pi
+    y_un = 1.0 * HEX_M / getEarthRadius(latrad) * safety * 180 / math.pi
+
+    # yvals = [0, -(HEX_NUM * 3 + 1), 1,HEX_NUM * 3 + 2, HEX_NUM * 3 + 1, -1, -(HEX_NUM * 3 + 2)]
+    # xvals = [0, HEX_NUM + 1, 2 * HEX_NUM + 1, HEX_NUM, -(HEX_NUM + 1), -(2 * HEX_NUM + 1), -(HEX_NUM)]
+    #
+    # for n in range(0,7):
+    #     lprint('Neighbor {}: {}, {}'.format(n,LAT_C+y_un*yvals[n],LNG_C+x_un*xvals[n]))
+    # sys.exit()
+
     if not smartscan:
         all_loc = [[LAT_C, LNG_C]]
         empty_loc = []
-
-        latrad = LAT_C * math.pi / 180
-        HEX_M = 3.0 ** 0.5 / 2.0 * HEX_R
-
-        x_un = 1.5 * HEX_R / getEarthRadius(latrad) / math.cos(latrad) * safety * 180 / math.pi
-        y_un = 1.0 * HEX_M / getEarthRadius(latrad) * safety * 180 / math.pi
-
         for a in range(1, HEX_NUM + 1):
             for s in range(0, 6):
                 for i in range(0, a):
