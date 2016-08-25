@@ -725,7 +725,7 @@ def main():
                         thisspawn.pauses += 1
                     if thisspawn.prev_encid != wild.encounter_id:
                         thisspawn.phase = 2
-                        thisspawn.phasetime = int(round((wild.last_modified_timestamp_ms - thisspawn.phasetime) / 900000.0))*15
+                        thisspawn.phasetime = int(round((wild.last_modified_timestamp_ms - thisspawn.phasetime) / 1800000.0))*30
                         if thisspawn.spawntime != -1:
                             quarter = (((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60) / 15) + 4
                             thisspawn.spawntime += math.floor(quarter)  * 15
@@ -1265,7 +1265,7 @@ def main():
     # xvals = [0, HEX_NUM + 1, 2 * HEX_NUM + 1, HEX_NUM, -(HEX_NUM + 1), -(2 * HEX_NUM + 1), -(HEX_NUM)]
     #
     # for n in range(0,7):
-    #     lprint('Neighbor {}: {}, {}'.format(n,LAT_C+y_un*yvals[n],LNG_C+x_un*xvals[n]))
+    #     lprint('Neighbor {}\t{}, {}'.format(n,LAT_C+y_un*yvals[n],LNG_C+x_un*xvals[n]))
     # sys.exit()
 
     if not smartscan:
