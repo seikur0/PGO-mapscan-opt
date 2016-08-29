@@ -56,19 +56,19 @@ def getNeighbors(location):
             origin.from_face_ij_same(face, i - size, j - size, j - size >= 0 and i - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i + size, j - size, j - size >= 0 and i + size < max_size).parent(level).id(),
             origin.from_face_ij_same(face, i - size, j + size, j + size < max_size and i - size >= 0).parent(level).id(),
-            origin.from_face_ij_same(face, i + size, j + size, j + size < max_size and i + size < max_size).parent(level).id()]
-            # origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
-            # origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
-            # origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
-            # origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
-            # origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
-            # origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
-            # origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
-            # origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
-            # origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
-            # origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
-            # origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
-            # origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
+            origin.from_face_ij_same(face, i + size, j + size, j + size < max_size and i + size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
+            origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
+            origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
     return walk
 
 
@@ -371,7 +371,8 @@ def login_ptc(account):
         except Exception as e:
             lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
             if r is not None:
-                lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, r.content))
+                lprint('[{}] Connection error, http code: {}'.format(account['num'], r.status_code))
+                #lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, r.content))
             else:
                 lprint('[{}] Error happened before network request.'.format(account['num']))
             lprint('[{}] Retrying...'.format(account['num']))
@@ -479,6 +480,9 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                     lprint('[-] Error happened before network request.')
                 lprint('[-] Retrying...')
             time.sleep(1)
+            loopcount += 1
+            if loopcount > 4:
+                return None
         except Exception as e:
             lprint('[-] Unexpected connection error, error: {}'.format(e))
             if r is not None:
@@ -487,6 +491,9 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 lprint('[-] Error happened before network request.')
             lprint('[-] Retrying...')
             time.sleep(1)
+            loopcount += 1
+            if loopcount > 4:
+                return None
 
 
 def get_profile(rtype, location, account, *reqq):
@@ -659,14 +666,15 @@ def lprint(message):
 def main():
     SPAWN_UNDEF = -1
     SPAWN_DEF = 1
-    SPAWN_1x0 = 100
     SPAWN_1x15 = 101
     SPAWN_1x30 = 102
     SPAWN_1x45 = 103
     SPAWN_1x60 = 104
-    SPAWN_2x0 = 200
-    SPAWN_2x15 = 201
-    VSPAWN_2x15 = 2011
+    SPAWN_2x15 = 201  # 2x15
+    SPAWN_1x60h2 = 202
+    SPAWN_1x60h3 = 203
+    SPAWN_1x60h23 = 204
+    VSPAWN = 2222
 
     class spawnpoint:
         def __init__(self, lat, lng, spawnid):
@@ -680,7 +688,7 @@ def main():
             self.prev_time = starttime
             self.phase = 0
             self.pauses = 0
-            self.pausetime = 0
+            self.pausetime = []
 
 #########################################################################
 #########################################################################
@@ -720,15 +728,18 @@ def main():
                     thisspawn.prev_encid = wild.encounter_id
 
                 elif thisspawn.phase == 1:
-                    thisspawn.pausetime = int(math.floor((wild.last_modified_timestamp_ms - thisspawn.prev_time - 1) / 900000.0)) * 15
-                    if thisspawn.pausetime > 0:
+                    cpausetime = int(math.floor((wild.last_modified_timestamp_ms - thisspawn.prev_time - 1) / 900000.0)) * 15
+                    if cpausetime > 0:
                         thisspawn.pauses += 1
+                    cquarter = ((wild.last_modified_timestamp_ms / 1000.0) / 60) % 60
+                    thisspawn.pausetime.append(cquarter)
+
                     if thisspawn.prev_encid != wild.encounter_id:
                         thisspawn.phase = 2
                         thisspawn.phasetime = int(round((wild.last_modified_timestamp_ms - thisspawn.phasetime) / 1800000.0))*30
                         if thisspawn.spawntime != -1:
                             quarter = (((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60) / 15) + 4
-                            thisspawn.spawntime += math.floor(quarter)  * 15
+                            thisspawn.spawntime += math.floor(quarter) * 15
                             if thisspawn.spawntime > 15 * quarter:
                                 thisspawn.spawntime -= 15
                             thisspawn.spawntime %= 60
@@ -736,7 +747,18 @@ def main():
                             thisspawn.spawntime = ((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60)
                         if thisspawn.pauses == 0:
                             thisspawn.pausetime = (wild.last_modified_timestamp_ms - thisspawn.prev_time) / 60000.0
+                        else:
+                            if thisspawn.phasetime == 60:
+                                realpauses = [False,True,True,True]
+                                for p in range(1,4):
+                                    for ptime in thisspawn.pausetime:
+                                        dist = int(math.floor(((ptime-thisspawn.spawntime) % 60 / 15)))
+                                        if dist == p:
+                                            realpauses[p] = False
+                                            break
+                                thisspawn.pausetime = realpauses
                         thisspawn.type = SPAWN_DEF
+                        lprint('id: {}, spawntime: {}, pausetime: {}'.format(thisspawn.spawnid,thisspawn.spawntime,thisspawn.pausetime))
                     if wild.time_till_hidden_ms > 0:
                         thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
                     else:
@@ -755,9 +777,9 @@ def main():
             smartscan = True
             all_sort = []
 
-            types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_UNDEF]
-            typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', 'UNDEF']
-            typecount = [0,0,0,0,0,0]
+            types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF]
+            typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', '1x60h2', '1x60h3', '1x60h23', 'UNDEF']
+            typecount = [0, 0, 0, 0, 0, 0, 0, 0, 0]
             tallcount = len(scandata['spawns'])
 
             pointnum = tallcount
@@ -769,10 +791,14 @@ def main():
                 for t in range(0, len(types)):
                     if spawn['type'] == types[t]:
                         typecount[t] += 1
-                if spawn['type'] == SPAWN_2x15:
+                if spawn['type'] > 200:
                     vspawn = spawn.copy()
-                    vspawn['spawntime'] = (vspawn['spawntime'] + 30) % 60
-                    vspawn['type'] = VSPAWN_2x15
+                    vspawn['type'] = VSPAWN
+                    if spawn['type'] == SPAWN_2x15 or spawn['type'] == SPAWN_1x60h2:
+                        vspawn['spawntime'] = (vspawn['spawntime'] + 30) % 60
+                    elif spawn['type'] == SPAWN_1x60h23 or spawn['type'] == SPAWN_1x60h3:
+                        vspawn['spawntime'] = (vspawn['spawntime'] + 45) % 60
+
                     scandata['spawns'].append(vspawn)
                     all_sort.append([int(vspawn['spawntime'] * 60000), pointnum])
                     pointnum += 1
@@ -812,7 +838,7 @@ def main():
                 actT = get_time()
                 if (actT-curT) < (actT - all_sort[indx_sort][0]) % 3600000 < (spawn['phasetime'] - spawn['pausetime'] - 5) * 60000:
                     addlocation.put([spawn['lat'], spawn['lng']])
-                    if spawn['type'] == VSPAWN_2x15:
+                    if spawn['type'] == VSPAWN:
                         vleft -= 1
                 indx_sort -= 1
                 if indx_sort == -1:
@@ -845,7 +871,7 @@ def main():
 
                 spawn = scandata['spawns'][all_sort[indx_sort][1]]
                 addlocation.put([spawn['lat'],spawn['lng']])
-                if spawn['type'] == VSPAWN_2x15:
+                if spawn['type'] == VSPAWN:
                     vleft -= 1
                 indx_sort += 1
                 if indx_sort == pointnum:
@@ -987,15 +1013,33 @@ def main():
                                 if s.pauses == 0:
                                     s.type = SPAWN_1x60
                                 elif s.pauses == 1:
-                                    if s.pausetime == 45:
-                                        s.type = SPAWN_1x15
-                                    elif s.pausetime == 30:
-                                        s.type = SPAWN_1x30
-                                    elif s.pausetime == 15:
+                                    if s.pausetime[1]:
+                                        if s.pausetime[2]:
+                                            if s.pausetime[3]:
+                                                s.type = SPAWN_1x15
+                                                s.pausetime = 45
+                                            else:
+                                                s.type = SPAWN_1x60h23
+                                                s.pausetime = 30
+                                        else:
+                                            s.type = SPAWN_1x60h2
+                                            s.pausetime = 15
+                                    elif s.pausetime[2]:
+                                        if s.pausetime[3]:
+                                            s.type = SPAWN_1x30
+                                            s.pausetime = 30
+                                        else:
+                                            s.type = SPAWN_1x60h3
+                                            s.pausetime = 15
+                                    elif s.pausetime[3]:
                                         s.type = SPAWN_1x45
+                                        s.pausetime = 15
                                 elif s.pauses == 2:
-                                    if s.pausetime == 15:
+                                    if s.pausetime[1] and s.pausetime[3]:
                                         s.type = SPAWN_2x15
+                                        s.pausetime = 15
+                            else:
+                                s.type = SPAWN_UNDEF
                         else:
                             if s.spawntime == -1:
                                 s.spawntime = ((s.phasetime / 1000.0) / 60) % 60
@@ -1115,6 +1159,10 @@ def main():
             POKEMONS = json.load(open('{}/webres/{}.json'.format(workdir, LANGUAGE)))
             statheader = 'Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n'
 
+            addinfo_phase_sec = [0,900,1800,900,900]
+            addinfo_phase_first = [0,900,900,1800,900]
+            addinfo_pausetime =[0,900,900,900,1800]
+
             interval_datwrite = 5
             nextdatwrite = time.time() + interval_datwrite
             load_data(data_file)
@@ -1133,6 +1181,7 @@ def main():
                                 addspawns.put(wild)
 
                             mod_tth = wild.time_till_hidden_ms
+                            mod_spawntime = 0
                             addinfo = 0
                             if smartscan:
                                 list_unique.add(wild.encounter_id)
@@ -1140,22 +1189,41 @@ def main():
                                     spawn = scandata['spawns'][list_spawns.index(spawnIDint)]
                                     if spawn['type'] != SPAWN_UNDEF:
                                         finished_ms = (wild.last_modified_timestamp_ms - spawn['spawntime'] * 60000) % 3600000
-                                        if spawn['type'] == SPAWN_2x15 and finished_ms < 1800000:
+                                        if spawn['type'] == SPAWN_2x15 and finished_ms < 900000:
                                             addinfo = 1
-                                            finished_ms += 1800000
-                                        mod_tth = int((spawn['phasetime'] - spawn['pausetime']) * 60000 - finished_ms)
+                                            mod_phasetime = 30
+                                        elif spawn['type'] == SPAWN_1x60h2 and finished_ms < 900000:
+                                            addinfo = 2
+                                            mod_phasetime = 30
+                                        elif spawn['type'] == SPAWN_1x60h3 and finished_ms < 1800000:
+                                            addinfo = 3
+                                            mod_phasetime = 45
+                                        elif spawn['type'] == SPAWN_1x60h23 and finished_ms < 900000:
+                                            addinfo = 4
+                                            mod_phasetime = 30
+                                        else:
+                                            mod_phasetime = 60
+                                        mod_tth = int((mod_phasetime - spawn['pausetime']) * 60000 - finished_ms)
+                                        if addinfo > 0:
+                                            mod_spawntime = (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 - addinfo_phase_first[addinfo]
+                                            mod_spawntime_sec = (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 + addinfo_pausetime[addinfo]
+                                        else:
+                                            mod_spawntime = (wild.last_modified_timestamp_ms - finished_ms) / 1000.0
                             if mod_tth > 0:
                                 list_unique.add(wild.encounter_id)
                             else:
                                 mod_tth = 901000
-                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 - 900.0,
-                                                                                  wild.last_modified_timestamp_ms / 1000.0, wild.time_till_hidden_ms / 1000.0, wild.encounter_id))
-                            if addinfo: #accomodates for the 2x15 spawn's second time
-                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, (wild.last_modified_timestamp_ms + 1800000 + mod_tth) / 1000.0 - 900.0,
-                                                                                      (wild.last_modified_timestamp_ms + 1800000) / 1000.0, wild.time_till_hidden_ms / 1000.0, wild.encounter_id))
+                            if mod_spawntime == 0:
+                                mod_spawntime = (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 - 900.0
+
+                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime,
+                                                                                  wild.last_modified_timestamp_ms / 1000.0, mod_tth / 1000.0, wild.encounter_id))
+                            if addinfo:
+                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime_sec,
+                                                                                      mod_spawntime_sec+finished_ms/1000.0, addinfo_phase_sec[addinfo]-finished_ms/1000.0, wild.encounter_id))
                             if wild.pokemon_data.pokemon_id not in exclude_ids:
                                 if addinfo:
-                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth + 1800000) / 1000.0),addinfo])
+                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0 + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]),addinfo])
                                 else:
                                     DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)])
                             if not silent:
@@ -1271,6 +1339,7 @@ def main():
     if not smartscan:
         all_loc = [[LAT_C, LNG_C]]
         empty_loc = []
+
         for a in range(1, HEX_NUM + 1):
             for s in range(0, 6):
                 for i in range(0, a):
@@ -1349,4 +1418,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-	

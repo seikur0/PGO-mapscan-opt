@@ -9,8 +9,10 @@ SPAWN_1x15 = 101
 SPAWN_1x30 = 102
 SPAWN_1x45 = 103
 SPAWN_1x60 = 104
-SPAWN_1x45h2 = 201 # 2x15
-SPAWN_1x60h3 = 202
+SPAWN_2x15 = 201
+SPAWN_1x60h2 = 202
+SPAWN_1x60h3 = 203
+SPAWN_1x60h23 = 204
 
 alldata= {'spawns': [],'emptylocs': [],'gyms': [],'stops': []}
 
@@ -18,9 +20,9 @@ alldata_path = workdir + '/mapdata.json'
 
 
 def spawnstats(scandata):
-    types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_1x45h2, SPAWN_1x60h3, SPAWN_UNDEF]
-    typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', '1x60h3', 'UNDEF']
-    typecount = [0, 0, 0, 0, 0, 0, 0]
+    types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15,SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF]
+    typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15','1x60h2', '1x60h3', '1x60h23', 'UNDEF']
+    typecount = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     tallcount = len(scandata['spawns'])
 
     for spawn in scandata['spawns']:
@@ -30,7 +32,8 @@ def spawnstats(scandata):
 
     print('[+] Spawn point count: {}'.format(tallcount))
     for t in range(0, len(types)):
-        print('[+] Type: {}, Count: {}, Percentage: {}%'.format(typestrs[t], typecount[t], round(100.0 * typecount[t] / tallcount, 2)))
+        if typecount[t] > 0:
+            print('[+] Type: {}, Count: {}, Percentage: {}%'.format(typestrs[t], typecount[t], round(100.0 * typecount[t] / tallcount, 2)))
     print('\n')
 
 
@@ -53,6 +56,8 @@ for file in os.listdir(workdir):
                     s['phasetime'] = 60 # fixes entries caused by wrong rounding
                 if s['pauses'] == 0 and s['pausetime'] > 1000:
                     s['pausetime'] /= 60000.0 # fixes entry for 1x60 spawns in one of the first iscan versions
+                if s['type'] == SPAWN_1x60h2:
+                    s['pausetime'] = 15
 
             for s in scandata['spawns']: # reclassifies spawnpoints after fixes and in consideration of the new type
                 if s['type'] == SPAWN_DEF:
@@ -67,10 +72,11 @@ for file in os.listdir(workdir):
                             elif s['pausetime'] == 15:
                                 s['type'] = SPAWN_1x45
                             elif s['pausetime'] == 0:
-                                s['type'] = SPAWN_1x60h3
+                                s['type'] = SPAWN_1x60h2
+                                s['pausetime'] = 15
                         elif s['pauses'] == 2:
                             if s['pausetime'] == 15:
-                                s['type'] = SPAWN_1x45h2
+                                s['type'] = SPAWN_2x15
             f = open(path, 'w')
             json.dump(scandata,f, indent=1, separators=(',', ': '))
             f.close()
