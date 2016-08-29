@@ -287,7 +287,7 @@ function initSite() {
 	LAT_C=settings['html_coords']['lat'];
 	LNG_C=settings['html_coords']['lng'];
     LANGUAGE=settings['language'];
-    scalesize = Math.ceil(72*settings['icon_scalefactor']);
+    scalesize = Math.ceil(64*settings['icon_scalefactor']);
     loadids = settings['load_ids'];
 
     document.getElementsByName("viewport").content = "width=device-width, initial-scale="+settings['mobile_scalefactor'].toString()+", maximum-scale="+settings['mobile_scalefactor'].toString();
