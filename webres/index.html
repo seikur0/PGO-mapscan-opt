@@ -10,10 +10,25 @@
     <style type="text/css">
       html, body { height: 100%; margin: 0; padding: 0; }
       #map { height: 100%; }
+	  #filter { 
+		position: absolute; right: 14px; top: 14px; width: 28px; height: 28px; 
+		box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px; border-radius: 2px;
+		cursor: pointer; background-color: white; text-align: center; vertical-align: middle;
+	  }
+	
+	  #filterdialog {
+	    position: absolute; display: inline-block; height: 75%; overflow-y: scroll;
+		overflow-x: hidden; right: 14px; top: 42px; padding: 3px;
+		box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px; border-radius: 2px;
+		cursor: pointer; background-color: white; font-family: Roboto,Arial,sans-serif;
+        font-size: 14px; font-weight: 400; display: none;
+	  }
     </style>
   </head>
   <body>
     <div id="map"></div>
+	<div id="filter" title="Filter" onclick="showFilterDialog();"><img src="icons/map/ic_filter_list_black_24px.svg" onmouseover="this.style.opacity=0.5;" onmouseout="this.style.opacity=1;"></div>
+	<div id="filterdialog"></div>
     <script type="text/javascript">
 
 /////////////////////////////////////////////////////////////////////
@@ -22,6 +37,7 @@
     var markers = [];
     var spawns = [];
     var pokenames;
+	var pokefilter;
 	var LAT_C;
 	var LNG_C;
 	var LANGUAGE;
@@ -35,6 +51,7 @@
     var iconScaledSize;
     var timelefttext;
     var timehiddentext;
+    var initialized;
 /////////////////////////////////////////////////////////////////////
     function getFile(path, asynch, callback) {
         var xhr = new XMLHttpRequest();
@@ -110,6 +127,7 @@
                             });
 
         					markers.push(marker);
+        					if (!filteredOut(marker.id) && initialized) {pokemonNotify(marker);}
         					spawns.push(p[1]);
         				}
                     }
@@ -131,6 +149,8 @@
 							}else{
 								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
 							}
+
+						markers[i].setVisible(!filteredOut(markers[i].id));		
 					}
 				}
     	    });
@@ -139,6 +159,7 @@
         if (anchor!=undefined&&anchor!==null) {
             infowindow.setContent(anchor.infotext);
         }
+    initialized=true;
     }
 
 /////////////////////////////////////////////////////////////////////
@@ -153,6 +174,37 @@ function initMap() {
   getFile(LANGUAGE+".json", false, function(tnames) {
     pokenames=JSON.parse(tnames);
   });
+
+    // Load filter from Cookie
+    pokefilter = getCookie("pokefilter");
+	document.getElementById("filterdialog").style.display="none";
+  
+	for (i=1;i<152;i++) {
+		// Generate the filter interface
+		var div = document.createElement("div");
+		//div.style.width="100%";
+		div.innerHTML=pokenames[i];
+		if (filteredOut(i)) {
+			div.style.opacity=0.5;
+		}
+		else {
+			div.style.opacity=1;
+		}
+		div.id="filter"+i;
+		
+		var callback = function() {
+					     if (this.style.opacity<1) {
+							this.style.opacity=1;
+						 }
+						 else {
+							this.style.opacity=0.5;
+						 }
+						 updateFilter();
+		               }
+		div.addEventListener("click", callback, false)
+		document.getElementById("filterdialog").appendChild(div);
+	}
+  
   if (LANGUAGE=="german") {
     timelefttext = "Zeit &#252;brig: ";
     timehiddentext = "Versteckt f&#252;r: ";
@@ -162,6 +214,7 @@ function initMap() {
     timehiddentext = "Hidden for: ";
 	timereturntext = "(then back in 15m)";
   }
+  
   infowindow = new google.maps.InfoWindow();
   iconSize = new google.maps.Size(scalesize, scalesize);
   iconOrigin= new google.maps.Point(0, 0);
@@ -194,6 +247,87 @@ function initSite() {
  });
 }
 
+function setCookie() {
+	var cookieString = ""
+	if (pokefilter){
+		cookieString = "pokefilter="+pokefilter+";";
+	}
+	document.cookie = cookieString;
+}
+
+function getCookie(name) {
+	var cookieString = "; " + document.cookie;
+	var chunks = cookieString.split("; " + name + "=");
+	if (chunks.length == 2) {
+		return chunks.pop().split(";").shift();
+	}
+}
+
+function showFilterDialog() {
+	var dialog=document.getElementById("filterdialog");
+	if (dialog.style.display=="none") {
+		dialog.style.display="inherit";
+	}
+	else {
+		dialog.style.display="none";
+	};
+}
+
+function filteredOut(id) {
+	var filtertest=","+pokefilter+",";
+	return (filtertest.indexOf(","+id+",") > -1)
+}
+
+function updateFilter() {
+	var tmpstring = "";
+	for (i=1;i<152;i++) {
+		if (document.getElementById("filter"+i).style.opacity<1) {
+			tmpstring=tmpstring+","+i
+		}
+	}
+	if (tmpstring) {
+		pokefilter=tmpstring.substring(1);
+	}
+	setCookie();
+	
+	for (i=0; i<markers.length; i++) {
+		markers[i].setVisible(!filteredOut(markers[i].id));		
+	}
+}
+
+function pokemonNotify(marker) {
+  // Let's check if the browser supports notifications
+  if (!("Notification" in window)) {
+    // notifications not supported
+  }
+
+  // Let's check whether notification permissions have already been granted
+  else if (Notification.permission === "granted") {
+    // If it's okay let's create a notification
+    innerNotify(marker);
+  }
+
+  // Otherwise, we need to ask the user for permission
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      // If the user accepts, let's create a notification
+      if (permission === "granted") {
+        innerNotify(marker);
+      }
+    });
+  }
+
+  // user doesn't want notifications
+}
+
+function innerNotify(marker) {
+  var n = new Notification(pokenames[marker.id], {icon: marker.icon.url, body: "A wild "+pokenames[marker.id]+" appeared!", tag: marker});
+  setTimeout(function(){n.close();}, 5000);
+  var callback = function () { map.setCenter(marker.getPosition()); google.maps.event.trigger(marker, "click"); window.focus(); this.close(); }
+  n.addEventListener("click", callback, false)
+}
+
+initialized=false;
 initSite()
 
 </script>
