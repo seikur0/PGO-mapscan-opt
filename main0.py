@@ -517,17 +517,17 @@ def get_profile(rtype, location, account, *reqq):
     req4 = req.requests.add()
     req4.request_type = POGOProtos.Networking.Envelopes_pb2.GET_INVENTORY
     if len(reqq) >= 4:
-        req3.MergeFrom(reqq[3])
+        req4.MergeFrom(reqq[3])
 
     req5 = req.requests.add()
     req5.request_type = POGOProtos.Networking.Envelopes_pb2.CHECK_AWARDED_BADGES
     if len(reqq) >= 5:
-        req4.MergeFrom(reqq[4])
+        req5.MergeFrom(reqq[4])
 
     req6 = req.requests.add()
     req6.request_type = POGOProtos.Networking.Envelopes_pb2.DOWNLOAD_SETTINGS
     if len(reqq) >= 6:
-        req5.MergeFrom(reqq[5])
+        req6.MergeFrom(reqq[5])
 
     while True:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         time.sleep(time_hb)
