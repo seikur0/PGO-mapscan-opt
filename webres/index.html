@@ -400,7 +400,8 @@
 
         /////////////////////////////////////////////////////////////////////
         function setCookie() {
-            document.cookie = "pokefilter=" + pokefilter + ";";
+		    var d = new Date(21474800000000);
+            document.cookie = "pokefilter=" + pokefilter + "; expires="+d.toUTCString();
         }
 
         /////////////////////////////////////////////////////////////////////
