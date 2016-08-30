@@ -232,6 +232,28 @@ function initMap() {
    // filter interface
     pokefilter = getCookie("pokefilter");
 	document.getElementById("filterdialog").style.display="none";
+	
+		var div = document.createElement("div");
+		div.innerHTML="show all";
+		div.id="filter_show_a";
+		var callback = filt_show_all
+		div.addEventListener("click", callback, false)
+		document.getElementById("filterdialog").appendChild(div);
+		
+		var div = document.createElement("div");
+		div.innerHTML="hide all";
+		div.id="filter_hide_a";
+		var callback = filt_hide_all
+		div.addEventListener("click", callback, false)
+		document.getElementById("filterdialog").appendChild(div);
+	
+	var callback = function() {
+				 if (this.style.opacity<1)
+					this.style.opacity=1;
+				 else
+					this.style.opacity=0.5;
+				 updateFilter();
+			   }
 	for (var i=1;i<152;i++) {
 		var div = document.createElement("div");
 		div.innerHTML="["+ i +"] " + pokenames[i];
@@ -240,14 +262,6 @@ function initMap() {
 		else
 			div.style.opacity=1;
 		div.id="filter"+i;
-		
-		var callback = function() {
-					     if (this.style.opacity<1)
-							this.style.opacity=1;
-						 else
-							this.style.opacity=0.5;
-						 updateFilter();
-		               }
 		div.addEventListener("click", callback, false)
 		document.getElementById("filterdialog").appendChild(div);
 	}
@@ -297,6 +311,31 @@ function initSite() {
     script.defer = true;
     document.body.appendChild(script);
  });
+}
+
+function filt_show_all() {
+	pokefilter = ",";
+	for (var i=1;i<152;i++) {
+		var entry = document.getElementById("filter"+i)
+		if (entry.style.opacity<1) {
+			entry.style.opacity = 1;
+		}
+	}
+	setCookie();
+	showMarkers();
+}
+
+function filt_hide_all() {
+	pokefilter = ",";
+	for (var i=1;i<152;i++) {
+		pokefilter=pokefilter + i + ','
+		var entry = document.getElementById("filter"+i)
+		if (entry.style.opacity==1) {
+			entry.style.opacity = 0.5;
+		}
+	}
+	setCookie();
+	showMarkers();
 }
 
 function setCookie() {
