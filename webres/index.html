@@ -230,8 +230,10 @@
             changing = false;
             var bounds = map.getBounds();
             var timenow = Math.round((new Date()).getTime() / 1000);
+			var filt_inactive = (document.getElementById("filter_active").style.opacity < 1)
+			
             for (var i = 0; i < markers.length; i++) {
-                if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && !filteredOut(markers[i].id)) {
+                if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && (filt_inactive || !filteredOut(markers[i].id))) {
                     if (markers[i].map == null)
                         markers[i].setMap(map);
                 } else {
@@ -284,6 +286,14 @@
             // filter interface
             pokefilter = getCookie("pokefilter");
             document.getElementById("filterdialog").style.display = "none";
+			
+			var div = document.createElement("div");
+            div.innerHTML = "active";
+            div.id = "filter_active";
+			div.style.opacity = 1;
+            var callback = filt_toogle
+            div.addEventListener("click", callback, false)
+            document.getElementById("filterdialog").appendChild(div);
 
             var div = document.createElement("div");
             div.innerHTML = "show all";
@@ -370,7 +380,19 @@
                 document.body.appendChild(script);
             });
         }
-
+		
+		/////////////////////////////////////////////////////////////////////
+        function filt_toogle() {
+			if (this.style.opacity < 1){
+				this.style.opacity = 1;
+				this.innerHTML = "active";
+			}else{
+				this.style.opacity = 0.5;
+				this.innerHTML = "inactive";
+			}
+			showMarkers()
+		}
+		
         /////////////////////////////////////////////////////////////////////
         function filt_show_all() {
             pokefilter = ",";
