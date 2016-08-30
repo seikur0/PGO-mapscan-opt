@@ -25,8 +25,7 @@ import os
 import ctypes
 import six
 
-static_seed = 0x1B845238
-
+static_seed = 0x61656632
 
 def d2h(f):
     if not f:
