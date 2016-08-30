@@ -56,19 +56,19 @@ def getNeighbors(location):
             origin.from_face_ij_same(face, i - size, j - size, j - size >= 0 and i - size >= 0).parent(level).id(),
             origin.from_face_ij_same(face, i + size, j - size, j - size >= 0 and i + size < max_size).parent(level).id(),
             origin.from_face_ij_same(face, i - size, j + size, j + size < max_size and i - size >= 0).parent(level).id(),
-            origin.from_face_ij_same(face, i + size, j + size, j + size < max_size and i + size < max_size).parent(level).id()]
-            #origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
-            #origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
-            #origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
-            #origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
-            #origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
-            #origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
-            #origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
+            origin.from_face_ij_same(face, i + size, j + size, j + size < max_size and i + size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i, j - 2*size, j - 2*size >= 0).parent(level).id(),
+            origin.from_face_ij_same(face, i - size, j - 2*size, j - 2*size >= 0 and i - size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i + size, j - 2*size, j - 2*size >= 0 and i + size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i, j + 2*size, j + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i - size, j + 2*size, j + 2*size < max_size and i - size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i + size, j + 2*size, j + 2*size < max_size and i + size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i + 2*size, j, i + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i + 2*size, j - size, j - size >= 0 and i + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i + 2*size, j + size, j + size < max_size and i + 2*size < max_size).parent(level).id(),
+            origin.from_face_ij_same(face, i - 2*size, j, i - 2*size >= 0).parent(level).id(),
+            origin.from_face_ij_same(face, i - 2*size, j - size, j - size >= 0 and i - 2*size >=0).parent(level).id(),
+            origin.from_face_ij_same(face, i - 2*size, j + size, j + size < max_size and i - 2*size >=0).parent(level).id()]
     return walk
 
 
@@ -200,26 +200,24 @@ def do_settings():
     else:
         scannum = int(args.scans)
 
+    pb = []
     if allsettings['pushbullet']['enabled'] is True:
-        pb = []
-        keys = allsettings['pushbullet']['api_key']
-        for a in range(len(keys)):
+        for key in allsettings['pushbullet']['api_key']:
             try:
-                this_pb = Pushbullet(keys[a])
-                if allsettings['pushbullet']['use_channels'] is True:
-                    for channel in this_pb.channels:
-                        if channel.channel_tag in allsettings['pushbullet']['channel_tags']:
-                            pb.append(channel)
-                else:
-                    pb.append(this_pb)
+                this_pb = Pushbullet(key)
+                pb.append(this_pb)
             except Exception as e:
-                lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a + 1, e))
+                lprint('[-] Pushbullet error, key {} is invalid, {}'.format(key, e))
                 lprint('[-] This pushbullet will be disabled.')
 
-        if len(pb) > 0:
-            PUSHPOKS = set(allsettings['pushbullet']['push_ids'])
-        else:
-            pb = None
+    if allsettings['pushbullet']['use_channels'] is True:
+        for channel in allsettings['pushbullet']['channel_tags']:
+            pb.append(channel)
+
+    if len(pb) > 0:
+        PUSHPOKS = set(allsettings['pushbullet']['push_ids'])
+    else:
+        pb = None
 
     LANGUAGE = allsettings['language']
 
@@ -1247,7 +1245,10 @@ def main():
                                 if addinfo:
                                     time_text += '\nwill then reappear after 15 m for 15 m.'
                                 for pushacc in pb:
-                                    pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
+                                    try:
+                                        pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
+                                    except Exception as e:
+                                        lprint('[-] Pushbullet error for ({}), error: {}'.format(pushacc,e))
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
