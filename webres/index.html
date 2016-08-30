@@ -1,386 +1,451 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7">
-    
+<html>
 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7">
     <!--<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />-->
 
     <style type="text/css">
-      html, body { height: 100%; margin: 0; padding: 0; }
-      #map { height: 100%; }
-	  #filter {
-		position: absolute; right: 12px; top: 12px; width: 27px; height: 28px; 
-		box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;border-radius: 2px;
-		cursor: pointer; background-color: white; text-align: center; vertical-align: middle;}
-	  #findloc {
-		position: absolute; right: 12px; top: 52px; width: 27px; height: 28px; 
-		box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;border-radius: 2px;
-		cursor: pointer; background-color: white; text-align: center; vertical-align: middle;}
-	  #filterdialog {
-	    position: absolute; display: inline-block; height: 75%; overflow-y: scroll;
-		overflow-x: hidden; right: 40px; top: 12px; padding: 3px;
-		box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px; border-radius: 2px;
-		cursor: pointer; background-color: white; font-family: Roboto,Arial,sans-serif;
-        font-size: 14px; font-weight: 400; display: none;}
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #map {
+            height: 100%;
+        }
+        
+        #filter {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            width: 27px;
+            height: 28px;
+            box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+            border-radius: 2px;
+            cursor: pointer;
+            background-color: white;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        #findloc {
+            position: absolute;
+            right: 12px;
+            top: 52px;
+            width: 27px;
+            height: 28px;
+            box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+            border-radius: 2px;
+            cursor: pointer;
+            background-color: white;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        #filterdialog {
+            position: absolute;
+            display: inline-block;
+            height: 75%;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            right: 40px;
+            top: 12px;
+            padding: 3px;
+            box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+            border-radius: 2px;
+            cursor: pointer;
+            background-color: white;
+            font-family: Roboto, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            display: none;
+        }
     </style>
-  </head>
-  <body>
+</head>
+
+<body>
     <div id="map"></div>
-	<div id="filter" title="Filter" onclick="showFilterDialog();"><img src="icons/map/ic_filter_list_black_24px.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
-	<div id="filterdialog"></div>
-	<div id="findloc" title="Find Location" onclick="findLocation();"><img src="icons/map/map.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
+    <div id="filter" title="Filter" onclick="showFilterDialog();"><img src="icons/map/ic_filter_list_black_24px.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
+    <div id="filterdialog"></div>
+    <div id="findloc" title="Find Location" onclick="findLocation();"><img src="icons/map/map.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
     <script type="text/javascript">
+        /////////////////////////////////////////////////////////////////////
+        var pokdats = {};
+        var map;
+        var markers = [];
+        var spawns = [];
+        var pokenames;
+        var LAT_C;
+        var LNG_C;
+        var LANGUAGE;
+        var scalesize;
+        var loadids;
+        var timenow;
+        var infowindow;
+        var iconSize;
+        var iconOrigin;
+        var iconAnchor;
+        var iconScaledSize;
+        var timelefttext;
+        var timehiddentext;
+        var changing = true;
+        var startup;
+        var pokefilter;
+        var currentLocationMarker;
 
-/////////////////////////////////////////////////////////////////////
-    var pokdats = {};
-    var map;
-    var markers = [];
-    var spawns = [];
-    var pokenames;
-	var LAT_C;
-	var LNG_C;
-	var LANGUAGE;
-	var scalesize;
-	var loadids;
-    var timenow;
-    var infowindow;
-    var iconSize;
-    var iconOrigin;
-    var iconAnchor;
-    var iconScaledSize;
-    var timelefttext;
-    var timehiddentext;
-    var changing = true;
-    var startup;
-	var pokefilter;
-	var currentLocationMarker;
-/////////////////////////////////////////////////////////////////////
-    function getFile(path, asynch, callback) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", path, asynch);
-        xhr.onload = function (e) {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                callback(xhr.responseText);
-            }
-        };
-        xhr.send(null);
-    }
+        /////////////////////////////////////////////////////////////////////
+        function getFile(path, asynch, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", path, asynch);
+            xhr.onload = function(e) {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    callback(xhr.responseText);
+                }
+            };
+            xhr.send(null);
+        }
 
-/////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////
+        function refreshData() {
+            for (var fileN = 0; fileN < loadids.length; fileN++) {
+                timenow = Math.round((new Date()).getTime() / 1000);
+                filenow = "data".concat(loadids[fileN].toString(), ".json");
+                getFile(filenow, false, function(fileData) {
+                    pokdats = JSON.parse(fileData);
 
-    function refreshData() {
-        for (var fileN=0;fileN<loadids.length;fileN++){
-            timenow=Math.round((new Date()).getTime() / 1000);
-            filenow="data".concat(loadids[fileN].toString(),".json");
-            getFile(filenow, false, function(fileData) {
-                pokdats = JSON.parse(fileData);
+                    // Add updated markers
+                    for (var i = 0; i < pokdats.length; i++) {
+                        var p = pokdats[i];
 
-                // Add updated markers
-                for (var i = 0; i < pokdats.length; i++) {
-                    var p = pokdats[i];
-
-                    var timeleft = p[4]-timenow;
-                    if (timeleft>0) {
-                        if (p.length == 6)
-                            var newaddinfo = p[5];
-                        else
-                            var newaddinfo = 0;
-                        var cIcon= {
-                                  url: "icons/" + p[0] + ".png",
-                                  size: iconSize,
-                                  origin: iconOrigin,
-                                  anchor: iconAnchor,
-                                  scaledSize: iconScaledSize
-                                };
-                        var s = 0;
-                        while (s< spawns.length && spawns[s]!=p[1]){s++;}
-                        if (s< spawns.length){
-                            if (markers[s].validTill != p[4]) {
-                                if (markers[s].validTill ==0 || markers[s].id != p[0]) {
-                                    markers[s].id=p[0];
-                                    markers[s].icon = cIcon;
-                                    markers[s].setOpacity(1.0);
-                                    markers[s].addinfo=newaddinfo;
-                                }
-                                markers[s].validTill = p[4];
+                        var timeleft = p[4] - timenow;
+                        if (timeleft > 0) {
+                            if (p.length == 6)
+                                var newaddinfo = p[5];
+                            else
+                                var newaddinfo = 0;
+                            var cIcon = {
+                                url: "icons/" + p[0] + ".png",
+                                size: iconSize,
+                                origin: iconOrigin,
+                                anchor: iconAnchor,
+                                scaledSize: iconScaledSize
+                            };
+                            var s = 0;
+                            while (s < spawns.length && spawns[s] != p[1]) {
+                                s++;
                             }
-                        }else{
+                            if (s < spawns.length) {
+                                if (markers[s].validTill != p[4]) {
+                                    if (markers[s].validTill == 0 || markers[s].id != p[0]) {
+                                        markers[s].id = p[0];
+                                        markers[s].icon = cIcon;
+                                        markers[s].setOpacity(1.0);
+                                        markers[s].addinfo = newaddinfo;
+                                    }
+                                    markers[s].validTill = p[4];
+                                }
+                            } else {
                                 var marker = new google.maps.Marker({
-        						position: {lat: p[2], lng: p[3]},
-        						optimized: false,
-        						id: p[0],
-        						validTill: p[4],
-        						spawnID: p[1],
-        						icon: cIcon,
-        						addinfo: newaddinfo
-        					});
-        					marker.addListener('click', function() {
-        						infowindow.close();
-        						infowindow.setContent(this.infotext);
-        						infowindow.open(map, this);
-        					});
-        					marker.addListener('dblclick', function() {
-                                if (this.getOpacity()==0.5)
-                                    this.setOpacity(1);
-                                else
-                                    this.setOpacity(0.5);
-                            });
+                                    position: {
+                                        lat: p[2],
+                                        lng: p[3]
+                                    },
+                                    optimized: false,
+                                    id: p[0],
+                                    validTill: p[4],
+                                    spawnID: p[1],
+                                    icon: cIcon,
+                                    addinfo: newaddinfo
+                                });
+                                marker.addListener('click', function() {
+                                    infowindow.close();
+                                    infowindow.setContent(this.infotext);
+                                    infowindow.open(map, this);
+                                });
+                                marker.addListener('dblclick', function() {
+                                    if (this.getOpacity() == 0.5)
+                                        this.setOpacity(1);
+                                    else
+                                        this.setOpacity(0.5);
+                                });
 
-        					markers.push(marker);
-        					spawns.push(p[1]);
-        				}
+                                markers.push(marker);
+                                spawns.push(p[1]);
+                            }
+                        }
                     }
-        		}
-				// Update info text of markers and clear void ones
-				for (var i = 0; i < markers.length; i++) {
-					if (markers[i].validTill != 0) {
-						var timeleft = markers[i].validTill-timenow;
-						if (timeleft <= 0) {
-							markers[i].validTill = 0;
-						}else
-							if (markers[i].addinfo == 1 && timeleft > 1800) {
-								timeleft -= 1800;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>" + timereturntext1;
-							}else if (markers[i].addinfo == 1 && timeleft > 900) {
-								timeleft -= 900;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>"+ timehiddentext1 +"</font>";
-							}else if (markers[i].addinfo == 2 && timeleft > 2700) {
-								timeleft -= 2700;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>" + timereturntext2;
-							}else if (markers[i].addinfo == 2 && timeleft > 1800) {
-								timeleft -= 1800;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>"+ timehiddentext2 +"</font>";
-							}else if (markers[i].addinfo == 3 && timeleft > 1800) {
-								timeleft -= 1800;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>" + timereturntext1;
-							}else if (markers[i].addinfo == 3 && timeleft > 900) {
-								timeleft -= 900;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>"+ timehiddentext1 +"</font>";
-							}else if (markers[i].addinfo == 4 && timeleft > 2700) {
-								timeleft -= 2700;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>" + timereturntext3;
-							}else if (markers[i].addinfo == 4 && timeleft > 900) {
-								timeleft -= 900;
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s<br>"+ timehiddentext1 +"</font>";
-							}else {
-								markers[i].infotext= "<b>"+pokenames[markers[i].id]+"</b><br>"+ timelefttext + Math.floor(timeleft/60) + "m " + (timeleft%60) + "s";
-							}
-					}
-				}
-    	    });
+                    // Update info text of markers and clear void ones
+                    for (var i = 0; i < markers.length; i++) {
+                        if (markers[i].validTill != 0) {
+                            var timeleft = markers[i].validTill - timenow;
+                            if (timeleft <= 0) {
+                                markers[i].validTill = 0;
+                            } else
+                            if (markers[i].addinfo == 1 && timeleft > 1800) {
+                                timeleft -= 1800;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext1;
+                            } else if (markers[i].addinfo == 1 && timeleft > 900) {
+                                timeleft -= 900;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
+                            } else if (markers[i].addinfo == 2 && timeleft > 2700) {
+                                timeleft -= 2700;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext2;
+                            } else if (markers[i].addinfo == 2 && timeleft > 1800) {
+                                timeleft -= 1800;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext2 + "</font>";
+                            } else if (markers[i].addinfo == 3 && timeleft > 1800) {
+                                timeleft -= 1800;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext1;
+                            } else if (markers[i].addinfo == 3 && timeleft > 900) {
+                                timeleft -= 900;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
+                            } else if (markers[i].addinfo == 4 && timeleft > 2700) {
+                                timeleft -= 2700;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext3;
+                            } else if (markers[i].addinfo == 4 && timeleft > 900) {
+                                timeleft -= 900;
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
+                            } else {
+                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
+                            }
+                        }
+                    }
+                });
+            }
+            anchor = infowindow.get('anchor');
+            if (anchor != undefined && anchor !== null) {
+                infowindow.setContent(anchor.infotext);
+            }
+            showMarkers()
         }
-        anchor=infowindow.get('anchor');
-        if (anchor!=undefined&&anchor!==null) {
-            infowindow.setContent(anchor.infotext);
+
+        /////////////////////////////////////////////////////////////////////
+        function showMarkers() {
+            changing = false;
+            var bounds = map.getBounds();
+            var timenow = Math.round((new Date()).getTime() / 1000);
+            for (var i = 0; i < markers.length; i++) {
+                if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && !filteredOut(markers[i].id)) {
+                    if (markers[i].map == null)
+                        markers[i].setMap(map);
+                } else {
+                    markers[i].setMap(null);
+                }
+            }
         }
-        showMarkers()
-    }
 
-/////////////////////////////////////////////////////////////////////
-function showMarkers() {
-    changing = false;
-    var bounds = map.getBounds();
-    var timenow = Math.round((new Date()).getTime() / 1000);
-    for (var i = 0; i < markers.length; i++) {
-        if(bounds.contains(markers[i].getPosition()) && markers[i].validTill-timenow > 0 && !filteredOut(markers[i].id)) {
-            if (markers[i].map==null)
-                markers[i].setMap(map);
-        }else{
-            markers[i].setMap(null);
+        /////////////////////////////////////////////////////////////////////
+        function f_startup() {
+            if (~changing) {
+                clearInterval(startup)
+                refreshData();
+                setInterval(refreshData, 10000);
+            }
         }
-    }
-}
 
-function f_startup() {
-    if (~changing) {
-        clearInterval(startup)
-        refreshData();
-        setInterval(refreshData, 10000);
-    }
-}
+        /////////////////////////////////////////////////////////////////////
+        function initMap() {
 
-function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {
+                    lat: LAT_C,
+                    lng: LNG_C
+                },
+                zoom: 15,
+                disableDoubleClickZoom: true,
+                streetViewControl: false
+            });
+            getFile(LANGUAGE + ".json", false, function(tnames) {
+                pokenames = JSON.parse(tnames);
+            });
+            if (LANGUAGE == "german") {
+                timelefttext = "Zeit &#252;brig: ";
+                timehiddentext = "Versteckt f&#252;r: ";
+                timehiddentext1 = "(danach zur&#252;ck f&#252;r 15m)";
+                timehiddentext2 = "(danach zur&#252;ck f&#252;r 30m)";
+                timereturntext1 = "(15m danach zur&#252;ck f&#252;r 15m)";
+                timereturntext2 = "(15m danach zur&#252;ck f&#252;r 30m)";
+                timereturntext3 = "(30m danach zur&#252;ck f&#252;r 15m)";
+            } else if (LANGUAGE == "english") {
+                timelefttext = "Time left: ";
+                timehiddentext = "Hidden for: ";
+                timehiddentext1 = "(then back for 15m)";
+                timehiddentext2 = "(then back for 30m)";
+                timereturntext1 = "(15m later back for 15m)";
+                timereturntext2 = "(15m later back for 30m)";
+                timereturntext3 = "(30m later back for 15m)";
+            }
+            // filter interface
+            pokefilter = getCookie("pokefilter");
+            document.getElementById("filterdialog").style.display = "none";
 
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: LAT_C, lng: LNG_C},
-    zoom: 15,
-    disableDoubleClickZoom: true,
-	streetViewControl: false
-  });
-  getFile(LANGUAGE+".json", false, function(tnames) {
-    pokenames=JSON.parse(tnames);
-  });
-  if (LANGUAGE=="german") {
-    timelefttext = "Zeit &#252;brig: ";
-    timehiddentext = "Versteckt f&#252;r: ";
-	timehiddentext1 = "(danach zur&#252;ck f&#252;r 15m)";
-	timehiddentext2 = "(danach zur&#252;ck f&#252;r 30m)";
-	timereturntext1 = "(15m danach zur&#252;ck f&#252;r 15m)";
-	timereturntext2 = "(15m danach zur&#252;ck f&#252;r 30m)";
-	timereturntext3 = "(30m danach zur&#252;ck f&#252;r 15m)";
-  }else if (LANGUAGE=="english") {
-    timelefttext = "Time left: ";
-    timehiddentext = "Hidden for: ";
-	timehiddentext1 = "(then back for 15m)";
-	timehiddentext2 = "(then back for 30m)";
-	timereturntext1 = "(15m later back for 15m)";
-	timereturntext2 = "(15m later back for 30m)";
-	timereturntext3 = "(30m later back for 15m)";
-  }
-   // filter interface
-    pokefilter = getCookie("pokefilter");
-	document.getElementById("filterdialog").style.display="none";
-	
-		var div = document.createElement("div");
-		div.innerHTML="show all";
-		div.id="filter_show_a";
-		var callback = filt_show_all
-		div.addEventListener("click", callback, false)
-		document.getElementById("filterdialog").appendChild(div);
-		
-		var div = document.createElement("div");
-		div.innerHTML="hide all";
-		div.id="filter_hide_a";
-		var callback = filt_hide_all
-		div.addEventListener("click", callback, false)
-		document.getElementById("filterdialog").appendChild(div);
-	
-	var callback = function() {
-				 if (this.style.opacity<1)
-					this.style.opacity=1;
-				 else
-					this.style.opacity=0.5;
-				 updateFilter();
-			   }
-	for (var i=1;i<152;i++) {
-		var div = document.createElement("div");
-		div.innerHTML="["+ i +"] " + pokenames[i];
-		if (filteredOut(i))
-			div.style.opacity=0.5;
-		else
-			div.style.opacity=1;
-		div.id="filter"+i;
-		div.addEventListener("click", callback, false)
-		document.getElementById("filterdialog").appendChild(div);
-	}
-	
-	currentLocationMarker = new google.maps.Marker();
-  infowindow = new google.maps.InfoWindow();
-  iconSize = new google.maps.Size(scalesize, scalesize);
-  iconOrigin= new google.maps.Point(0, 0);
-  iconAnchor= new google.maps.Point(Math.round(scalesize/2), Math.round(scalesize/2));
-  iconScaledSize= new google.maps.Size(scalesize, scalesize);
+            var div = document.createElement("div");
+            div.innerHTML = "show all";
+            div.id = "filter_show_a";
+            var callback = filt_show_all
+            div.addEventListener("click", callback, false)
+            document.getElementById("filterdialog").appendChild(div);
 
-  google.maps.event.addListener(map, 'click', function(event) {
-        infowindow.close()
-		var dialog=document.getElementById("filterdialog");
-	if (dialog.style.display=="inherit")
-		dialog.style.display="none";
-    });
-  google.maps.event.addListener(map, 'bounds_changed', showMarkers);
-  startup = setInterval(f_startup, 1000)
-}
-function findLocation() {
-	if(navigator.geolocation)
-		navigator.geolocation.getCurrentPosition(function(position) {
-			var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-			currentLocationMarker.setPosition(latlng);
-			if (currentLocationMarker.map !==null)
-				currentLocationMarker.setMap(null);
-			currentLocationMarker.setAnimation(google.maps.Animation.DROP);
-			currentLocationMarker.setMap(map);
-			if (!map.getBounds().contains(latlng))
-				map.panTo(latlng)
-			}, function(error) {alert(error.message)});
-}
-function initSite() {
-  getFile("websettings.json", false, function(tsettings) {
-    var settings=JSON.parse(tsettings);
-	LAT_C=settings['html_coords']['lat'];
-	LNG_C=settings['html_coords']['lng'];
-    LANGUAGE=settings['language'];
-    scalesize = Math.ceil(64*settings['icon_scalefactor']);
-    loadids = settings['load_ids'];
+            var div = document.createElement("div");
+            div.innerHTML = "hide all";
+            div.id = "filter_hide_a";
+            var callback = filt_hide_all
+            div.addEventListener("click", callback, false)
+            document.getElementById("filterdialog").appendChild(div);
 
-    document.getElementsByName("viewport").content = "width=device-width, initial-scale="+settings['mobile_scalefactor'].toString()+", maximum-scale="+settings['mobile_scalefactor'].toString();
-    var script = document.createElement("script");
-    script.src = "https://maps.googleapis.com/maps/api/js?key="+settings['api_key']+"&libraries=drawing&callback=initMap";
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
- });
-}
+            var callback = function() {
+                if (this.style.opacity < 1)
+                    this.style.opacity = 1;
+                else
+                    this.style.opacity = 0.5;
+                updateFilter();
+            }
+            for (var i = 1; i < 152; i++) {
+                var div = document.createElement("div");
+                div.innerHTML = "[" + i + "] " + pokenames[i];
+                if (filteredOut(i))
+                    div.style.opacity = 0.5;
+                else
+                    div.style.opacity = 1;
+                div.id = "filter" + i;
+                div.addEventListener("click", callback, false)
+                document.getElementById("filterdialog").appendChild(div);
+            }
 
-function filt_show_all() {
-	pokefilter = ",";
-	for (var i=1;i<152;i++) {
-		var entry = document.getElementById("filter"+i)
-		if (entry.style.opacity<1) {
-			entry.style.opacity = 1;
-		}
-	}
-	setCookie();
-	showMarkers();
-}
+            currentLocationMarker = new google.maps.Marker();
+            infowindow = new google.maps.InfoWindow();
+            iconSize = new google.maps.Size(scalesize, scalesize);
+            iconOrigin = new google.maps.Point(0, 0);
+            iconAnchor = new google.maps.Point(Math.round(scalesize / 2), Math.round(scalesize / 2));
+            iconScaledSize = new google.maps.Size(scalesize, scalesize);
 
-function filt_hide_all() {
-	pokefilter = ",";
-	for (var i=1;i<152;i++) {
-		pokefilter=pokefilter + i + ','
-		var entry = document.getElementById("filter"+i)
-		if (entry.style.opacity==1) {
-			entry.style.opacity = 0.5;
-		}
-	}
-	setCookie();
-	showMarkers();
-}
+            google.maps.event.addListener(map, 'click', function(event) {
+                infowindow.close()
+                var dialog = document.getElementById("filterdialog");
+                if (dialog.style.display == "inherit")
+                    dialog.style.display = "none";
+            });
+            google.maps.event.addListener(map, 'bounds_changed', showMarkers);
+            startup = setInterval(f_startup, 1000)
+        }
 
-function setCookie() {
-	document.cookie = "pokefilter=" + pokefilter + ";";
-}
+        /////////////////////////////////////////////////////////////////////
+        function findLocation() {
+            if (navigator.geolocation)
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                    currentLocationMarker.setPosition(latlng);
+                    if (currentLocationMarker.map !== null)
+                        currentLocationMarker.setMap(null);
+                    currentLocationMarker.setAnimation(google.maps.Animation.DROP);
+                    currentLocationMarker.setMap(map);
+                    if (!map.getBounds().contains(latlng))
+                        map.panTo(latlng)
+                }, function(error) {
+                    alert(error.message)
+                });
+        }
 
-function getCookie(name) {
-	var chunks = document.cookie.split(";");
-	for (var i=0;i< chunks.length;i++) {
-		ind = chunks[i].indexOf(name + "=");
-		if (ind > -1) {
-			return chunks[i].substr(ind+name.length+1)
-		}
-	}
-	return -1
-}
+        /////////////////////////////////////////////////////////////////////
+        function initSite() {
+            getFile("websettings.json", false, function(tsettings) {
+                var settings = JSON.parse(tsettings);
+                LAT_C = settings['html_coords']['lat'];
+                LNG_C = settings['html_coords']['lng'];
+                LANGUAGE = settings['language'];
+                scalesize = Math.ceil(64 * settings['icon_scalefactor']);
+                loadids = settings['load_ids'];
 
-function updateFilter() {
-	pokefilter = ",";
-	for (var i=1;i<152;i++) {
-		if (document.getElementById("filter"+i).style.opacity<1) {
-			pokefilter=pokefilter + i + ','
-		}
-	}
-	setCookie();
-	showMarkers();
-}
+                document.getElementsByName("viewport").content = "width=device-width, initial-scale=" + settings['mobile_scalefactor'].toString() + ", maximum-scale=" + settings['mobile_scalefactor'].toString();
+                var script = document.createElement("script");
+                script.src = "https://maps.googleapis.com/maps/api/js?key=" + settings['api_key'] + "&libraries=drawing&callback=initMap";
+                script.async = true;
+                script.defer = true;
+                document.body.appendChild(script);
+            });
+        }
 
-function filteredOut(id) {
-	var filtertest=","+pokefilter+",";
-	return (filtertest.indexOf(","+id+",") > -1)
-}
+        /////////////////////////////////////////////////////////////////////
+        function filt_show_all() {
+            pokefilter = ",";
+            for (var i = 1; i < 152; i++) {
+                var entry = document.getElementById("filter" + i)
+                if (entry.style.opacity < 1) {
+                    entry.style.opacity = 1;
+                }
+            }
+            setCookie();
+            showMarkers();
+        }
 
-function showFilterDialog() {
-	var dialog=document.getElementById("filterdialog");
-	if (dialog.style.display=="none") {
-		dialog.style.display="inherit";
-	}
-	else {
-		dialog.style.display="none";
-	};
-}
+        /////////////////////////////////////////////////////////////////////
+        function filt_hide_all() {
+            pokefilter = ",";
+            for (var i = 1; i < 152; i++) {
+                pokefilter = pokefilter + i + ','
+                var entry = document.getElementById("filter" + i)
+                if (entry.style.opacity == 1) {
+                    entry.style.opacity = 0.5;
+                }
+            }
+            setCookie();
+            showMarkers();
+        }
 
-initSite()
+        /////////////////////////////////////////////////////////////////////
+        function setCookie() {
+            document.cookie = "pokefilter=" + pokefilter + ";";
+        }
 
-</script>
+        /////////////////////////////////////////////////////////////////////
+        function getCookie(name) {
+            var chunks = document.cookie.split(";");
+            for (var i = 0; i < chunks.length; i++) {
+                ind = chunks[i].indexOf(name + "=");
+                if (ind > -1) {
+                    return chunks[i].substr(ind + name.length + 1)
+                }
+            }
+            return -1
+        }
 
-</body></html>
+        /////////////////////////////////////////////////////////////////////
+        function updateFilter() {
+            pokefilter = ",";
+            for (var i = 1; i < 152; i++) {
+                if (document.getElementById("filter" + i).style.opacity < 1) {
+                    pokefilter = pokefilter + i + ','
+                }
+            }
+            setCookie();
+            showMarkers();
+        }
+
+        /////////////////////////////////////////////////////////////////////
+        function filteredOut(id) {
+            var filtertest = "," + pokefilter + ",";
+            return (filtertest.indexOf("," + id + ",") > -1)
+        }
+
+        /////////////////////////////////////////////////////////////////////
+        function showFilterDialog() {
+            var dialog = document.getElementById("filterdialog");
+            if (dialog.style.display == "none") {
+                dialog.style.display = "inherit";
+            } else {
+                dialog.style.display = "none";
+            };
+        }
+
+        /////////////////////////////////////////////////////////////////////
+        initSite()
+    </script>
+</body>
+
+</html>
