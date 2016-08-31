@@ -32,4 +32,4 @@ def server_start(port,workdir):
 
 if __name__ == "__main__":
     workdir = os.path.dirname(os.path.realpath(__file__))
-    server_start(7799,workdir)
+    server_start(8000,workdir)
