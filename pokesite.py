@@ -24,16 +24,16 @@ def server_start(port,workdir):
 
     @app.route("/")
     def mainapp():
-        try:
-            return render_template('index.html')
-        except Exception as e:
-            sys.stdout.write('{}\n'.format(e))
+        return render_template('index.html')
 
-    app.run(host='0.0.0.0', port=port)
+    try:
+        app.run(host='0.0.0.0', port=port)
+    except Exception as e:
+        sys.stdout.write('{}\n'.format(e))
     if not(__name__ == "__main__"):
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         app.logger.disabled = True
 
 if __name__ == "__main__":
     workdir = os.path.dirname(os.path.realpath(__file__))
-    server_start(8000,workdir)
+    server_start(7799,workdir)
