@@ -1,36 +1,35 @@
-from twisted.internet import reactor
-from twisted.web.static import File
-from twisted.web.resource import Resource, EncodingResourceWrapper
-from twisted.web.server import Site, GzipEncoderFactory
-
-import sys
+from flask import Flask, render_template
+from flask_compress import Compress
 import os
+import logging
 
-root = None
-factory = None
+def server_start(port,workdir):
 
-class WFile(File):
-    def getChild(self, path, request):
-        child = File.getChild(self, path, request)
-        return EncodingResourceWrapper(child, [GzipEncoderFactory()])
+    compress = Compress()
+    app = Flask(__name__,template_folder=workdir+'/'+'webres',static_url_path='',static_folder=workdir+'/'+'webres')
 
-def server_start(port, workdir):
-    mywebsite = WFile(workdir + '/webres')
-    root = EncodingResourceWrapper(mywebsite, [GzipEncoderFactory()])
-    factory = Site(root)
-    try:
-        reactor.listenTCP(port, factory)
-        sys.stdout.write('[+] Webserver started, listening on port {}.\n\n'.format(port))
-        reactor.addSystemEventTrigger('before', 'shutdown', server_end)
-        reactor.run(installSignalHandlers=False)
-    except Exception as e:
-        print('[-] Webserver couldn\'t be started, error: {}\n'.format(e))
-        print('[+] Webserver can be deactivated in the settings file.')
-        sys.exit()
+    app.config['COMPRESS_MIN_SIZE'] = 0
+    app.config['COMPRESS_LEVEL'] = 6
+    app.config['COMPRESS_MIMETYPES'] = ['text/html', 'text/css', 'text/xml', 'application/json', 'application/javascript', 'application/octet-stream', 'image/svg+xml']
 
-def server_end():
-    reactor.close()
+    compress.init_app(app)
 
-if __name__ == '__main__':
+    @app.after_request
+    def add_header(response):
+        if response.headers['Content-Type'] == "image/png":
+            response.headers['Cache-Control'] = 'must-revalidate, public, max-age=86400'
+        else:
+            response.headers['Cache-Control'] = 'must-revalidate, public, max-age=-1'
+        return response
+
+    @app.route("/")
+    def mainapp():
+        return render_template('index.html')
+    app.run(host='0.0.0.0', port=port)
+    if not(__name__ == "__main__"):
+        log = logging.getLogger('werkzeug').setLevel(logging.ERROR)
+        app.logger.disabled = True
+
+if __name__ == "__main__":
     workdir = os.path.dirname(os.path.realpath(__file__))
-    server_start(8000, workdir)
+    server_start(7799,workdir)

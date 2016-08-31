@@ -6,3 +6,5 @@ pushbullet.py
 geopy==1.11.0
 twisted
 xxhash
+flask
+flask_compress
