@@ -1,5 +1,5 @@
 protobuf==3.0.0b4
-requests==2.10.0
+requests
 s2sphere==0.2.4
 gpsoauth==0.3.0
 pushbullet.py

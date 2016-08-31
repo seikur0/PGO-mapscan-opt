@@ -98,6 +98,7 @@
         var startup;
         var pokefilter;
         var currentLocationMarker;
+        var file_succ = false;
 
         /////////////////////////////////////////////////////////////////////
         function getFile(path, asynch, callback) {
@@ -112,117 +113,127 @@
         }
 
         /////////////////////////////////////////////////////////////////////
+        function useData(fileData) {
+            try {
+                pokdats = JSON.parse(fileData);
+            } catch (err) {
+                console.log(err);
+                return;
+            }
+
+            // Add updated markers
+            for (var i = 0; i < pokdats.length; i++) {
+                var p = pokdats[i];
+
+                var timeleft = p[4] - timenow;
+                if (timeleft > 0) {
+                    if (p.length == 6)
+                        var newaddinfo = p[5];
+                    else
+                        var newaddinfo = 0;
+                    var cIcon = {
+                        url: "icons/" + p[0] + ".png",
+                        size: iconSize,
+                        origin: iconOrigin,
+                        anchor: iconAnchor,
+                        scaledSize: iconScaledSize
+                    };
+                    var s = 0;
+                    while (s < spawns.length && spawns[s] != p[1]) {
+                        s++;
+                    }
+                    if (s < spawns.length) {
+                        if (markers[s].validTill != p[4]) {
+                            if (markers[s].validTill == 0 || markers[s].id != p[0]) {
+                                markers[s].id = p[0];
+                                markers[s].icon = cIcon;
+                                markers[s].setOpacity(1.0);
+                                markers[s].addinfo = newaddinfo;
+                            }
+                            markers[s].validTill = p[4];
+                        }
+                    } else {
+                        var marker = new google.maps.Marker({
+                            position: {
+                                lat: p[2],
+                                lng: p[3]
+                            },
+                            optimized: false,
+                            id: p[0],
+                            validTill: p[4],
+                            spawnID: p[1],
+                            icon: cIcon,
+                            addinfo: newaddinfo
+                        });
+                        marker.addListener('click', function() {
+                            infowindow.close();
+                            infowindow.setContent(this.infotext);
+                            infowindow.open(map, this);
+                        });
+                        marker.addListener('dblclick', function() {
+                            if (this.getOpacity() == 0.5)
+                                this.setOpacity(1);
+                            else
+                                this.setOpacity(0.5);
+                        });
+
+                        markers.push(marker);
+                        spawns.push(p[1]);
+                    }
+                }
+            }
+            // Update info text of markers and clear void ones
+            for (var i = 0; i < markers.length; i++) {
+                if (markers[i].validTill != 0) {
+                    var timeleft = markers[i].validTill - timenow;
+                    if (timeleft <= 0) {
+                        markers[i].validTill = 0;
+                    } else
+                    if (markers[i].addinfo == 1 && timeleft > 1800) {
+                        timeleft -= 1800;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext1;
+                    } else if (markers[i].addinfo == 1 && timeleft > 900) {
+                        timeleft -= 900;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
+                    } else if (markers[i].addinfo == 2 && timeleft > 2700) {
+                        timeleft -= 2700;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext2;
+                    } else if (markers[i].addinfo == 2 && timeleft > 1800) {
+                        timeleft -= 1800;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext2 + "</font>";
+                    } else if (markers[i].addinfo == 3 && timeleft > 1800) {
+                        timeleft -= 1800;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext1;
+                    } else if (markers[i].addinfo == 3 && timeleft > 900) {
+                        timeleft -= 900;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
+                    } else if (markers[i].addinfo == 4 && timeleft > 2700) {
+                        timeleft -= 2700;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext3;
+                    } else if (markers[i].addinfo == 4 && timeleft > 900) {
+                        timeleft -= 900;
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
+                    } else {
+                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
+                    }
+                }
+            }
+            file_succ = true;
+            showMarkers();
+        }
+
+        /////////////////////////////////////////////////////////////////////
         function refreshData() {
             for (var fileN = 0; fileN < loadids.length; fileN++) {
                 timenow = Math.round((new Date()).getTime() / 1000);
                 filenow = "data".concat(loadids[fileN].toString(), ".json");
-                getFile(filenow, false, function(fileData) {
-                    pokdats = JSON.parse(fileData);
-
-                    // Add updated markers
-                    for (var i = 0; i < pokdats.length; i++) {
-                        var p = pokdats[i];
-
-                        var timeleft = p[4] - timenow;
-                        if (timeleft > 0) {
-                            if (p.length == 6)
-                                var newaddinfo = p[5];
-                            else
-                                var newaddinfo = 0;
-                            var cIcon = {
-                                url: "icons/" + p[0] + ".png",
-                                size: iconSize,
-                                origin: iconOrigin,
-                                anchor: iconAnchor,
-                                scaledSize: iconScaledSize
-                            };
-                            var s = 0;
-                            while (s < spawns.length && spawns[s] != p[1]) {
-                                s++;
-                            }
-                            if (s < spawns.length) {
-                                if (markers[s].validTill != p[4]) {
-                                    if (markers[s].validTill == 0 || markers[s].id != p[0]) {
-                                        markers[s].id = p[0];
-                                        markers[s].icon = cIcon;
-                                        markers[s].setOpacity(1.0);
-                                        markers[s].addinfo = newaddinfo;
-                                    }
-                                    markers[s].validTill = p[4];
-                                }
-                            } else {
-                                var marker = new google.maps.Marker({
-                                    position: {
-                                        lat: p[2],
-                                        lng: p[3]
-                                    },
-                                    optimized: false,
-                                    id: p[0],
-                                    validTill: p[4],
-                                    spawnID: p[1],
-                                    icon: cIcon,
-                                    addinfo: newaddinfo
-                                });
-                                marker.addListener('click', function() {
-                                    infowindow.close();
-                                    infowindow.setContent(this.infotext);
-                                    infowindow.open(map, this);
-                                });
-                                marker.addListener('dblclick', function() {
-                                    if (this.getOpacity() == 0.5)
-                                        this.setOpacity(1);
-                                    else
-                                        this.setOpacity(0.5);
-                                });
-
-                                markers.push(marker);
-                                spawns.push(p[1]);
-                            }
-                        }
-                    }
-                    // Update info text of markers and clear void ones
-                    for (var i = 0; i < markers.length; i++) {
-                        if (markers[i].validTill != 0) {
-                            var timeleft = markers[i].validTill - timenow;
-                            if (timeleft <= 0) {
-                                markers[i].validTill = 0;
-                            } else
-                            if (markers[i].addinfo == 1 && timeleft > 1800) {
-                                timeleft -= 1800;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext1;
-                            } else if (markers[i].addinfo == 1 && timeleft > 900) {
-                                timeleft -= 900;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
-                            } else if (markers[i].addinfo == 2 && timeleft > 2700) {
-                                timeleft -= 2700;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext2;
-                            } else if (markers[i].addinfo == 2 && timeleft > 1800) {
-                                timeleft -= 1800;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext2 + "</font>";
-                            } else if (markers[i].addinfo == 3 && timeleft > 1800) {
-                                timeleft -= 1800;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext1;
-                            } else if (markers[i].addinfo == 3 && timeleft > 900) {
-                                timeleft -= 900;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
-                            } else if (markers[i].addinfo == 4 && timeleft > 2700) {
-                                timeleft -= 2700;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timereturntext3;
-                            } else if (markers[i].addinfo == 4 && timeleft > 900) {
-                                timeleft -= 900;
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br><font color=\"#a9a9a9\">" + timehiddentext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s<br>" + timehiddentext1 + "</font>";
-                            } else {
-                                markers[i].infotext = "<b>" + pokenames[markers[i].id] + "</b><br>" + timelefttext + Math.floor(timeleft / 60) + "m " + (timeleft % 60) + "s";
-                            }
-                        }
-                    }
-                });
+                file_succ = false;
+                getFile(filenow, false, useData);
+                if (!file_succ)
+                    setTimeout(function() {
+                        getFile(filenow, false, useData);
+                    }, 1000);
             }
-            anchor = infowindow.get('anchor');
-            if (anchor != undefined && anchor !== null) {
-                infowindow.setContent(anchor.infotext);
-            }
-            showMarkers()
         }
 
         /////////////////////////////////////////////////////////////////////
@@ -230,8 +241,8 @@
             changing = false;
             var bounds = map.getBounds();
             var timenow = Math.round((new Date()).getTime() / 1000);
-			var filt_inactive = (document.getElementById("filter_active").style.opacity < 1)
-			
+            var filt_inactive = (document.getElementById("filter_active").style.opacity < 1)
+
             for (var i = 0; i < markers.length; i++) {
                 if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && (filt_inactive || !filteredOut(markers[i].id))) {
                     if (markers[i].map == null)
@@ -239,6 +250,10 @@
                 } else {
                     markers[i].setMap(null);
                 }
+            }
+            anchor = infowindow.get('anchor');
+            if (anchor != undefined && anchor !== null) {
+                infowindow.setContent(anchor.infotext);
             }
         }
 
@@ -286,11 +301,11 @@
             // filter interface
             pokefilter = getCookie("pokefilter");
             document.getElementById("filterdialog").style.display = "none";
-			
-			var div = document.createElement("div");
+
+            var div = document.createElement("div");
             div.innerHTML = "active";
             div.id = "filter_active";
-			div.style.opacity = 1;
+            div.style.opacity = 1;
             var callback = filt_toogle
             div.addEventListener("click", callback, false)
             document.getElementById("filterdialog").appendChild(div);
@@ -380,19 +395,19 @@
                 document.body.appendChild(script);
             });
         }
-		
-		/////////////////////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////////////////////
         function filt_toogle() {
-			if (this.style.opacity < 1){
-				this.style.opacity = 1;
-				this.innerHTML = "active";
-			}else{
-				this.style.opacity = 0.5;
-				this.innerHTML = "inactive";
-			}
-			showMarkers()
-		}
-		
+            if (this.style.opacity < 1) {
+                this.style.opacity = 1;
+                this.innerHTML = "active";
+            } else {
+                this.style.opacity = 0.5;
+                this.innerHTML = "inactive";
+            }
+            showMarkers()
+        }
+
         /////////////////////////////////////////////////////////////////////
         function filt_show_all() {
             pokefilter = ",";
@@ -422,8 +437,8 @@
 
         /////////////////////////////////////////////////////////////////////
         function setCookie() {
-		    var d = new Date(21474800000000);
-            document.cookie = "pokefilter=" + pokefilter + "; expires="+d.toUTCString();
+            var d = new Date(21474800000000);
+            document.cookie = "pokefilter=" + pokefilter + "; expires=" + d.toUTCString();
         }
 
         /////////////////////////////////////////////////////////////////////
