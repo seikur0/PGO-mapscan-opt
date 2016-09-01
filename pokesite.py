@@ -19,7 +19,7 @@ def server_start(port,workdir):
             if not self.wfile.closed:
                 self.wfile.flush()
                 self.wfile.close()
-        except socket.error:
+        except socket.error as e:
             sys.stdout.write('socket error: {}\n'.format(e))
         self.rfile.close()
     SocketServer.StreamRequestHandler.finish = patched_finish
