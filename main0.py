@@ -816,6 +816,7 @@ def main():
                     all_sort.append([int(vspawn['spawntime'] * 60000), pointnum])
                     pointnum += 1
                     vleft += 1
+            pointnum -= typecount[8]
 
             vtotal = vleft
             infostring = 'ID: {}, {}, Range: {}, Start: {}'.format(wID, location_str, HEX_NUM, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
