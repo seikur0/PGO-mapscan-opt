@@ -461,7 +461,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 lprint('[-] Access denied, your IP is blocked by the N-company.')
                 sys.exit()
             elif r.status_code == 502:
-                lprint('[-] Servers busy, retrying...')
+                lprint('[{}] Servers busy (502), retrying...'.format(account['num']))
                 time.sleep(2)
                 loopcount += 1
                 if loopcount > 4:
@@ -534,7 +534,7 @@ def get_profile(rtype, location, account, *reqq):
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
         if response is None:
             time.sleep(1)
-            lprint('[-] Response error, retrying...')
+            lprint('[{}] Response error, retrying...'.format(account['num']))
             do_login(account)
             set_api_endpoint(location, account)
         elif rtype == 1 and response.status_code in [1,2]:
@@ -565,7 +565,7 @@ def get_profile(rtype, location, account, *reqq):
                 lprint('[+] Authorization refresh.')
             set_api_endpoint(location, account)
         elif response.status_code == 52:
-            lprint('[-] Servers busy, retrying...')
+            lprint('[{}] Servers busy (52), retrying...'.format(account['num']))
         elif response.status_code == 3:
             if synch_li.empty():
                 #addlocation.put([location[0],location[1]])
