@@ -791,11 +791,13 @@ def main():
             vleft = 0
             for s in range(0, tallcount):
                 spawn = scandata['spawns'][s]
-                list_spawns.append(spawn['id'])
-                all_sort.append([int(spawn['spawntime']*60000), s])
+                if not spawn['type'] == SPAWN_UNDEF:
+                    list_spawns.append(spawn['id'])
+                    all_sort.append([int(spawn['spawntime']*60000), s])
                 for t in range(0, len(types)):
                     if spawn['type'] == types[t]:
                         typecount[t] += 1
+                        break
                 if spawn['type'] > 200:
                     vspawn = spawn.copy()
                     vspawn['type'] = VSPAWN
