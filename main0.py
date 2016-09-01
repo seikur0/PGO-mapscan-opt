@@ -36,6 +36,12 @@ import Queue
 
 import pokesite
 
+import signal
+
+def signal_handler():
+    sys.exit()
+signal.signal(signal.SIGINT, signal_handler)
+
 
 def get_time():
     return int(round(time.time() * 1000))
@@ -1401,27 +1407,23 @@ def main():
         threadList.append(newthread)
         if not login_simu:
             synch_li.put(True)
-            while not synch_li.empty():
-                time.sleep(1)
+            synch_li.join()
 
     if login_simu:
-        while not synch_li.empty():
-            time.sleep(2)
+        synch_li.join()
 
     newthread = locgiver()
     newthread.daemon = True
     newthread.start()
 
-    while newthread.isAlive():
-        newthread.join(5)
+    newthread.join()
 
     if smartscan:
         newthread = smartlocgiver()
         newthread.daemon = True
         newthread.start()
 
-        while newthread.isAlive():
-            newthread.join(5)
+        newthread.join()
 
 if __name__ == '__main__':
     main()
