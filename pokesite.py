@@ -17,7 +17,6 @@ def server_start(port,workdir):
     def patched_finish(self):
         try:
             if not self.wfile.closed:
-                self.wfile.flush()
                 self.wfile.close()
         except socket.error as e:
             sys.stdout.write('socket error: {}\n'.format(e))
