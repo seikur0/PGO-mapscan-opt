@@ -788,7 +788,7 @@ def main():
             smartscan = True
             all_sort = []
 
-            types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF]
+            types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF, SPAWN_DEF]
             typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', '1x60h2', '1x60h3', '1x60h23', 'UNDEF']
             typecount = [0, 0, 0, 0, 0, 0, 0, 0, 0]
             tallcount = len(scandata['spawns'])
@@ -797,7 +797,7 @@ def main():
             vleft = 0
             for s in range(0, tallcount):
                 spawn = scandata['spawns'][s]
-                if not spawn['type'] == SPAWN_UNDEF:
+                if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
                     list_spawns.append(spawn['id'])
                     all_sort.append([int(spawn['spawntime']*60000), s])
                 for t in range(0, len(types)):
@@ -817,13 +817,14 @@ def main():
                     pointnum += 1
                     vleft += 1
             pointnum -= typecount[8]
+            pointnum -= typecount[9]
 
             vtotal = vleft
             infostring = 'ID: {}, {}, Range: {}, Start: {}'.format(wID, location_str, HEX_NUM, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
 
             lprint('\n[+] Starting intelligent scan mode.\n')
             lprint('[+] Spawn point count: {}'.format(tallcount))
-            for t in range(0, len(types)):
+            for t in range(0, len(typestrs)):
                 lprint('[+] Type: {}, Count: {}, Percentage: {}%'.format(typestrs[t], typecount[t], round(100.0 * typecount[t] / tallcount, 2)))
 
             lprint('\n\n')
