@@ -790,7 +790,7 @@ def main():
 
             types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF, SPAWN_DEF]
             typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', '1x60h2', '1x60h3', '1x60h23', 'UNDEF']
-            typecount = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+            typecount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             tallcount = len(scandata['spawns'])
 
             pointnum = tallcount
