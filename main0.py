@@ -1262,7 +1262,11 @@ def main():
                                 if addinfo:
                                     time_text += '\nwill then reappear after 15 m for 15 m.'
                                 for pushacc in pb:
-                                    pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
+                                    try:
+                                        pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
+                                    except requests.ConnectionError as e:
+                                        if re.search('Connection aborted', str(e)) is None:
+                                            lprint('[-] Connection Error during Pushbullet, error: {}'.format(e))
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
