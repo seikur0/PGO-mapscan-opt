@@ -797,8 +797,8 @@ def main():
             vleft = 0
             for s in range(0, tallcount):
                 spawn = scandata['spawns'][s]
+                list_spawns.append(spawn['id'])
                 if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
-                    list_spawns.append(spawn['id'])
                     all_sort.append([int(spawn['spawntime']*60000), s])
                 for t in range(0, len(types)):
                     if spawn['type'] == types[t]:
@@ -1202,7 +1202,7 @@ def main():
                                 list_unique.add(wild.encounter_id)
                                 if spawnIDint in list_spawns:
                                     spawn = scandata['spawns'][list_spawns.index(spawnIDint)]
-                                    if spawn['type'] != SPAWN_UNDEF:
+                                    if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
                                         finished_ms = (wild.last_modified_timestamp_ms - spawn['spawntime'] * 60000) % 3600000
                                         if spawn['type'] == SPAWN_2x15 and finished_ms < 900000:
                                             addinfo = 1
