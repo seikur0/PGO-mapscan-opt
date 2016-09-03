@@ -38,8 +38,9 @@ import pokesite
 
 import signal
 
-def signal_handler():
+def signal_handler(signal, frame):
     sys.exit()
+
 signal.signal(signal.SIGINT, signal_handler)
 
 
@@ -789,7 +790,7 @@ def main():
             all_sort = []
 
             types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF, SPAWN_DEF]
-            typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', '1x60h2', '1x60h3', '1x60h23', 'UNDEF']
+            typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', '1x60h2', '1x60h3', '1x60h23', 'UNDEF/DEF']
             typecount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             tallcount = len(scandata['spawns'])
 
@@ -816,10 +817,9 @@ def main():
                     all_sort.append([int(vspawn['spawntime'] * 60000), pointnum])
                     pointnum += 1
                     vleft += 1
+            typecount[8] += typecount[9]
             pointnum -= typecount[8]
-            pointnum -= typecount[9]
 
-            vtotal = vleft
             infostring = 'ID: {}, {}, Range: {}, Start: {}'.format(wID, location_str, HEX_NUM, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
 
             lprint('\n[+] Starting intelligent scan mode.\n')
@@ -895,15 +895,15 @@ def main():
             addlocation.join()
             addforts.join()
             addpokemon.join()
-            del scandata['spawns'][pointnum-vtotal:]
+            del scandata['spawns'][tallcount:]
             del all_sort[:]
-            pointnum = len(scandata['spawns'])
 
-            for s in range(0, pointnum):
+            for s in range(0, tallcount):
                 spawn = scandata['spawns'][s]
                 if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
                     all_sort.append([int(spawn['spawntime']*60000), s])
             all_sort = sorted(all_sort, key=itemgetter(0))
+            pointnum = tallcount - typecount[8]
             indx_sort = 0
             curT = get_time() % 3600000
             if curT <= all_sort[pointnum-1][0]:
@@ -1413,24 +1413,28 @@ def main():
         newthread.start()
         threadList.append(newthread)
         if not login_simu:
-            synch_li.put(True)
-            synch_li.join()
+            while not synch_li.empty():
+                synch_li.put(True)
+                time.sleep(1)
 
     if login_simu:
-        synch_li.join()
+        while not synch_li.empty():
+            time.sleep(2)
 
     newthread = locgiver()
     newthread.daemon = True
     newthread.start()
 
-    newthread.join()
+    while newthread.isAlive():
+        newthread.join(5)
 
     if smartscan:
         newthread = smartlocgiver()
         newthread.daemon = True
         newthread.start()
 
-        newthread.join()
+    while newthread.isAlive():
+        newthread.join(5)
 
 if __name__ == '__main__':
     main()
