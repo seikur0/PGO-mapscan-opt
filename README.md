@@ -7,7 +7,7 @@
 * 'pip install -r requirements.txt'
   * if it fails 'pip install --user -r requirements.txt' (mostly for unix systems) or try to sudo it
   * if it fails and you're using windows, you may need to install these runtimes from Microsoft: http://aka.ms/vcpython27
-  * if you have trouble with these Microsoft VC runtimes, read issue #128, it contains helpful informations
+  * if you have trouble with these Microsoft VC runtimes, read https://github.com/seikur0/PGO-mapscan-opt/issues/128, it contains helpful informations
 * With the unknown6 now being required you need a library file named 'encrypt.so'.
   * As for instructions how to get it, please look here: https://github.com/PokemonGoF/PokemonGo-Bot/issues/2966
   * Or get it directly here (windows): https://github.com/PokemonGoMap/PokemonGo-Map/tree/develop/pogom/libencrypt
