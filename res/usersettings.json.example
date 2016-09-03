@@ -9,7 +9,7 @@
   "range": 30,
 
   "_comment4": "How often it will scan. Can be higher under bad server conditions.",
-  "scaninterval": 900,
+  "scaninterval": 600,
 
   "_comment5": "Google API key.",
   "api_key": "PUT_YOUR_GOOGLE_API_KEY_HERE",
