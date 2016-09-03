@@ -901,7 +901,8 @@ def main():
 
             for s in range(0, pointnum):
                 spawn = scandata['spawns'][s]
-                all_sort.append([int(spawn['spawntime']*60000), s])
+                if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
+                    all_sort.append([int(spawn['spawntime']*60000), s])
             all_sort = sorted(all_sort, key=itemgetter(0))
             indx_sort = 0
             curT = get_time() % 3600000
