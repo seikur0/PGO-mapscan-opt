@@ -1,7 +1,7 @@
 # PGO-mapscan-opt
 
 ## Instructions
-* Edit the 'usersettings.json' file in the res subfolder to your liking.
+* Rename 'usersettings.json.example' in the res subfolder to 'usersettings.json' and edit the file to your liking.
   * The first 'profile' has to be edited and if you want the map functionality the 'api_key' setting as well. Profiles with same ids form a scan group. They use the location from the first profile in that group.
   * An altitude, which is not 0, may be less suspicious, just saying ;)
 * 'pip install -r requirements.txt'
