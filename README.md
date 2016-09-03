@@ -14,7 +14,7 @@
 * 'python main0.py' to run the program
 * intelligent spawn point scanning:
   * let it run for 3 hours and it'll write the scan data like empty cells/spawnpoints/forts into a file
-  * during that time the scan interval should stay below 10 minutes, below 15 minutes may work too, no guarantee though
+  * during that time the scan time should stay below 10 minutes, below 15 minutes may work too, no guarantee though. if it's longer than that, consider reducing range or add more workers
 * customize scan area:
   * You can use the spawnfix.py file to merge all learning files in its folder into one, then rename that 'mapdata.json' file to fit the parameters of some of your profiles, for example "123.1234_1.1234_30_70.0.json" and it'll scan all the points.
   * You can use https://github.com/brandonshults/pipoam to visualize the whole area and fine select, which points you want, don't ask me for support on it, figure it out yourself or don't use it ;)
