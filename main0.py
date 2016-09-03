@@ -1080,6 +1080,8 @@ def main():
                 #########################################################################
                 curT = int(time.time()) - curT
                 lprint('[+] Scan Time: {} s'.format(curT))
+                if curT > 900:
+                    lprint('[-] Warning: scan time above 900 seconds, consider reducing range or add more workers')
 
                 if scannum > 0:
                     scannum -= 1
