@@ -1,4 +1,4 @@
-from flask import Flask, render_template, g, request, json, jsonify
+from flask import Flask, render_template, g, request, jsonify
 from flask_compress import Compress
 import os, sys
 import logging
@@ -6,7 +6,7 @@ import socket
 import SocketServer
 import signal
 import time
-
+import json
 import sqlite3
 
 workdir = os.path.dirname(os.path.realpath(__file__))
@@ -22,7 +22,7 @@ def isnotExcluded(id):
     return not (id in exclude_ids)
 
 
-def server_start(port):
+def server_start():
     global exclude_ids
     try:
         f = open(settings_file, 'r')
@@ -38,7 +38,7 @@ def server_start(port):
             f.close()
 
     exclude_ids = allsettings['exclude_ids']
-
+    port = allsettings['port']
     list_profiles = []
     list_lats = []
     list_lngs = []
@@ -125,4 +125,4 @@ def server_start(port):
         app.run(host='0.0.0.0', port=port)
 
 if __name__ == "__main__":
-    server_start(7799)
+    server_start()

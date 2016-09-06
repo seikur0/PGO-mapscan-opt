@@ -114,7 +114,6 @@ data_buffer = []
 LAT_C, LNG_C, ALT_C = [None, None, None]
 
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
-port = None
 
 time_hb = 10
 tries = 1
@@ -148,7 +147,7 @@ spawns = []
 safetysecs = 3
 
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids, telebot
+    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -234,8 +233,6 @@ def do_settings():
             PUSHPOKS = []
 
     LANGUAGE = allsettings['language']
-
-    port = allsettings['port']
 
     exclude_ids = set(allsettings['exclude_ids'])
 
@@ -1258,16 +1255,6 @@ def main():
 
 #########################################################################
 #########################################################################
-    class webserver(threading.Thread):
-        def __init__(self, port):
-            threading.Thread.__init__(self)
-            self.port = port
-
-        def run(self):
-            pokesite.server_start(port)
-
-#########################################################################
-#########################################################################
 
     global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan
 
@@ -1374,11 +1361,6 @@ def main():
     if login_simu:
         for i in range(0, threadnum):
             synch_li.put(True)
-
-    if port > 0:
-        newthread = webserver(port)
-        newthread.daemon = True
-        newthread.start()
 
     for i in range(0, threadnum):
         newthread = collector(i, accounts[i])
