@@ -99,7 +99,7 @@ exclude_ids = None
 pb = []
 telegrams = []
 telebot = None
-PUSHPOKS = None
+PUSHPOKS = []
 geolocator = Nominatim()
 
 F_LIMIT = None
