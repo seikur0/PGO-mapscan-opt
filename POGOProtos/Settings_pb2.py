@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Settings.proto',
   package='POGOProtos.Settings',
   syntax='proto3',
-  serialized_pb=_b('\n\x19POGOProtos.Settings.proto\x12\x13POGOProtos.Settings\"&\n\x16\x44ownloadSettingsAction\x12\x0c\n\x04hash\x18\x01 \x01(\t\"\xe4\x01\n\x0c\x46ortSettings\x12 \n\x18interaction_range_meters\x18\x01 \x01(\x01\x12\"\n\x1amax_total_deployed_pokemon\x18\x02 \x01(\x05\x12#\n\x1bmax_player_deployed_pokemon\x18\x03 \x01(\x05\x12!\n\x19\x64\x65ploy_stamina_multiplier\x18\x04 \x01(\x01\x12 \n\x18\x64\x65ploy_attack_multiplier\x18\x05 \x01(\x01\x12$\n\x1c\x66\x61r_interaction_range_meters\x18\x06 \x01(\x01\"\xa2\x02\n\x0eGlobalSettings\x12\x38\n\rfort_settings\x18\x02 \x01(\x0b\x32!.POGOProtos.Settings.FortSettings\x12\x36\n\x0cmap_settings\x18\x03 \x01(\x0b\x32 .POGOProtos.Settings.MapSettings\x12:\n\x0elevel_settings\x18\x04 \x01(\x0b\x32\".POGOProtos.Settings.LevelSettings\x12\x42\n\x12inventory_settings\x18\x05 \x01(\x0b\x32&.POGOProtos.Settings.InventorySettings\x12\x1e\n\x16minimum_client_version\x18\x06 \x01(\t\"\x80\x01\n\x11InventorySettings\x12\x13\n\x0bmax_pokemon\x18\x01 \x01(\x05\x12\x15\n\rmax_bag_items\x18\x02 \x01(\x05\x12\x14\n\x0c\x62\x61se_pokemon\x18\x03 \x01(\x05\x12\x16\n\x0e\x62\x61se_bag_items\x18\x04 \x01(\x05\x12\x11\n\tbase_eggs\x18\x05 \x01(\x05\"Q\n\rLevelSettings\x12\x1b\n\x13trainer_cp_modifier\x18\x02 \x01(\x01\x12#\n\x1btrainer_difficulty_modifier\x18\x03 \x01(\x01\"\x8f\x02\n\x0bMapSettings\x12\x1d\n\x15pokemon_visible_range\x18\x01 \x01(\x01\x12\x1d\n\x15poke_nav_range_meters\x18\x02 \x01(\x01\x12\x1e\n\x16\x65ncounter_range_meters\x18\x03 \x01(\x01\x12+\n#get_map_objects_min_refresh_seconds\x18\x04 \x01(\x02\x12+\n#get_map_objects_max_refresh_seconds\x18\x05 \x01(\x02\x12+\n#get_map_objects_min_distance_meters\x18\x06 \x01(\x02\x12\x1b\n\x13google_maps_api_key\x18\x07 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\x19POGOProtos.Settings.proto\x12\x13POGOProtos.Settings\"&\n\x16\x44ownloadSettingsAction\x12\x0c\n\x04hash\x18\x01 \x01(\t\"\xe4\x01\n\x0c\x46ortSettings\x12 \n\x18interaction_range_meters\x18\x01 \x01(\x01\x12\"\n\x1amax_total_deployed_pokemon\x18\x02 \x01(\x05\x12#\n\x1bmax_player_deployed_pokemon\x18\x03 \x01(\x05\x12!\n\x19\x64\x65ploy_stamina_multiplier\x18\x04 \x01(\x01\x12 \n\x18\x64\x65ploy_attack_multiplier\x18\x05 \x01(\x01\x12$\n\x1c\x66\x61r_interaction_range_meters\x18\x06 \x01(\x01\"\xda\x02\n\x0eGlobalSettings\x12\x38\n\rfort_settings\x18\x02 \x01(\x0b\x32!.POGOProtos.Settings.FortSettings\x12\x36\n\x0cmap_settings\x18\x03 \x01(\x0b\x32 .POGOProtos.Settings.MapSettings\x12:\n\x0elevel_settings\x18\x04 \x01(\x0b\x32\".POGOProtos.Settings.LevelSettings\x12\x42\n\x12inventory_settings\x18\x05 \x01(\x0b\x32&.POGOProtos.Settings.InventorySettings\x12\x1e\n\x16minimum_client_version\x18\x06 \x01(\t\x12\x36\n\x0cgps_settings\x18\x07 \x01(\x0b\x32 .POGOProtos.Settings.GpsSettings\"\xbb\x01\n\x0bGpsSettings\x12/\n\'driving_warning_speed_meters_per_second\x18\x01 \x01(\x02\x12(\n driving_warning_cooldown_minutes\x18\x02 \x01(\x02\x12-\n%driving_speed_sample_interval_seconds\x18\x03 \x01(\x02\x12\"\n\x1a\x64riving_speed_sample_count\x18\x04 \x01(\x05\"\x80\x01\n\x11InventorySettings\x12\x13\n\x0bmax_pokemon\x18\x01 \x01(\x05\x12\x15\n\rmax_bag_items\x18\x02 \x01(\x05\x12\x14\n\x0c\x62\x61se_pokemon\x18\x03 \x01(\x05\x12\x16\n\x0e\x62\x61se_bag_items\x18\x04 \x01(\x05\x12\x11\n\tbase_eggs\x18\x05 \x01(\x05\"Q\n\rLevelSettings\x12\x1b\n\x13trainer_cp_modifier\x18\x02 \x01(\x01\x12#\n\x1btrainer_difficulty_modifier\x18\x03 \x01(\x01\"\x8f\x02\n\x0bMapSettings\x12\x1d\n\x15pokemon_visible_range\x18\x01 \x01(\x01\x12\x1d\n\x15poke_nav_range_meters\x18\x02 \x01(\x01\x12\x1e\n\x16\x65ncounter_range_meters\x18\x03 \x01(\x01\x12+\n#get_map_objects_min_refresh_seconds\x18\x04 \x01(\x02\x12+\n#get_map_objects_max_refresh_seconds\x18\x05 \x01(\x02\x12+\n#get_map_objects_min_distance_meters\x18\x06 \x01(\x02\x12\x1b\n\x13google_maps_api_key\x18\x07 \x01(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -165,6 +165,13 @@ _GLOBALSETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='gps_settings', full_name='POGOProtos.Settings.GlobalSettings.gps_settings', index=5,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -178,7 +185,59 @@ _GLOBALSETTINGS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=322,
-  serialized_end=612,
+  serialized_end=668,
+)
+
+
+_GPSSETTINGS = _descriptor.Descriptor(
+  name='GpsSettings',
+  full_name='POGOProtos.Settings.GpsSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='driving_warning_speed_meters_per_second', full_name='POGOProtos.Settings.GpsSettings.driving_warning_speed_meters_per_second', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='driving_warning_cooldown_minutes', full_name='POGOProtos.Settings.GpsSettings.driving_warning_cooldown_minutes', index=1,
+      number=2, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='driving_speed_sample_interval_seconds', full_name='POGOProtos.Settings.GpsSettings.driving_speed_sample_interval_seconds', index=2,
+      number=3, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='driving_speed_sample_count', full_name='POGOProtos.Settings.GpsSettings.driving_speed_sample_count', index=3,
+      number=4, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=671,
+  serialized_end=858,
 )
 
 
@@ -236,8 +295,8 @@ _INVENTORYSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=615,
-  serialized_end=743,
+  serialized_start=861,
+  serialized_end=989,
 )
 
 
@@ -274,8 +333,8 @@ _LEVELSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=745,
-  serialized_end=826,
+  serialized_start=991,
+  serialized_end=1072,
 )
 
 
@@ -347,17 +406,19 @@ _MAPSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=829,
-  serialized_end=1100,
+  serialized_start=1075,
+  serialized_end=1346,
 )
 
 _GLOBALSETTINGS.fields_by_name['fort_settings'].message_type = _FORTSETTINGS
 _GLOBALSETTINGS.fields_by_name['map_settings'].message_type = _MAPSETTINGS
 _GLOBALSETTINGS.fields_by_name['level_settings'].message_type = _LEVELSETTINGS
 _GLOBALSETTINGS.fields_by_name['inventory_settings'].message_type = _INVENTORYSETTINGS
+_GLOBALSETTINGS.fields_by_name['gps_settings'].message_type = _GPSSETTINGS
 DESCRIPTOR.message_types_by_name['DownloadSettingsAction'] = _DOWNLOADSETTINGSACTION
 DESCRIPTOR.message_types_by_name['FortSettings'] = _FORTSETTINGS
 DESCRIPTOR.message_types_by_name['GlobalSettings'] = _GLOBALSETTINGS
+DESCRIPTOR.message_types_by_name['GpsSettings'] = _GPSSETTINGS
 DESCRIPTOR.message_types_by_name['InventorySettings'] = _INVENTORYSETTINGS
 DESCRIPTOR.message_types_by_name['LevelSettings'] = _LEVELSETTINGS
 DESCRIPTOR.message_types_by_name['MapSettings'] = _MAPSETTINGS
@@ -382,6 +443,13 @@ GlobalSettings = _reflection.GeneratedProtocolMessageType('GlobalSettings', (_me
   # @@protoc_insertion_point(class_scope:POGOProtos.Settings.GlobalSettings)
   ))
 _sym_db.RegisterMessage(GlobalSettings)
+
+GpsSettings = _reflection.GeneratedProtocolMessageType('GpsSettings', (_message.Message,), dict(
+  DESCRIPTOR = _GPSSETTINGS,
+  __module__ = 'POGOProtos.Settings_pb2'
+  # @@protoc_insertion_point(class_scope:POGOProtos.Settings.GpsSettings)
+  ))
+_sym_db.RegisterMessage(GpsSettings)
 
 InventorySettings = _reflection.GeneratedProtocolMessageType('InventorySettings', (_message.Message,), dict(
   DESCRIPTOR = _INVENTORYSETTINGS,

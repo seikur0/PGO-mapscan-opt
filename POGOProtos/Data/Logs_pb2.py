@@ -23,12 +23,34 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Data.Logs.proto',
   package='POGOProtos.Data.Logs',
   syntax='proto3',
-  serialized_pb=_b('\n\x1aPOGOProtos.Data.Logs.proto\x12\x14POGOProtos.Data.Logs\x1a\x16POGOProtos.Enums.proto\x1a\x1fPOGOProtos.Inventory.Item.proto\"\xc5\x01\n\x0e\x41\x63tionLogEntry\x12\x14\n\x0ctimestamp_ms\x18\x01 \x01(\x03\x12\r\n\x05sfida\x18\x02 \x01(\x08\x12\x43\n\rcatch_pokemon\x18\x03 \x01(\x0b\x32*.POGOProtos.Data.Logs.CatchPokemonLogEntryH\x00\x12?\n\x0b\x66ort_search\x18\x04 \x01(\x0b\x32(.POGOProtos.Data.Logs.FortSearchLogEntryH\x00\x42\x08\n\x06\x41\x63tion\"\xf7\x01\n\x14\x43\x61tchPokemonLogEntry\x12\x41\n\x06result\x18\x01 \x01(\x0e\x32\x31.POGOProtos.Data.Logs.CatchPokemonLogEntry.Result\x12/\n\npokemon_id\x18\x02 \x01(\x0e\x32\x1b.POGOProtos.Enums.PokemonId\x12\x15\n\rcombat_points\x18\x03 \x01(\x05\x12\x17\n\x0fpokemon_data_id\x18\x04 \x01(\x04\";\n\x06Result\x12\t\n\x05UNSET\x10\x00\x12\x14\n\x10POKEMON_CAPTURED\x10\x01\x12\x10\n\x0cPOKEMON_FLED\x10\x02\"\xca\x01\n\x12\x46ortSearchLogEntry\x12?\n\x06result\x18\x01 \x01(\x0e\x32/.POGOProtos.Data.Logs.FortSearchLogEntry.Result\x12\x0f\n\x07\x66ort_id\x18\x02 \x01(\t\x12\x32\n\x05items\x18\x03 \x03(\x0b\x32#.POGOProtos.Inventory.Item.ItemData\x12\x0c\n\x04\x65ggs\x18\x04 \x01(\x05\" \n\x06Result\x12\t\n\x05UNSET\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01P\x00P\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x1aPOGOProtos.Data.Logs.proto\x12\x14POGOProtos.Data.Logs\x1a\x16POGOProtos.Enums.proto\x1a\x1fPOGOProtos.Inventory.Item.proto\"\x8a\x02\n\x0e\x41\x63tionLogEntry\x12\x14\n\x0ctimestamp_ms\x18\x01 \x01(\x03\x12\r\n\x05sfida\x18\x02 \x01(\x08\x12\x43\n\rcatch_pokemon\x18\x03 \x01(\x0b\x32*.POGOProtos.Data.Logs.CatchPokemonLogEntryH\x00\x12?\n\x0b\x66ort_search\x18\x04 \x01(\x0b\x32(.POGOProtos.Data.Logs.FortSearchLogEntryH\x00\x12\x43\n\rbuddy_pokemon\x18\x05 \x01(\x0b\x32*.POGOProtos.Data.Logs.BuddyPokemonLogEntryH\x00\x42\x08\n\x06\x41\x63tion\"\xc0\x01\n\x14\x42uddyPokemonLogEntry\x12\x41\n\x06result\x18\x01 \x01(\x0e\x32\x31.POGOProtos.Data.Logs.BuddyPokemonLogEntry.Result\x12/\n\npokemon_id\x18\x02 \x01(\x0e\x32\x1b.POGOProtos.Enums.PokemonId\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x05\"$\n\x06Result\x12\t\n\x05UNSET\x10\x00\x12\x0f\n\x0b\x43\x41NDY_FOUND\x10\x01\"\x8c\x02\n\x14\x43\x61tchPokemonLogEntry\x12\x41\n\x06result\x18\x01 \x01(\x0e\x32\x31.POGOProtos.Data.Logs.CatchPokemonLogEntry.Result\x12/\n\npokemon_id\x18\x02 \x01(\x0e\x32\x1b.POGOProtos.Enums.PokemonId\x12\x15\n\rcombat_points\x18\x03 \x01(\x05\x12\x17\n\x0fpokemon_data_id\x18\x04 \x01(\x06\"P\n\x06Result\x12\t\n\x05UNSET\x10\x00\x12\x14\n\x10POKEMON_CAPTURED\x10\x01\x12\x10\n\x0cPOKEMON_FLED\x10\x02\x12\x13\n\x0fPOKEMON_HATCHED\x10\x03\"\xca\x01\n\x12\x46ortSearchLogEntry\x12?\n\x06result\x18\x01 \x01(\x0e\x32/.POGOProtos.Data.Logs.FortSearchLogEntry.Result\x12\x0f\n\x07\x66ort_id\x18\x02 \x01(\t\x12\x32\n\x05items\x18\x03 \x03(\x0b\x32#.POGOProtos.Inventory.Item.ItemData\x12\x0c\n\x04\x65ggs\x18\x04 \x01(\x05\" \n\x06Result\x12\t\n\x05UNSET\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01P\x00P\x01\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Enums__pb2.DESCRIPTOR,POGOProtos_dot_Inventory_dot_Item__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
+
+_BUDDYPOKEMONLOGENTRY_RESULT = _descriptor.EnumDescriptor(
+  name='Result',
+  full_name='POGOProtos.Data.Logs.BuddyPokemonLogEntry.Result',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='UNSET', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CANDY_FOUND', index=1, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=535,
+  serialized_end=571,
+)
+_sym_db.RegisterEnumDescriptor(_BUDDYPOKEMONLOGENTRY_RESULT)
 
 _CATCHPOKEMONLOGENTRY_RESULT = _descriptor.EnumDescriptor(
   name='Result',
@@ -48,11 +70,15 @@ _CATCHPOKEMONLOGENTRY_RESULT = _descriptor.EnumDescriptor(
       name='POKEMON_FLED', index=2, number=2,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='POKEMON_HATCHED', index=3, number=3,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=498,
-  serialized_end=557,
+  serialized_start=762,
+  serialized_end=842,
 )
 _sym_db.RegisterEnumDescriptor(_CATCHPOKEMONLOGENTRY_RESULT)
 
@@ -73,8 +99,8 @@ _FORTSEARCHLOGENTRY_RESULT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=730,
-  serialized_end=762,
+  serialized_start=1015,
+  serialized_end=1047,
 )
 _sym_db.RegisterEnumDescriptor(_FORTSEARCHLOGENTRY_RESULT)
 
@@ -114,6 +140,13 @@ _ACTIONLOGENTRY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='buddy_pokemon', full_name='POGOProtos.Data.Logs.ActionLogEntry.buddy_pokemon', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -130,7 +163,53 @@ _ACTIONLOGENTRY = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=110,
-  serialized_end=307,
+  serialized_end=376,
+)
+
+
+_BUDDYPOKEMONLOGENTRY = _descriptor.Descriptor(
+  name='BuddyPokemonLogEntry',
+  full_name='POGOProtos.Data.Logs.BuddyPokemonLogEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='result', full_name='POGOProtos.Data.Logs.BuddyPokemonLogEntry.result', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='pokemon_id', full_name='POGOProtos.Data.Logs.BuddyPokemonLogEntry.pokemon_id', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='POGOProtos.Data.Logs.BuddyPokemonLogEntry.amount', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _BUDDYPOKEMONLOGENTRY_RESULT,
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=379,
+  serialized_end=571,
 )
 
 
@@ -164,7 +243,7 @@ _CATCHPOKEMONLOGENTRY = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='pokemon_data_id', full_name='POGOProtos.Data.Logs.CatchPokemonLogEntry.pokemon_data_id', index=3,
-      number=4, type=4, cpp_type=4, label=1,
+      number=4, type=6, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -182,8 +261,8 @@ _CATCHPOKEMONLOGENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=310,
-  serialized_end=557,
+  serialized_start=574,
+  serialized_end=842,
 )
 
 
@@ -235,18 +314,25 @@ _FORTSEARCHLOGENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=560,
-  serialized_end=762,
+  serialized_start=845,
+  serialized_end=1047,
 )
 
 _ACTIONLOGENTRY.fields_by_name['catch_pokemon'].message_type = _CATCHPOKEMONLOGENTRY
 _ACTIONLOGENTRY.fields_by_name['fort_search'].message_type = _FORTSEARCHLOGENTRY
+_ACTIONLOGENTRY.fields_by_name['buddy_pokemon'].message_type = _BUDDYPOKEMONLOGENTRY
 _ACTIONLOGENTRY.oneofs_by_name['Action'].fields.append(
   _ACTIONLOGENTRY.fields_by_name['catch_pokemon'])
 _ACTIONLOGENTRY.fields_by_name['catch_pokemon'].containing_oneof = _ACTIONLOGENTRY.oneofs_by_name['Action']
 _ACTIONLOGENTRY.oneofs_by_name['Action'].fields.append(
   _ACTIONLOGENTRY.fields_by_name['fort_search'])
 _ACTIONLOGENTRY.fields_by_name['fort_search'].containing_oneof = _ACTIONLOGENTRY.oneofs_by_name['Action']
+_ACTIONLOGENTRY.oneofs_by_name['Action'].fields.append(
+  _ACTIONLOGENTRY.fields_by_name['buddy_pokemon'])
+_ACTIONLOGENTRY.fields_by_name['buddy_pokemon'].containing_oneof = _ACTIONLOGENTRY.oneofs_by_name['Action']
+_BUDDYPOKEMONLOGENTRY.fields_by_name['result'].enum_type = _BUDDYPOKEMONLOGENTRY_RESULT
+_BUDDYPOKEMONLOGENTRY.fields_by_name['pokemon_id'].enum_type = POGOProtos_dot_Enums__pb2._POKEMONID
+_BUDDYPOKEMONLOGENTRY_RESULT.containing_type = _BUDDYPOKEMONLOGENTRY
 _CATCHPOKEMONLOGENTRY.fields_by_name['result'].enum_type = _CATCHPOKEMONLOGENTRY_RESULT
 _CATCHPOKEMONLOGENTRY.fields_by_name['pokemon_id'].enum_type = POGOProtos_dot_Enums__pb2._POKEMONID
 _CATCHPOKEMONLOGENTRY_RESULT.containing_type = _CATCHPOKEMONLOGENTRY
@@ -254,6 +340,7 @@ _FORTSEARCHLOGENTRY.fields_by_name['result'].enum_type = _FORTSEARCHLOGENTRY_RES
 _FORTSEARCHLOGENTRY.fields_by_name['items'].message_type = POGOProtos_dot_Inventory_dot_Item__pb2._ITEMDATA
 _FORTSEARCHLOGENTRY_RESULT.containing_type = _FORTSEARCHLOGENTRY
 DESCRIPTOR.message_types_by_name['ActionLogEntry'] = _ACTIONLOGENTRY
+DESCRIPTOR.message_types_by_name['BuddyPokemonLogEntry'] = _BUDDYPOKEMONLOGENTRY
 DESCRIPTOR.message_types_by_name['CatchPokemonLogEntry'] = _CATCHPOKEMONLOGENTRY
 DESCRIPTOR.message_types_by_name['FortSearchLogEntry'] = _FORTSEARCHLOGENTRY
 
@@ -263,6 +350,13 @@ ActionLogEntry = _reflection.GeneratedProtocolMessageType('ActionLogEntry', (_me
   # @@protoc_insertion_point(class_scope:POGOProtos.Data.Logs.ActionLogEntry)
   ))
 _sym_db.RegisterMessage(ActionLogEntry)
+
+BuddyPokemonLogEntry = _reflection.GeneratedProtocolMessageType('BuddyPokemonLogEntry', (_message.Message,), dict(
+  DESCRIPTOR = _BUDDYPOKEMONLOGENTRY,
+  __module__ = 'POGOProtos.Data.Logs_pb2'
+  # @@protoc_insertion_point(class_scope:POGOProtos.Data.Logs.BuddyPokemonLogEntry)
+  ))
+_sym_db.RegisterMessage(BuddyPokemonLogEntry)
 
 CatchPokemonLogEntry = _reflection.GeneratedProtocolMessageType('CatchPokemonLogEntry', (_message.Message,), dict(
   DESCRIPTOR = _CATCHPOKEMONLOGENTRY,

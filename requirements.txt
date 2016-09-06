@@ -8,3 +8,4 @@ twisted
 xxhash
 flask
 flask_compress
+telepot

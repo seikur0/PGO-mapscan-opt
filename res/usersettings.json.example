@@ -15,7 +15,7 @@
   "api_key": "PUT_YOUR_GOOGLE_API_KEY_HERE",
 
   "_comment6": "Pokemon with these ids won't be shown in the map. (data still gets collected)",
-  "exclude_ids": [10,11,12,13,14,15,16,17,18,19,20,21,22,41,42],
+  "exclude_ids": [10,11,13,14,16,17,19,21,41,96],
 
   "_comment7": "Will scale icons by this factor.",
   "icon_scalefactor": 1.0,
@@ -23,29 +23,36 @@
   "_comment8": "Will scale the whole user interface by this factor.",
   "mobile_scalefactor": 0.7,
 
-  "_comment9": "The html page will only try to load the live data for ids listed here.",
-  "load_ids": [0],
-
-  "_comment10": "Pushbullet settings. You need a Pushbullet API key for it. Can input multiple API keys, comma separated. Put ids of pokemon you want to be notified about into push_ids.",
-  "pushbullet":
+  "_comment9": "Notification settings. Put ids of pokemon you want to be notified about into push_ids.",
+  "notifications":
   {
-      "enabled": false,
-      "api_key": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
-      "use_channels": false,
-      "channel_tags": [],
-      "push_ids": []
+	"enabled": true,
+	"push_ids": [1,2,3,4,5,6,7,8,9,131,132,142,143,144,145,146,147,148,149,150,151],
+	"pushbullet":
+	{
+		"enabled": false,
+		"api_key": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
+		"use_channels": false,
+		"channel_tags": []
+	},
+	"telegram":
+	{
+		"enabled": true,
+		"bot_token": "PUT_YOUR_TELEGRAM_BOT_TOKEN_HERE",
+		"chat_ids":["PUT_YOUR_CHAT_ID_HERE"]
+	}
   },
   
-  "_comment11": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
+  "_comment10": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
   "scannum": 0,
   
-  "_comment12": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
+  "_comment11": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
   "login_simu": true,
   
-  "_comment13": "Port that the webserver will use. Set to 0 to disable.",
-  "port": 8000,  
+  "_comment12": "Port that the webserver will use. Set to 0 to disable.",
+  "port": 0,
   
-  "_comment14": "The profiles. Each with their own id, login info, and coordinates.",
+  "_comment13": "The profiles. Each with their own id, login info, and coordinates.",
   "profiles": [
     {
       "id": 0,

@@ -13,6 +13,9 @@ import POGOProtos.Networking.Requests.Messages_pb2
 import POGOProtos.Map
 import POGOProtos.Map.Pokemon_pb2
 import POGOProtos.Data_pb2
+import POGOProtos.Networking.Platform_pb2
+import POGOProtos.Networking.Platform
+import POGOProtos.Networking.Platform.Requests_pb2
 
 import time
 from datetime import datetime
@@ -21,7 +24,10 @@ import math
 import os
 import random
 
+import sqlite3
+
 from pushbullet import Pushbullet
+import telepot
 from geopy.geocoders import Nominatim
 from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
@@ -37,12 +43,6 @@ import Queue
 import pokesite
 
 import signal
-
-def signal_handler(signal, frame):
-    sys.exit()
-
-signal.signal(signal.SIGINT, signal_handler)
-
 
 def get_time():
     return int(round(time.time() * 1000))
@@ -96,7 +96,9 @@ safety = 0.999
 LOGGING = False
 DATA = []
 exclude_ids = None
-pb = None
+pb = []
+telegrams = []
+telebot = None
 PUSHPOKS = None
 geolocator = Nominatim()
 
@@ -106,6 +108,8 @@ HEX_NUM = None
 wID = None
 interval = None
 workdir = os.path.dirname(os.path.realpath(__file__))
+data_file = '{}/webres/data.db'.format(workdir)
+data_buffer = []
 
 LAT_C, LNG_C, ALT_C = [None, None, None]
 
@@ -144,7 +148,7 @@ spawns = []
 safetysecs = 3
 
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids
+    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, port, wID, acc_tos, exclude_ids, telebot
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -207,26 +211,27 @@ def do_settings():
     else:
         scannum = int(args.scans)
 
-    if allsettings['pushbullet']['enabled'] is True:
-        pb = []
-        keys = allsettings['pushbullet']['api_key']
-        for a in range(len(keys)):
-            try:
-                this_pb = Pushbullet(keys[a])
-                if allsettings['pushbullet']['use_channels'] is True:
-                    for channel in this_pb.channels:
-                        if channel.channel_tag in allsettings['pushbullet']['channel_tags']:
-                            pb.append(channel)
-                else:
-                    pb.append(this_pb)
-            except Exception as e:
-                lprint('[-] Pushbullet error, key {} is invalid, {}'.format(a + 1, e))
-                lprint('[-] This pushbullet will be disabled.')
-
-        if len(pb) > 0:
-            PUSHPOKS = set(allsettings['pushbullet']['push_ids'])
-        else:
-            pb = None
+    if allsettings['notifications']['enabled'] is True:
+        PUSHPOKS = set(allsettings['notifications']['push_ids'])
+        if allsettings['notifications']['pushbullet']['enabled'] is True:
+            for key in allsettings['notifications']['pushbullet']['api_key']:
+                try:
+                    this_pb = Pushbullet(key)
+                    if allsettings['notifications']['pushbullet']['use_channels'] is True:
+                        for channel in this_pb.channels:
+                            if channel.channel_tag in allsettings['pushbullet']['channel_tags']:
+                                pb.append(channel)
+                    else:
+                        pb.append(this_pb)
+                except Exception as e:
+                    lprint('[-] Pushbullet error, key {} is invalid, {}'.format(key, e))
+                    lprint('[-] This pushbullet will be disabled.')
+        if allsettings['notifications']['telegram']['enabled'] is True:
+            telebot = telepot.Bot(allsettings['notifications']['telegram']['bot_token'])
+            for chat_id in allsettings['notifications']['telegram']['chat_ids']:
+                telegrams.append(chat_id)
+        if (len(telegrams) + len(pb)) == 0:
+            PUSHPOKS = []
 
     LANGUAGE = allsettings['language']
 
@@ -270,20 +275,6 @@ def do_settings():
         ALT_C = allsettings['profiles'][idlist[0]]['coordinates']['alt']
     else:
         ALT_C = float(ALT_C)
-
-    copykeys = 'language','api_key','icon_scalefactor','mobile_scalefactor','load_ids'
-    websettings = dict()
-    for key in copykeys:
-        websettings[key] = allsettings[key]
-
-    websettings['html_coords'] = allsettings['profiles'][idlist[0]]['coordinates']
-    try:
-        f = open('{}/webres/websettings.json'.format(workdir), 'w')
-        json.dump(websettings, f, separators=(',', ':'))
-        f.close()
-    finally:
-        if 'f' in vars() and not f.closed:
-            f.close()
 
     return accounts
 
@@ -413,12 +404,12 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
     p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
 
-    p_req.latitude, p_req.longitude, p_req.altitude = location
+    p_req.latitude, p_req.longitude, p_req.accuracy = location
 
     for s_req in reqs:
         p_req.MergeFrom(s_req)
 
-    p_req.unknown12 = 989  # transaction id, anything works
+    p_req.ms_since_last_locationfix = 989
 
     if auth['useauth'] is None:
         p_req.auth_info.provider = account['type']
@@ -439,15 +430,16 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
         req_hash = generateRequestHash(ticket_serialized, req.SerializeToString())
         sig.request_hash.append(req_hash)
 
-    sig.session_hash = account['session_hash'] #os.urandom(32)
+    sig.session_hash = account['session_hash']
     sig.timestamp = get_time()
     sig.timestamp_since_start = get_time() - account['login_time']
     sig.unknown25 = -8537042734809897855
 
     signature_proto = sig.SerializeToString()
-    u6 = p_req.unknown6
-    u6.request_type = 6
-    u6.unknown2.encrypted_signature = generate_signature(signature_proto, signature_lib)
+
+    request_sig = p_req.platform_requests.add()
+    request_sig.type = POGOProtos.Networking.Platform_pb2.SEND_ENCRYPTED_SIGNATURE
+    request_sig.wrap.request_message = generate_signature(signature_proto, signature_lib)
 
     request_str = p_req.SerializeToString()
 
@@ -517,7 +509,7 @@ def get_profile(rtype, location, account, *reqq):
         req2.MergeFrom(reqq[1])
 
     req3 = req.requests.add()
-    req3.request_type = 600 # CHECK_CHALLENGE (update protos later!)
+    req3.request_type = POGOProtos.Networking.Envelopes_pb2.CHECK_CHALLENGE
     if len(reqq) >= 3:
         req3.MergeFrom(reqq[2])
 
@@ -593,6 +585,7 @@ def get_profile(rtype, location, account, *reqq):
             exit()
         else:
             lprint('[-] Response error, unexpected status code: {}, retrying...'.format(response.status_code))
+            print(response)
         time.sleep(1)
 
 
@@ -635,38 +628,20 @@ def accept_tos(location, account):
     m1.request_message = m11.SerializeToString()
     get_profile(0, location, account, m1)
 
+def init_data():
+    con = sqlite3.connect(data_file)
+    with con:
+        cur = con.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS spawns(spawnid INTEGER PRIMARY KEY, latitude REAL, longitude REAL, spawntype INTEGER, pokeid INTEGER, expiretime INTEGER, fromtime INTEGER, profile INTEGER)")
 
-def prune_data():
-    # prune despawned pokemon
-    cur_time = int(time.time())
-    for i, poke in reversed(list(enumerate(DATA))):
-        if cur_time > poke[4]:
-            DATA.pop(i)
-
-
-def load_data(data_file):
-    try:
-        f = open(data_file, 'r')
-        DATA.extend(json.load(f))
-        prune_data()
-        f.close()
-    except IOError as e:
-        pass
-    except ValueError as e:
-        pass
-    finally:
-        if 'f' in vars() and not f.closed:
-            f.close()
-
-
-def write_data(data_file):
-    try:
-        f = open(data_file, 'w')
-        json.dump(DATA, f, separators=(',', ':'))
-        f.close()
-    finally:
-        if 'f' in vars() and not f.closed:
-            f.close()
+def update_data():
+    timenow = int(round(time.time(),0))
+    con = sqlite3.connect(data_file)
+    with con:
+        cur = con.cursor()
+        for l in range(0,len(data_buffer)):
+            [pokeid, spawnid, latitude, longitude, expiretime, addinfo] = data_buffer.pop()
+            cur.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)",[spawnid,round(latitude,5),round(longitude,5),addinfo,pokeid,expiretime,timenow,wID])
 
 
 def lprint(message):
@@ -1090,7 +1065,6 @@ def main():
                 curT = max(interval - curT, 0)
                 lprint('[+] Sleeping for {} seconds...'.format(curT))
                 time.sleep(curT)
-                prune_data()
 
 #########################################################################
 #########################################################################
@@ -1170,18 +1144,20 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            data_file = '{}/webres/data{}.json'.format(workdir, wID)
             stat_file = '{}/res/spawns{}.txt'.format(workdir, wID)
-            POKEMONS = json.load(open('{}/webres/{}.json'.format(workdir, LANGUAGE)))
+            POKEMONS = json.load(open('{}/webres/static/{}.json'.format(workdir, LANGUAGE)))
             statheader = 'Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n'
 
-            addinfo_phase_sec = [0,900,1800,900,900]
-            addinfo_phase_first = [0,900,900,1800,900]
-            addinfo_pausetime =[0,900,900,900,1800]
+            reappear_texts = ('\n15m later back for 15m','\n15m later back for 30m','\n30m later back for 15m')
+            reappear_ind = (0,1,0,2)
+
+            addinfo_phase_sec = (0,900,1800,900,900)
+            addinfo_phase_first = (0,900,900,1800,900)
+            addinfo_pausetime =(0,900,900,900,1800)
 
             interval_datwrite = 5
             nextdatwrite = time.time() + interval_datwrite
-            load_data(data_file)
+            init_data()
             try:
                 f = open(stat_file, 'a', 0)
                 f.seek(0, 2)
@@ -1237,11 +1213,7 @@ def main():
                             if addinfo:
                                 f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime_sec,
                                                                                       mod_spawntime_sec+finished_ms/1000.0, addinfo_phase_sec[addinfo]-finished_ms/1000.0, wild.encounter_id))
-                            if wild.pokemon_data.pokemon_id not in exclude_ids:
-                                if addinfo:
-                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0 + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]),addinfo])
-                                else:
-                                    DATA.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)])
+                            data_buffer.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0 + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]),addinfo])
                             if not silent:
                                 other_ll = LatLng.from_degrees(wild.latitude, wild.longitude)
                                 origin_ll = LatLng.from_degrees(LAT_C, LNG_C)
@@ -1252,28 +1224,25 @@ def main():
                                 direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
                                 lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), distance, direction))
 
-                            if pb is not None and wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                try:
-                                    location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
-                                    notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location.address)
-                                except:
-                                    notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
+                            if len(PUSHPOKS) > 0 and wild.pokemon_data.pokemon_id in PUSHPOKS:
+                                notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 if addinfo:
-                                    time_text += '\nwill then reappear after 15 m for 15 m.'
+                                    time_text += reappear_texts[reappear_ind[addinfo]]
                                 for pushacc in pb:
                                     try:
-                                        pushacc.push_link(notification_text, 'http://www.google.com/maps/place/{},{}'.format(wild.latitude, wild.longitude), body=time_text)
+                                        pushacc.push_link(notification_text, 'https://maps.google.com/?ll={},{}&q={},{}&z=14'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude), body=time_text)
                                     except requests.ConnectionError as e:
                                         if re.search('Connection aborted', str(e)) is None:
                                             lprint('[-] Connection Error during Pushbullet, error: {}'.format(e))
+                                for telegram in telegrams:
+                                    telebot.sendMessage(chat_id=telegram, text= '<b>' + notification_text + '</b>\n' + '<a href="https://maps.google.com/?ll={},{}&q={},{}&z=14">location</a>\n'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude) + time_text, parse_mode= 'HTML',disable_web_page_preview='False',disable_notification='False')
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
                             if addpokemon.empty() or time.time() >= nextdatwrite:
-                                prune_data()
-                                write_data(data_file)
+                                update_data()
                                 if f.tell() > F_LIMIT:
                                     lprint('[+] File size is over the set limit, doing backup.')
                                     f.close()
@@ -1290,18 +1259,22 @@ def main():
 #########################################################################
 #########################################################################
     class webserver(threading.Thread):
-        def __init__(self, port, workdir):
+        def __init__(self, port):
             threading.Thread.__init__(self)
             self.port = port
-            self.workdir = workdir
 
         def run(self):
-            pokesite.server_start(port, workdir)
+            pokesite.server_start(port)
 
 #########################################################################
 #########################################################################
 
     global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan
+
+    def signal_handler(signal, frame):
+        sys.exit()
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     random.seed()
 
@@ -1403,7 +1376,7 @@ def main():
             synch_li.put(True)
 
     if port > 0:
-        newthread = webserver(port, workdir)
+        newthread = webserver(port)
         newthread.daemon = True
         newthread.start()
 

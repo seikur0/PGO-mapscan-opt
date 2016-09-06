@@ -4,94 +4,31 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7">
-    <!--<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />-->
-
-    <style type="text/css">
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        
-        #map {
-            height: 100%;
-        }
-        
-        #filter {
-            position: absolute;
-            right: 12px;
-            top: 12px;
-            width: 27px;
-            height: 28px;
-            box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
-            border-radius: 2px;
-            cursor: pointer;
-            background-color: white;
-            text-align: center;
-            vertical-align: middle;
-        }
-        
-        #findloc {
-            position: absolute;
-            right: 12px;
-            top: 52px;
-            width: 27px;
-            height: 28px;
-            box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
-            border-radius: 2px;
-            cursor: pointer;
-            background-color: white;
-            text-align: center;
-            vertical-align: middle;
-        }
-        
-        #filterdialog {
-            position: absolute;
-            display: inline-block;
-            height: 75%;
-            overflow-y: scroll;
-            overflow-x: hidden;
-            right: 40px;
-            top: 12px;
-            padding: 3px;
-            box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
-            border-radius: 2px;
-            cursor: pointer;
-            background-color: white;
-            font-family: Roboto, Arial, sans-serif;
-            font-size: 14px;
-            font-weight: 400;
-            display: none;
-        }
-    </style>
+    <link rel="site icon" href="static/icons/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="static/css/sitestyle.css">
 </head>
 
 <body>
     <div id="map"></div>
-    <div id="filter" title="Filter" onclick="showFilterDialog();"><img src="icons/map/ic_filter_list_black_24px.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
+    <div id="filter" title="Filter" onclick="showFilterDialog();"><img src="static/icons/ic_filter_list_black_24px.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
     <div id="filterdialog"></div>
-    <div id="findloc" title="Find Location" onclick="findLocation();"><img src="icons/map/map.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
+    <div id="findloc" title="Find Location" onclick="findLocation();"><img src="static/icons/map.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="static/js/jquery-3.1.0.js"><\/script>')</script>
     <script type="text/javascript">
         /////////////////////////////////////////////////////////////////////
-        var pokdats = {};
         var map;
         var markers = [];
         var spawns = [];
         var pokenames;
-        var LAT_C;
-        var LNG_C;
-        var LANGUAGE;
-        var scalesize;
-        var loadids;
+        var language = '{{ language }}';
+        var scalefac = {{ icon_scalefactor }};
         var timenow;
         var infowindow;
         var iconSize;
-        var iconOrigin;
         var iconAnchor;
         var iconScaledSize;
+        var icsize = 64;
         var timelefttext;
         var timehiddentext;
         var changing = true;
@@ -99,7 +36,11 @@
         var pokefilter;
         var currentLocationMarker;
         var file_succ = false;
-
+        var p_spawnid, p_latitude, p_longitude, p_addinfo, p_pokeid, p_expiretime;
+        var datatill;
+        var wholedata;
+        var clean_c = 4;
+        var profile = {{ profile }};
         /////////////////////////////////////////////////////////////////////
         function getFile(path, asynch, callback) {
             var xhr = new XMLHttpRequest();
@@ -113,55 +54,40 @@
         }
 
         /////////////////////////////////////////////////////////////////////
-        function useData(fileData) {
-            try {
-                pokdats = JSON.parse(fileData);
-            } catch (err) {
-                console.log(err);
-                return;
-            }
-
+        function useData(newData) {
             // Add updated markers
-            for (var i = 0; i < pokdats.length; i++) {
-                var p = pokdats[i];
+            for (var i = 0; i < newData.length; i++) {
+                var timenow = Math.round((new Date()).getTime() / 1000);
+                [p_spawnid,p_latitude,p_longitude,p_addinfo,p_pokeid,p_expiretime] = newData[i];
 
-                var timeleft = p[4] - timenow;
+                var timeleft = p_expiretime - timenow;
                 if (timeleft > 0) {
-                    if (p.length == 6)
-                        var newaddinfo = p[5];
-                    else
-                        var newaddinfo = 0;
-                    var cIcon = {
-                        url: "icons/" + p[0] + ".png",
-                        size: iconSize,
-                        origin: iconOrigin,
-                        anchor: iconAnchor,
-                        scaledSize: iconScaledSize
-                    };
+                    var newaddinfo = p_addinfo;
+                    var cIcon = {url: "static/icons/icons_gen1.png",size: iconSize,origin: new google.maps.Point(0, 64*(p_pokeid-1)),anchor: iconAnchor,scaledSize: iconScaledSize};
                     var s = 0;
-                    while (s < spawns.length && spawns[s] != p[1]) {
+                    while (s < spawns.length && spawns[s] != p_spawnid) {
                         s++;
                     }
                     if (s < spawns.length) {
-                        if (markers[s].validTill != p[4]) {
-                            if (markers[s].validTill == 0 || markers[s].id != p[0]) {
-                                markers[s].id = p[0];
+                        if (markers[s].validTill != p_expiretime) {
+                            if (markers[s].validTill == 0 || markers[s].id != p_pokeid) {
+                                markers[s].id = p_pokeid;
                                 markers[s].icon = cIcon;
                                 markers[s].setOpacity(1.0);
                                 markers[s].addinfo = newaddinfo;
                             }
-                            markers[s].validTill = p[4];
+                            markers[s].validTill = p_expiretime;
                         }
                     } else {
                         var marker = new google.maps.Marker({
                             position: {
-                                lat: p[2],
-                                lng: p[3]
+                                lat: p_latitude,
+                                lng: p_longitude
                             },
                             optimized: false,
-                            id: p[0],
-                            validTill: p[4],
-                            spawnID: p[1],
+                            id: p_pokeid,
+                            validTill: p_expiretime,
+                            spawnID: p_spawnid,
                             icon: cIcon,
                             addinfo: newaddinfo
                         });
@@ -178,7 +104,7 @@
                         });
 
                         markers.push(marker);
-                        spawns.push(p[1]);
+                        spawns.push(p_spawnid);
                     }
                 }
             }
@@ -223,17 +149,24 @@
         }
 
         /////////////////////////////////////////////////////////////////////
+        function cleanWholedata() {
+            var timenow = Math.round((new Date()).getTime() / 1000);
+            wholedata = wholedata.filter(entry => entry[5] > timenow);
+            localStorage.setItem('pokedata'+profile, JSON.stringify(wholedata));
+            localStorage.setItem('datatill'+profile,datatill.toString());
+        }
+
+        /////////////////////////////////////////////////////////////////////
         function refreshData() {
-            for (var fileN = 0; fileN < loadids.length; fileN++) {
-                timenow = Math.round((new Date()).getTime() / 1000);
-                filenow = "data".concat(loadids[fileN].toString(), ".json");
-                file_succ = false;
-                getFile(filenow, false, useData);
-                if (!file_succ)
-                    setTimeout(function() {
-                        getFile(filenow, false, useData);
-                    }, 1000);
-            }
+            $.getJSON('/_getdata', {data_till: datatill, profile: profile}, function(data,status) {
+                datatill = data[0];
+                wholedata = wholedata.concat(data[1]);
+                if (clean_c > 3) {
+                    clean_c = 0;
+                    cleanWholedata();
+                }
+                useData(wholedata);
+            });
         }
 
         /////////////////////////////////////////////////////////////////////
@@ -260,8 +193,10 @@
         /////////////////////////////////////////////////////////////////////
         function f_startup() {
             if (~changing) {
-                clearInterval(startup)
+                clearInterval(startup);
+                useData(wholedata);
                 refreshData();
+                cleanWholedata();
                 setInterval(refreshData, 10000);
             }
         }
@@ -271,17 +206,17 @@
 
             map = new google.maps.Map(document.getElementById('map'), {
                 center: {
-                    lat: LAT_C,
-                    lng: LNG_C
+                    lat: {{ lat }},
+                    lng: {{ lng }}
                 },
                 zoom: 15,
                 disableDoubleClickZoom: true,
                 streetViewControl: false
             });
-            getFile(LANGUAGE + ".json", false, function(tnames) {
+            getFile("static/" + language + ".json", false, function(tnames) {
                 pokenames = JSON.parse(tnames);
             });
-            if (LANGUAGE == "german") {
+            if (language == "german") {
                 timelefttext = "Zeit &#252;brig: ";
                 timehiddentext = "Versteckt f&#252;r: ";
                 timehiddentext1 = "(danach zur&#252;ck f&#252;r 15m)";
@@ -289,7 +224,7 @@
                 timereturntext1 = "(15m danach zur&#252;ck f&#252;r 15m)";
                 timereturntext2 = "(15m danach zur&#252;ck f&#252;r 30m)";
                 timereturntext3 = "(30m danach zur&#252;ck f&#252;r 15m)";
-            } else if (LANGUAGE == "english") {
+            } else if (language == "english") {
                 timelefttext = "Time left: ";
                 timehiddentext = "Hidden for: ";
                 timehiddentext1 = "(then back for 15m)";
@@ -300,6 +235,14 @@
             }
             // filter interface
             pokefilter = getCookie("pokefilter");
+            datatill = parseInt(localStorage.getItem('datatill'+profile));
+            if (datatill === null)
+                datatill = 0;
+
+            wholedata = JSON.parse(localStorage.getItem('pokedata'+profile));
+            if (wholedata === null)
+                wholedata = [];
+            cleanWholedata();
             document.getElementById("filterdialog").style.display = "none";
 
             var div = document.createElement("div");
@@ -345,10 +288,9 @@
 
             currentLocationMarker = new google.maps.Marker();
             infowindow = new google.maps.InfoWindow();
-            iconSize = new google.maps.Size(scalesize, scalesize);
-            iconOrigin = new google.maps.Point(0, 0);
-            iconAnchor = new google.maps.Point(Math.round(scalesize / 2), Math.round(scalesize / 2));
-            iconScaledSize = new google.maps.Size(scalesize, scalesize);
+            iconSize = new google.maps.Size(icsize, icsize);
+            iconAnchor = new google.maps.Point(icsize/2, icsize/2);
+            iconScaledSize = new google.maps.Size(64*scalefac, 151*64*scalefac);
 
             google.maps.event.addListener(map, 'click', function(event) {
                 infowindow.close()
@@ -378,25 +320,6 @@
         }
 
         /////////////////////////////////////////////////////////////////////
-        function initSite() {
-            getFile("websettings.json", false, function(tsettings) {
-                var settings = JSON.parse(tsettings);
-                LAT_C = settings['html_coords']['lat'];
-                LNG_C = settings['html_coords']['lng'];
-                LANGUAGE = settings['language'];
-                scalesize = Math.ceil(64 * settings['icon_scalefactor']);
-                loadids = settings['load_ids'];
-
-                document.getElementsByName("viewport").content = "width=device-width, initial-scale=" + settings['mobile_scalefactor'].toString() + ", maximum-scale=" + settings['mobile_scalefactor'].toString();
-                var script = document.createElement("script");
-                script.src = "https://maps.googleapis.com/maps/api/js?key=" + settings['api_key'] + "&libraries=drawing&callback=initMap";
-                script.async = true;
-                script.defer = true;
-                document.body.appendChild(script);
-            });
-        }
-
-        /////////////////////////////////////////////////////////////////////
         function filt_toogle() {
             if (this.style.opacity < 1) {
                 this.style.opacity = 1;
@@ -417,7 +340,7 @@
                     entry.style.opacity = 1;
                 }
             }
-            setCookie();
+            setCookie('pokefilter',pokefilter);
             showMarkers();
         }
 
@@ -431,14 +354,14 @@
                     entry.style.opacity = 0.5;
                 }
             }
-            setCookie();
+            setCookie('pokefilter',pokefilter);
             showMarkers();
         }
 
         /////////////////////////////////////////////////////////////////////
-        function setCookie() {
+        function setCookie(name,value) {
             var d = new Date(21474800000000);
-            document.cookie = "pokefilter=" + pokefilter + "; expires=" + d.toUTCString();
+            document.cookie = name + '=' + value + "; expires=" + d.toUTCString();;
         }
 
         /////////////////////////////////////////////////////////////////////
@@ -461,7 +384,7 @@
                     pokefilter = pokefilter + i + ','
                 }
             }
-            setCookie();
+            setCookie('pokefilter',pokefilter);
             showMarkers();
         }
 
@@ -482,8 +405,9 @@
         }
 
         /////////////////////////////////////////////////////////////////////
-        initSite()
+        document.getElementsByName("viewport").content = "width=device-width, initial-scale={{ mobile_scale }}, maximum-scale={{ mobile_scale }}";
     </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap" async defer></script>
 </body>
 
 </html>

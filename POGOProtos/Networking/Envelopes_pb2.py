@@ -14,24 +14,71 @@ _sym_db = _symbol_database.Default()
 
 
 from POGOProtos.Networking import Requests_pb2 as POGOProtos_dot_Networking_dot_Requests__pb2
-from POGOProtos.Data import Player_pb2 as POGOProtos_dot_Data_dot_Player__pb2
-POGOProtos_dot_Enums__pb2 = POGOProtos_dot_Data_dot_Player__pb2.POGOProtos_dot_Enums__pb2
-from POGOProtos.Inventory import Item_pb2 as POGOProtos_dot_Inventory_dot_Item__pb2
+from POGOProtos.Networking import Platform_pb2 as POGOProtos_dot_Networking_dot_Platform__pb2
 
 from POGOProtos.Networking.Requests_pb2 import *
-from POGOProtos.Data.Player_pb2 import *
-from POGOProtos.Inventory.Item_pb2 import *
+from POGOProtos.Networking.Platform_pb2 import *
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Networking.Envelopes.proto',
   package='POGOProtos.Networking.Envelopes',
   syntax='proto3',
-  serialized_pb=_b('\n%POGOProtos.Networking.Envelopes.proto\x12\x1fPOGOProtos.Networking.Envelopes\x1a$POGOProtos.Networking.Requests.proto\x1a\x1cPOGOProtos.Data.Player.proto\x1a\x1fPOGOProtos.Inventory.Item.proto\"E\n\nAuthTicket\x12\r\n\x05start\x18\x01 \x01(\x0c\x12\x1b\n\x13\x65xpire_timestamp_ms\x18\x02 \x01(\x04\x12\x0b\n\x03\x65nd\x18\x03 \x01(\x0c\"\xa4\x04\n\x0fRequestEnvelope\x12\x13\n\x0bstatus_code\x18\x01 \x01(\x05\x12\x12\n\nrequest_id\x18\x03 \x01(\x04\x12\x39\n\x08requests\x18\x04 \x03(\x0b\x32\'.POGOProtos.Networking.Requests.Request\x12;\n\x08unknown6\x18\x06 \x01(\x0b\x32).POGOProtos.Networking.Envelopes.Unknown6\x12\x10\n\x08latitude\x18\x07 \x01(\x01\x12\x11\n\tlongitude\x18\x08 \x01(\x01\x12\x10\n\x08\x61ltitude\x18\t \x01(\x01\x12L\n\tauth_info\x18\n \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo\x12@\n\x0b\x61uth_ticket\x18\x0b \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12\x11\n\tunknown12\x18\x0c \x01(\x03\x1a\x95\x01\n\x08\x41uthInfo\x12\x10\n\x08provider\x18\x01 \x01(\t\x12L\n\x05token\x18\x02 \x01(\x0b\x32=.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo.JWT\x1a)\n\x03JWT\x12\x10\n\x08\x63ontents\x18\x01 \x01(\t\x12\x10\n\x08unknown2\x18\x02 \x01(\x05\"\xf3\x01\n\x10ResponseEnvelope\x12\x13\n\x0bstatus_code\x18\x01 \x01(\x05\x12\x12\n\nrequest_id\x18\x02 \x01(\x04\x12\x0f\n\x07\x61pi_url\x18\x03 \x01(\t\x12\x43\n\x08unknown6\x18\x06 \x03(\x0b\x32\x31.POGOProtos.Networking.Envelopes.Unknown6Response\x12@\n\x0b\x61uth_ticket\x18\x07 \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12\x0f\n\x07returns\x18\x64 \x03(\x0c\x12\r\n\x05\x65rror\x18\x65 \x01(\t\"\xad\x0f\n\tSignature\x12\x1d\n\x15timestamp_since_start\x18\x02 \x01(\x04\x12L\n\x0clocation_fix\x18\x04 \x03(\x0b\x32\x36.POGOProtos.Networking.Envelopes.Signature.LocationFix\x12K\n\x08gps_info\x18\x05 \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo\x12J\n\x0bsensor_info\x18\x07 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.SensorInfo\x12J\n\x0b\x64\x65vice_info\x18\x08 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.DeviceInfo\x12R\n\x0f\x61\x63tivity_status\x18\t \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.ActivityStatus\x12\x16\n\x0elocation_hash1\x18\n \x01(\x04\x12\x16\n\x0elocation_hash2\x18\x14 \x01(\x04\x12\x14\n\x0csession_hash\x18\x16 \x01(\x0c\x12\x11\n\ttimestamp\x18\x17 \x01(\x04\x12\x14\n\x0crequest_hash\x18\x18 \x03(\x03\x12\x11\n\tunknown25\x18\x19 \x01(\x03\x1a\xe9\x01\n\x0bLocationFix\x12\x10\n\x08provider\x18\x01 \x01(\t\x12\x1a\n\x12timestamp_snapshot\x18\x02 \x01(\x04\x12\x10\n\x08latitude\x18\r \x01(\x02\x12\x11\n\tlongitude\x18\x0e \x01(\x02\x12\x1b\n\x13horizontal_accuracy\x18\x14 \x01(\x02\x12\x10\n\x08\x61ltitude\x18\x15 \x01(\x02\x12\x19\n\x11vertical_accuracy\x18\x16 \x01(\x02\x12\x17\n\x0fprovider_status\x18\x1a \x01(\x04\x12\r\n\x05\x66loor\x18\x1b \x01(\r\x12\x15\n\rlocation_type\x18\x1c \x01(\x04\x1a\xaf\x01\n\x0e\x41ndroidGpsInfo\x12\x13\n\x0btime_to_fix\x18\x01 \x01(\x04\x12\x16\n\x0esatellites_prn\x18\x02 \x03(\x05\x12\x0b\n\x03snr\x18\x03 \x03(\x02\x12\x0f\n\x07\x61zimuth\x18\x04 \x03(\x02\x12\x11\n\televation\x18\x05 \x03(\x02\x12\x13\n\x0bhas_almanac\x18\x06 \x03(\x08\x12\x15\n\rhas_ephemeris\x18\x07 \x03(\x08\x12\x13\n\x0bused_in_fix\x18\x08 \x03(\x08\x1a\xbe\x03\n\nSensorInfo\x12\x1a\n\x12timestamp_snapshot\x18\x01 \x01(\x04\x12\x16\n\x0emagnetometer_x\x18\x03 \x01(\x01\x12\x16\n\x0emagnetometer_y\x18\x04 \x01(\x01\x12\x16\n\x0emagnetometer_z\x18\x05 \x01(\x01\x12\x1a\n\x12\x61ngle_normalized_x\x18\x06 \x01(\x01\x12\x1a\n\x12\x61ngle_normalized_y\x18\x07 \x01(\x01\x12\x1a\n\x12\x61ngle_normalized_z\x18\x08 \x01(\x01\x12\x13\n\x0b\x61\x63\x63\x65l_raw_x\x18\n \x01(\x01\x12\x13\n\x0b\x61\x63\x63\x65l_raw_y\x18\x0b \x01(\x01\x12\x13\n\x0b\x61\x63\x63\x65l_raw_z\x18\x0c \x01(\x01\x12\x17\n\x0fgyroscope_raw_x\x18\r \x01(\x01\x12\x17\n\x0fgyroscope_raw_y\x18\x0e \x01(\x01\x12\x17\n\x0fgyroscope_raw_z\x18\x0f \x01(\x01\x12\x1a\n\x12\x61\x63\x63\x65l_normalized_x\x18\x10 \x01(\x01\x12\x1a\n\x12\x61\x63\x63\x65l_normalized_y\x18\x11 \x01(\x01\x12\x1a\n\x12\x61\x63\x63\x65l_normalized_z\x18\x12 \x01(\x01\x12\x1a\n\x12\x61\x63\x63\x65lerometer_axes\x18\x13 \x01(\x04\x1a\xda\x02\n\nDeviceInfo\x12\x11\n\tdevice_id\x18\x01 \x01(\t\x12\x1a\n\x12\x61ndroid_board_name\x18\x02 \x01(\t\x12\x1a\n\x12\x61ndroid_bootloader\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x65vice_brand\x18\x04 \x01(\t\x12\x14\n\x0c\x64\x65vice_model\x18\x05 \x01(\t\x12\x1f\n\x17\x64\x65vice_model_identifier\x18\x06 \x01(\t\x12\x19\n\x11\x64\x65vice_model_boot\x18\x07 \x01(\t\x12\x1d\n\x15hardware_manufacturer\x18\x08 \x01(\t\x12\x16\n\x0ehardware_model\x18\t \x01(\t\x12\x16\n\x0e\x66irmware_brand\x18\n \x01(\t\x12\x15\n\rfirmware_tags\x18\x0c \x01(\t\x12\x15\n\rfirmware_type\x18\r \x01(\t\x12\x1c\n\x14\x66irmware_fingerprint\x18\x0e \x01(\t\x1a\xbb\x01\n\x0e\x41\x63tivityStatus\x12\x15\n\rstart_time_ms\x18\x01 \x01(\x04\x12\x16\n\x0eunknown_status\x18\x02 \x01(\x08\x12\x0f\n\x07walking\x18\x03 \x01(\x08\x12\x0f\n\x07running\x18\x04 \x01(\x08\x12\x12\n\nstationary\x18\x05 \x01(\x08\x12\x12\n\nautomotive\x18\x06 \x01(\x08\x12\x0f\n\x07tilting\x18\x07 \x01(\x08\x12\x0f\n\x07\x63ycling\x18\x08 \x01(\x08\x12\x0e\n\x06status\x18\t \x01(\x0c\"\x8f\x01\n\x08Unknown6\x12\x14\n\x0crequest_type\x18\x01 \x01(\x05\x12\x44\n\x08unknown2\x18\x02 \x01(\x0b\x32\x32.POGOProtos.Networking.Envelopes.Unknown6.Unknown2\x1a\'\n\x08Unknown2\x12\x1b\n\x13\x65ncrypted_signature\x18\x01 \x01(\x0c\"\xa6\x05\n\x10Unknown6Response\x12\x15\n\rresponse_type\x18\x01 \x01(\x05\x12L\n\x08unknown2\x18\x02 \x01(\x0b\x32:.POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2\x1a\xac\x04\n\x08Unknown2\x12\x10\n\x08unknown1\x18\x01 \x01(\x04\x12S\n\x05items\x18\x02 \x03(\x0b\x32\x44.POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem\x12;\n\x11player_currencies\x18\x03 \x03(\x0b\x32 .POGOProtos.Data.Player.Currency\x12\x10\n\x08unknown4\x18\x04 \x01(\t\x1a\xe9\x02\n\tStoreItem\x12\x0f\n\x07item_id\x18\x01 \x01(\t\x12\x0e\n\x06is_iap\x18\x02 \x01(\x08\x12\x39\n\x0f\x63urrency_to_buy\x18\x03 \x01(\x0b\x32 .POGOProtos.Data.Player.Currency\x12\x39\n\x0fyields_currency\x18\x04 \x01(\x0b\x32 .POGOProtos.Data.Player.Currency\x12\x38\n\x0byields_item\x18\x05 \x01(\x0b\x32#.POGOProtos.Inventory.Item.ItemData\x12V\n\x04tags\x18\x06 \x03(\x0b\x32H.POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.Tag\x12\x10\n\x08unknown7\x18\x07 \x01(\x05\x1a!\n\x03Tag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\tP\x00P\x01P\x02\x62\x06proto3')
+  serialized_pb=_b('\n%POGOProtos.Networking.Envelopes.proto\x12\x1fPOGOProtos.Networking.Envelopes\x1a$POGOProtos.Networking.Requests.proto\x1a$POGOProtos.Networking.Platform.proto\"E\n\nAuthTicket\x12\r\n\x05start\x18\x01 \x01(\x0c\x12\x1b\n\x13\x65xpire_timestamp_ms\x18\x02 \x01(\x04\x12\x0b\n\x03\x65nd\x18\x03 \x01(\x0c\"\xa7\x06\n\x0fRequestEnvelope\x12\x13\n\x0bstatus_code\x18\x01 \x01(\x05\x12\x12\n\nrequest_id\x18\x03 \x01(\x04\x12\x39\n\x08requests\x18\x04 \x03(\x0b\x32\'.POGOProtos.Networking.Requests.Request\x12[\n\x11platform_requests\x18\x06 \x03(\x0b\x32@.POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest\x12\x10\n\x08latitude\x18\x07 \x01(\x01\x12\x11\n\tlongitude\x18\x08 \x01(\x01\x12\x10\n\x08\x61\x63\x63uracy\x18\t \x01(\x01\x12L\n\tauth_info\x18\n \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo\x12@\n\x0b\x61uth_ticket\x18\x0b \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12!\n\x19ms_since_last_locationfix\x18\x0c \x01(\x03\x1a\x95\x01\n\x08\x41uthInfo\x12\x10\n\x08provider\x18\x01 \x01(\t\x12L\n\x05token\x18\x02 \x01(\x0b\x32=.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo.JWT\x1a)\n\x03JWT\x12\x10\n\x08\x63ontents\x18\x01 \x01(\t\x12\x10\n\x08unknown2\x18\x02 \x01(\x05\x1a\xd0\x01\n\x0fPlatformRequest\x12\x41\n\x04type\x18\x01 \x01(\x0e\x32\x33.POGOProtos.Networking.Platform.PlatformRequestType\x12V\n\x04wrap\x18\x02 \x01(\x0b\x32H.POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER\x1a\"\n\x07WRAPPER\x12\x17\n\x0frequest_message\x18\x01 \x01(\x0c\"\xf6\x04\n\x10ResponseEnvelope\x12Q\n\x0bstatus_code\x18\x01 \x01(\x0e\x32<.POGOProtos.Networking.Envelopes.ResponseEnvelope.StatusCode\x12\x12\n\nrequest_id\x18\x02 \x01(\x04\x12\x0f\n\x07\x61pi_url\x18\x03 \x01(\t\x12\\\n\x10platform_returns\x18\x06 \x03(\x0b\x32\x42.POGOProtos.Networking.Envelopes.ResponseEnvelope.PlatformResponse\x12@\n\x0b\x61uth_ticket\x18\x07 \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12\x0f\n\x07returns\x18\x64 \x03(\x0c\x12\r\n\x05\x65rror\x18\x65 \x01(\t\x1ag\n\x10PlatformResponse\x12\x41\n\x04type\x18\x01 \x01(\x0e\x32\x33.POGOProtos.Networking.Platform.PlatformRequestType\x12\x10\n\x08response\x18\x02 \x01(\x0c\"\xc0\x01\n\nStatusCode\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x06\n\x02OK\x10\x01\x12\x1a\n\x16OK_RPC_URL_IN_RESPONSE\x10\x02\x12\x0f\n\x0b\x42\x41\x44_REQUEST\x10\x03\x12\x13\n\x0fINVALID_REQUEST\x10\x33\x12\x1c\n\x18INVALID_PLATFORM_REQUEST\x10\x34\x12\x0c\n\x08REDIRECT\x10\x35\x12\x17\n\x13SESSION_INVALIDATED\x10\x64\x12\x16\n\x12INVALID_AUTH_TOKEN\x10\x66\"\xd2\x0f\n\tSignature\x12\x1d\n\x15timestamp_since_start\x18\x02 \x01(\x04\x12L\n\x0clocation_fix\x18\x04 \x03(\x0b\x32\x36.POGOProtos.Networking.Envelopes.Signature.LocationFix\x12K\n\x08gps_info\x18\x05 \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo\x12J\n\x0bsensor_info\x18\x07 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.SensorInfo\x12J\n\x0b\x64\x65vice_info\x18\x08 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.DeviceInfo\x12R\n\x0f\x61\x63tivity_status\x18\t \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.ActivityStatus\x12\x16\n\x0elocation_hash1\x18\n \x01(\r\x12\x16\n\x0elocation_hash2\x18\x14 \x01(\r\x12\x14\n\x0csession_hash\x18\x16 \x01(\x0c\x12\x11\n\ttimestamp\x18\x17 \x01(\x04\x12\x14\n\x0crequest_hash\x18\x18 \x03(\x04\x12\x11\n\tunknown25\x18\x19 \x01(\x03\x1a\x88\x02\n\x0bLocationFix\x12\x10\n\x08provider\x18\x01 \x01(\t\x12\x1a\n\x12timestamp_snapshot\x18\x02 \x01(\x04\x12\x10\n\x08\x61ltitude\x18\x04 \x01(\x02\x12\x10\n\x08latitude\x18\r \x01(\x02\x12\x11\n\tlongitude\x18\x0e \x01(\x02\x12\r\n\x05speed\x18\x12 \x01(\x02\x12\x0e\n\x06\x63ourse\x18\x14 \x01(\x02\x12\x1b\n\x13horizontal_accuracy\x18\x15 \x01(\x02\x12\x19\n\x11vertical_accuracy\x18\x16 \x01(\x02\x12\x17\n\x0fprovider_status\x18\x1a \x01(\x04\x12\r\n\x05\x66loor\x18\x1b \x01(\r\x12\x15\n\rlocation_type\x18\x1c \x01(\x04\x1a\xaf\x01\n\x0e\x41ndroidGpsInfo\x12\x13\n\x0btime_to_fix\x18\x01 \x01(\x04\x12\x16\n\x0esatellites_prn\x18\x02 \x03(\x05\x12\x0f\n\x07\x61zimuth\x18\x03 \x03(\x02\x12\x11\n\televation\x18\x04 \x03(\x02\x12\x0b\n\x03snr\x18\x05 \x03(\x02\x12\x13\n\x0bhas_almanac\x18\x06 \x03(\x08\x12\x15\n\rhas_ephemeris\x18\x07 \x03(\x08\x12\x13\n\x0bused_in_fix\x18\x08 \x03(\x08\x1a\xc4\x03\n\nSensorInfo\x12\x1a\n\x12timestamp_snapshot\x18\x01 \x01(\x04\x12\x1d\n\x15linear_acceleration_x\x18\x03 \x01(\x01\x12\x1d\n\x15linear_acceleration_y\x18\x04 \x01(\x01\x12\x1d\n\x15linear_acceleration_z\x18\x05 \x01(\x01\x12\x18\n\x10magnetic_field_x\x18\x06 \x01(\x01\x12\x18\n\x10magnetic_field_y\x18\x07 \x01(\x01\x12\x18\n\x10magnetic_field_z\x18\x08 \x01(\x01\x12\x19\n\x11rotation_vector_x\x18\n \x01(\x01\x12\x19\n\x11rotation_vector_y\x18\x0b \x01(\x01\x12\x19\n\x11rotation_vector_z\x18\x0c \x01(\x01\x12\x17\n\x0fgyroscope_raw_x\x18\r \x01(\x01\x12\x17\n\x0fgyroscope_raw_y\x18\x0e \x01(\x01\x12\x17\n\x0fgyroscope_raw_z\x18\x0f \x01(\x01\x12\x11\n\tgravity_x\x18\x10 \x01(\x01\x12\x11\n\tgravity_y\x18\x11 \x01(\x01\x12\x11\n\tgravity_z\x18\x12 \x01(\x01\x12\x1a\n\x12\x61\x63\x63\x65lerometer_axes\x18\x13 \x01(\x04\x1a\xda\x02\n\nDeviceInfo\x12\x11\n\tdevice_id\x18\x01 \x01(\t\x12\x1a\n\x12\x61ndroid_board_name\x18\x02 \x01(\t\x12\x1a\n\x12\x61ndroid_bootloader\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x65vice_brand\x18\x04 \x01(\t\x12\x14\n\x0c\x64\x65vice_model\x18\x05 \x01(\t\x12\x1f\n\x17\x64\x65vice_model_identifier\x18\x06 \x01(\t\x12\x19\n\x11\x64\x65vice_model_boot\x18\x07 \x01(\t\x12\x1d\n\x15hardware_manufacturer\x18\x08 \x01(\t\x12\x16\n\x0ehardware_model\x18\t \x01(\t\x12\x16\n\x0e\x66irmware_brand\x18\n \x01(\t\x12\x15\n\rfirmware_tags\x18\x0c \x01(\t\x12\x15\n\rfirmware_type\x18\r \x01(\t\x12\x1c\n\x14\x66irmware_fingerprint\x18\x0e \x01(\t\x1a\xbb\x01\n\x0e\x41\x63tivityStatus\x12\x15\n\rstart_time_ms\x18\x01 \x01(\x04\x12\x16\n\x0eunknown_status\x18\x02 \x01(\x08\x12\x0f\n\x07walking\x18\x03 \x01(\x08\x12\x0f\n\x07running\x18\x04 \x01(\x08\x12\x12\n\nstationary\x18\x05 \x01(\x08\x12\x12\n\nautomotive\x18\x06 \x01(\x08\x12\x0f\n\x07tilting\x18\x07 \x01(\x08\x12\x0f\n\x07\x63ycling\x18\x08 \x01(\x08\x12\x0e\n\x06status\x18\t \x01(\x0cP\x00P\x01\x62\x06proto3')
   ,
-  dependencies=[POGOProtos_dot_Networking_dot_Requests__pb2.DESCRIPTOR,POGOProtos_dot_Data_dot_Player__pb2.DESCRIPTOR,POGOProtos_dot_Inventory_dot_Item__pb2.DESCRIPTOR,])
+  dependencies=[POGOProtos_dot_Networking_dot_Requests__pb2.DESCRIPTOR,POGOProtos_dot_Networking_dot_Platform__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
+
+_RESPONSEENVELOPE_STATUSCODE = _descriptor.EnumDescriptor(
+  name='StatusCode',
+  full_name='POGOProtos.Networking.Envelopes.ResponseEnvelope.StatusCode',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='UNKNOWN', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='OK', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='OK_RPC_URL_IN_RESPONSE', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='BAD_REQUEST', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='INVALID_REQUEST', index=4, number=51,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='INVALID_PLATFORM_REQUEST', index=5, number=52,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REDIRECT', index=6, number=53,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SESSION_INVALIDATED', index=7, number=100,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='INVALID_AUTH_TOKEN', index=8, number=102,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=1470,
+  serialized_end=1662,
+)
+_sym_db.RegisterEnumDescriptor(_RESPONSEENVELOPE_STATUSCODE)
 
 
 _AUTHTICKET = _descriptor.Descriptor(
@@ -74,8 +121,8 @@ _AUTHTICKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=175,
-  serialized_end=244,
+  serialized_start=150,
+  serialized_end=219,
 )
 
 
@@ -112,8 +159,8 @@ _REQUESTENVELOPE_AUTHINFO_JWT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=754,
-  serialized_end=795,
+  serialized_start=777,
+  serialized_end=818,
 )
 
 _REQUESTENVELOPE_AUTHINFO = _descriptor.Descriptor(
@@ -149,8 +196,75 @@ _REQUESTENVELOPE_AUTHINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=646,
-  serialized_end=795,
+  serialized_start=669,
+  serialized_end=818,
+)
+
+_REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER = _descriptor.Descriptor(
+  name='WRAPPER',
+  full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='request_message', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER.request_message', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=995,
+  serialized_end=1029,
+)
+
+_REQUESTENVELOPE_PLATFORMREQUEST = _descriptor.Descriptor(
+  name='PlatformRequest',
+  full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='wrap', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.wrap', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=821,
+  serialized_end=1029,
 )
 
 _REQUESTENVELOPE = _descriptor.Descriptor(
@@ -182,9 +296,9 @@ _REQUESTENVELOPE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='unknown6', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.unknown6', index=3,
-      number=6, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='platform_requests', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.platform_requests', index=3,
+      number=6, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -203,7 +317,7 @@ _REQUESTENVELOPE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='altitude', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.altitude', index=6,
+      name='accuracy', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.accuracy', index=6,
       number=9, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
@@ -224,7 +338,7 @@ _REQUESTENVELOPE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='unknown12', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.unknown12', index=9,
+      name='ms_since_last_locationfix', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.ms_since_last_locationfix', index=9,
       number=12, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -233,7 +347,7 @@ _REQUESTENVELOPE = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_REQUESTENVELOPE_AUTHINFO, ],
+  nested_types=[_REQUESTENVELOPE_AUTHINFO, _REQUESTENVELOPE_PLATFORMREQUEST, ],
   enum_types=[
   ],
   options=None,
@@ -242,10 +356,47 @@ _REQUESTENVELOPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=247,
-  serialized_end=795,
+  serialized_start=222,
+  serialized_end=1029,
 )
 
+
+_RESPONSEENVELOPE_PLATFORMRESPONSE = _descriptor.Descriptor(
+  name='PlatformResponse',
+  full_name='POGOProtos.Networking.Envelopes.ResponseEnvelope.PlatformResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='POGOProtos.Networking.Envelopes.ResponseEnvelope.PlatformResponse.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='response', full_name='POGOProtos.Networking.Envelopes.ResponseEnvelope.PlatformResponse.response', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1364,
+  serialized_end=1467,
+)
 
 _RESPONSEENVELOPE = _descriptor.Descriptor(
   name='ResponseEnvelope',
@@ -256,7 +407,7 @@ _RESPONSEENVELOPE = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='status_code', full_name='POGOProtos.Networking.Envelopes.ResponseEnvelope.status_code', index=0,
-      number=1, type=5, cpp_type=1, label=1,
+      number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -276,7 +427,7 @@ _RESPONSEENVELOPE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='unknown6', full_name='POGOProtos.Networking.Envelopes.ResponseEnvelope.unknown6', index=3,
+      name='platform_returns', full_name='POGOProtos.Networking.Envelopes.ResponseEnvelope.platform_returns', index=3,
       number=6, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -306,8 +457,9 @@ _RESPONSEENVELOPE = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[],
+  nested_types=[_RESPONSEENVELOPE_PLATFORMRESPONSE, ],
   enum_types=[
+    _RESPONSEENVELOPE_STATUSCODE,
   ],
   options=None,
   is_extendable=False,
@@ -315,8 +467,8 @@ _RESPONSEENVELOPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=798,
-  serialized_end=1041,
+  serialized_start=1032,
+  serialized_end=1662,
 )
 
 
@@ -342,56 +494,70 @@ _SIGNATURE_LOCATIONFIX = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='latitude', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.latitude', index=2,
+      name='altitude', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.altitude', index=2,
+      number=4, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='latitude', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.latitude', index=3,
       number=13, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='longitude', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.longitude', index=3,
+      name='longitude', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.longitude', index=4,
       number=14, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='horizontal_accuracy', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.horizontal_accuracy', index=4,
+      name='speed', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.speed', index=5,
+      number=18, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='course', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.course', index=6,
       number=20, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='altitude', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.altitude', index=5,
+      name='horizontal_accuracy', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.horizontal_accuracy', index=7,
       number=21, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='vertical_accuracy', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.vertical_accuracy', index=6,
+      name='vertical_accuracy', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.vertical_accuracy', index=8,
       number=22, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='provider_status', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.provider_status', index=7,
+      name='provider_status', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.provider_status', index=9,
       number=26, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='floor', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.floor', index=8,
+      name='floor', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.floor', index=10,
       number=27, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='location_type', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.location_type', index=9,
+      name='location_type', full_name='POGOProtos.Networking.Envelopes.Signature.LocationFix.location_type', index=11,
       number=28, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -409,8 +575,8 @@ _SIGNATURE_LOCATIONFIX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1610,
-  serialized_end=1843,
+  serialized_start=2231,
+  serialized_end=2495,
 )
 
 _SIGNATURE_ANDROIDGPSINFO = _descriptor.Descriptor(
@@ -435,21 +601,21 @@ _SIGNATURE_ANDROIDGPSINFO = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='snr', full_name='POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo.snr', index=2,
+      name='azimuth', full_name='POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo.azimuth', index=2,
       number=3, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='azimuth', full_name='POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo.azimuth', index=3,
+      name='elevation', full_name='POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo.elevation', index=3,
       number=4, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='elevation', full_name='POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo.elevation', index=4,
+      name='snr', full_name='POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo.snr', index=4,
       number=5, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -488,8 +654,8 @@ _SIGNATURE_ANDROIDGPSINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1846,
-  serialized_end=2021,
+  serialized_start=2498,
+  serialized_end=2673,
 )
 
 _SIGNATURE_SENSORINFO = _descriptor.Descriptor(
@@ -507,63 +673,63 @@ _SIGNATURE_SENSORINFO = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='magnetometer_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.magnetometer_x', index=1,
+      name='linear_acceleration_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.linear_acceleration_x', index=1,
       number=3, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='magnetometer_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.magnetometer_y', index=2,
+      name='linear_acceleration_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.linear_acceleration_y', index=2,
       number=4, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='magnetometer_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.magnetometer_z', index=3,
+      name='linear_acceleration_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.linear_acceleration_z', index=3,
       number=5, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='angle_normalized_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.angle_normalized_x', index=4,
+      name='magnetic_field_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.magnetic_field_x', index=4,
       number=6, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='angle_normalized_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.angle_normalized_y', index=5,
+      name='magnetic_field_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.magnetic_field_y', index=5,
       number=7, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='angle_normalized_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.angle_normalized_z', index=6,
+      name='magnetic_field_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.magnetic_field_z', index=6,
       number=8, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='accel_raw_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.accel_raw_x', index=7,
+      name='rotation_vector_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.rotation_vector_x', index=7,
       number=10, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='accel_raw_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.accel_raw_y', index=8,
+      name='rotation_vector_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.rotation_vector_y', index=8,
       number=11, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='accel_raw_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.accel_raw_z', index=9,
+      name='rotation_vector_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.rotation_vector_z', index=9,
       number=12, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
@@ -591,21 +757,21 @@ _SIGNATURE_SENSORINFO = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='accel_normalized_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.accel_normalized_x', index=13,
+      name='gravity_x', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.gravity_x', index=13,
       number=16, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='accel_normalized_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.accel_normalized_y', index=14,
+      name='gravity_y', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.gravity_y', index=14,
       number=17, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='accel_normalized_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.accel_normalized_z', index=15,
+      name='gravity_z', full_name='POGOProtos.Networking.Envelopes.Signature.SensorInfo.gravity_z', index=15,
       number=18, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
@@ -630,8 +796,8 @@ _SIGNATURE_SENSORINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2024,
-  serialized_end=2470,
+  serialized_start=2676,
+  serialized_end=3128,
 )
 
 _SIGNATURE_DEVICEINFO = _descriptor.Descriptor(
@@ -744,8 +910,8 @@ _SIGNATURE_DEVICEINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2473,
-  serialized_end=2819,
+  serialized_start=3131,
+  serialized_end=3477,
 )
 
 _SIGNATURE_ACTIVITYSTATUS = _descriptor.Descriptor(
@@ -830,8 +996,8 @@ _SIGNATURE_ACTIVITYSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2822,
-  serialized_end=3009,
+  serialized_start=3480,
+  serialized_end=3667,
 )
 
 _SIGNATURE = _descriptor.Descriptor(
@@ -885,14 +1051,14 @@ _SIGNATURE = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='location_hash1', full_name='POGOProtos.Networking.Envelopes.Signature.location_hash1', index=6,
-      number=10, type=4, cpp_type=4, label=1,
+      number=10, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='location_hash2', full_name='POGOProtos.Networking.Envelopes.Signature.location_hash2', index=7,
-      number=20, type=4, cpp_type=4, label=1,
+      number=20, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -913,7 +1079,7 @@ _SIGNATURE = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='request_hash', full_name='POGOProtos.Networking.Envelopes.Signature.request_hash', index=10,
-      number=24, type=3, cpp_type=2, label=3,
+      number=24, type=4, cpp_type=4, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -937,285 +1103,27 @@ _SIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1044,
-  serialized_end=3009,
-)
-
-
-_UNKNOWN6_UNKNOWN2 = _descriptor.Descriptor(
-  name='Unknown2',
-  full_name='POGOProtos.Networking.Envelopes.Unknown6.Unknown2',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='encrypted_signature', full_name='POGOProtos.Networking.Envelopes.Unknown6.Unknown2.encrypted_signature', index=0,
-      number=1, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3116,
-  serialized_end=3155,
-)
-
-_UNKNOWN6 = _descriptor.Descriptor(
-  name='Unknown6',
-  full_name='POGOProtos.Networking.Envelopes.Unknown6',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='request_type', full_name='POGOProtos.Networking.Envelopes.Unknown6.request_type', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='unknown2', full_name='POGOProtos.Networking.Envelopes.Unknown6.unknown2', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_UNKNOWN6_UNKNOWN2, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3012,
-  serialized_end=3155,
-)
-
-
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM_TAG = _descriptor.Descriptor(
-  name='Tag',
-  full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.Tag',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='key', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.Tag.key', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.Tag.value', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3803,
-  serialized_end=3836,
-)
-
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM = _descriptor.Descriptor(
-  name='StoreItem',
-  full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='item_id', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.item_id', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='is_iap', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.is_iap', index=1,
-      number=2, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='currency_to_buy', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.currency_to_buy', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='yields_currency', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.yields_currency', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='yields_item', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.yields_item', index=4,
-      number=5, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='tags', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.tags', index=5,
-      number=6, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='unknown7', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.unknown7', index=6,
-      number=7, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM_TAG, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3475,
-  serialized_end=3836,
-)
-
-_UNKNOWN6RESPONSE_UNKNOWN2 = _descriptor.Descriptor(
-  name='Unknown2',
-  full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='unknown1', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.unknown1', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='items', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.items', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='player_currencies', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.player_currencies', index=2,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='unknown4', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.unknown4', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3280,
-  serialized_end=3836,
-)
-
-_UNKNOWN6RESPONSE = _descriptor.Descriptor(
-  name='Unknown6Response',
-  full_name='POGOProtos.Networking.Envelopes.Unknown6Response',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='response_type', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.response_type', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='unknown2', full_name='POGOProtos.Networking.Envelopes.Unknown6Response.unknown2', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_UNKNOWN6RESPONSE_UNKNOWN2, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3158,
-  serialized_end=3836,
+  serialized_start=1665,
+  serialized_end=3667,
 )
 
 _REQUESTENVELOPE_AUTHINFO_JWT.containing_type = _REQUESTENVELOPE_AUTHINFO
 _REQUESTENVELOPE_AUTHINFO.fields_by_name['token'].message_type = _REQUESTENVELOPE_AUTHINFO_JWT
 _REQUESTENVELOPE_AUTHINFO.containing_type = _REQUESTENVELOPE
+_REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER.containing_type = _REQUESTENVELOPE_PLATFORMREQUEST
+_REQUESTENVELOPE_PLATFORMREQUEST.fields_by_name['type'].enum_type = POGOProtos_dot_Networking_dot_Platform__pb2._PLATFORMREQUESTTYPE
+_REQUESTENVELOPE_PLATFORMREQUEST.fields_by_name['wrap'].message_type = _REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER
+_REQUESTENVELOPE_PLATFORMREQUEST.containing_type = _REQUESTENVELOPE
 _REQUESTENVELOPE.fields_by_name['requests'].message_type = POGOProtos_dot_Networking_dot_Requests__pb2._REQUEST
-_REQUESTENVELOPE.fields_by_name['unknown6'].message_type = _UNKNOWN6
+_REQUESTENVELOPE.fields_by_name['platform_requests'].message_type = _REQUESTENVELOPE_PLATFORMREQUEST
 _REQUESTENVELOPE.fields_by_name['auth_info'].message_type = _REQUESTENVELOPE_AUTHINFO
 _REQUESTENVELOPE.fields_by_name['auth_ticket'].message_type = _AUTHTICKET
-_RESPONSEENVELOPE.fields_by_name['unknown6'].message_type = _UNKNOWN6RESPONSE
+_RESPONSEENVELOPE_PLATFORMRESPONSE.fields_by_name['type'].enum_type = POGOProtos_dot_Networking_dot_Platform__pb2._PLATFORMREQUESTTYPE
+_RESPONSEENVELOPE_PLATFORMRESPONSE.containing_type = _RESPONSEENVELOPE
+_RESPONSEENVELOPE.fields_by_name['status_code'].enum_type = _RESPONSEENVELOPE_STATUSCODE
+_RESPONSEENVELOPE.fields_by_name['platform_returns'].message_type = _RESPONSEENVELOPE_PLATFORMRESPONSE
 _RESPONSEENVELOPE.fields_by_name['auth_ticket'].message_type = _AUTHTICKET
+_RESPONSEENVELOPE_STATUSCODE.containing_type = _RESPONSEENVELOPE
 _SIGNATURE_LOCATIONFIX.containing_type = _SIGNATURE
 _SIGNATURE_ANDROIDGPSINFO.containing_type = _SIGNATURE
 _SIGNATURE_SENSORINFO.containing_type = _SIGNATURE
@@ -1226,24 +1134,10 @@ _SIGNATURE.fields_by_name['gps_info'].message_type = _SIGNATURE_ANDROIDGPSINFO
 _SIGNATURE.fields_by_name['sensor_info'].message_type = _SIGNATURE_SENSORINFO
 _SIGNATURE.fields_by_name['device_info'].message_type = _SIGNATURE_DEVICEINFO
 _SIGNATURE.fields_by_name['activity_status'].message_type = _SIGNATURE_ACTIVITYSTATUS
-_UNKNOWN6_UNKNOWN2.containing_type = _UNKNOWN6
-_UNKNOWN6.fields_by_name['unknown2'].message_type = _UNKNOWN6_UNKNOWN2
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM_TAG.containing_type = _UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM.fields_by_name['currency_to_buy'].message_type = POGOProtos_dot_Data_dot_Player__pb2._CURRENCY
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM.fields_by_name['yields_currency'].message_type = POGOProtos_dot_Data_dot_Player__pb2._CURRENCY
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM.fields_by_name['yields_item'].message_type = POGOProtos_dot_Inventory_dot_Item__pb2._ITEMDATA
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM.fields_by_name['tags'].message_type = _UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM_TAG
-_UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM.containing_type = _UNKNOWN6RESPONSE_UNKNOWN2
-_UNKNOWN6RESPONSE_UNKNOWN2.fields_by_name['items'].message_type = _UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM
-_UNKNOWN6RESPONSE_UNKNOWN2.fields_by_name['player_currencies'].message_type = POGOProtos_dot_Data_dot_Player__pb2._CURRENCY
-_UNKNOWN6RESPONSE_UNKNOWN2.containing_type = _UNKNOWN6RESPONSE
-_UNKNOWN6RESPONSE.fields_by_name['unknown2'].message_type = _UNKNOWN6RESPONSE_UNKNOWN2
 DESCRIPTOR.message_types_by_name['AuthTicket'] = _AUTHTICKET
 DESCRIPTOR.message_types_by_name['RequestEnvelope'] = _REQUESTENVELOPE
 DESCRIPTOR.message_types_by_name['ResponseEnvelope'] = _RESPONSEENVELOPE
 DESCRIPTOR.message_types_by_name['Signature'] = _SIGNATURE
-DESCRIPTOR.message_types_by_name['Unknown6'] = _UNKNOWN6
-DESCRIPTOR.message_types_by_name['Unknown6Response'] = _UNKNOWN6RESPONSE
 
 AuthTicket = _reflection.GeneratedProtocolMessageType('AuthTicket', (_message.Message,), dict(
   DESCRIPTOR = _AUTHTICKET,
@@ -1267,6 +1161,20 @@ RequestEnvelope = _reflection.GeneratedProtocolMessageType('RequestEnvelope', (_
     # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo)
     ))
   ,
+
+  PlatformRequest = _reflection.GeneratedProtocolMessageType('PlatformRequest', (_message.Message,), dict(
+
+    WRAPPER = _reflection.GeneratedProtocolMessageType('WRAPPER', (_message.Message,), dict(
+      DESCRIPTOR = _REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER,
+      __module__ = 'POGOProtos.Networking.Envelopes_pb2'
+      # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER)
+      ))
+    ,
+    DESCRIPTOR = _REQUESTENVELOPE_PLATFORMREQUEST,
+    __module__ = 'POGOProtos.Networking.Envelopes_pb2'
+    # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest)
+    ))
+  ,
   DESCRIPTOR = _REQUESTENVELOPE,
   __module__ = 'POGOProtos.Networking.Envelopes_pb2'
   # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.RequestEnvelope)
@@ -1274,13 +1182,23 @@ RequestEnvelope = _reflection.GeneratedProtocolMessageType('RequestEnvelope', (_
 _sym_db.RegisterMessage(RequestEnvelope)
 _sym_db.RegisterMessage(RequestEnvelope.AuthInfo)
 _sym_db.RegisterMessage(RequestEnvelope.AuthInfo.JWT)
+_sym_db.RegisterMessage(RequestEnvelope.PlatformRequest)
+_sym_db.RegisterMessage(RequestEnvelope.PlatformRequest.WRAPPER)
 
 ResponseEnvelope = _reflection.GeneratedProtocolMessageType('ResponseEnvelope', (_message.Message,), dict(
+
+  PlatformResponse = _reflection.GeneratedProtocolMessageType('PlatformResponse', (_message.Message,), dict(
+    DESCRIPTOR = _RESPONSEENVELOPE_PLATFORMRESPONSE,
+    __module__ = 'POGOProtos.Networking.Envelopes_pb2'
+    # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.ResponseEnvelope.PlatformResponse)
+    ))
+  ,
   DESCRIPTOR = _RESPONSEENVELOPE,
   __module__ = 'POGOProtos.Networking.Envelopes_pb2'
   # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.ResponseEnvelope)
   ))
 _sym_db.RegisterMessage(ResponseEnvelope)
+_sym_db.RegisterMessage(ResponseEnvelope.PlatformResponse)
 
 Signature = _reflection.GeneratedProtocolMessageType('Signature', (_message.Message,), dict(
 
@@ -1328,52 +1246,6 @@ _sym_db.RegisterMessage(Signature.AndroidGpsInfo)
 _sym_db.RegisterMessage(Signature.SensorInfo)
 _sym_db.RegisterMessage(Signature.DeviceInfo)
 _sym_db.RegisterMessage(Signature.ActivityStatus)
-
-Unknown6 = _reflection.GeneratedProtocolMessageType('Unknown6', (_message.Message,), dict(
-
-  Unknown2 = _reflection.GeneratedProtocolMessageType('Unknown2', (_message.Message,), dict(
-    DESCRIPTOR = _UNKNOWN6_UNKNOWN2,
-    __module__ = 'POGOProtos.Networking.Envelopes_pb2'
-    # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.Unknown6.Unknown2)
-    ))
-  ,
-  DESCRIPTOR = _UNKNOWN6,
-  __module__ = 'POGOProtos.Networking.Envelopes_pb2'
-  # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.Unknown6)
-  ))
-_sym_db.RegisterMessage(Unknown6)
-_sym_db.RegisterMessage(Unknown6.Unknown2)
-
-Unknown6Response = _reflection.GeneratedProtocolMessageType('Unknown6Response', (_message.Message,), dict(
-
-  Unknown2 = _reflection.GeneratedProtocolMessageType('Unknown2', (_message.Message,), dict(
-
-    StoreItem = _reflection.GeneratedProtocolMessageType('StoreItem', (_message.Message,), dict(
-
-      Tag = _reflection.GeneratedProtocolMessageType('Tag', (_message.Message,), dict(
-        DESCRIPTOR = _UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM_TAG,
-        __module__ = 'POGOProtos.Networking.Envelopes_pb2'
-        # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem.Tag)
-        ))
-      ,
-      DESCRIPTOR = _UNKNOWN6RESPONSE_UNKNOWN2_STOREITEM,
-      __module__ = 'POGOProtos.Networking.Envelopes_pb2'
-      # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2.StoreItem)
-      ))
-    ,
-    DESCRIPTOR = _UNKNOWN6RESPONSE_UNKNOWN2,
-    __module__ = 'POGOProtos.Networking.Envelopes_pb2'
-    # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.Unknown6Response.Unknown2)
-    ))
-  ,
-  DESCRIPTOR = _UNKNOWN6RESPONSE,
-  __module__ = 'POGOProtos.Networking.Envelopes_pb2'
-  # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.Unknown6Response)
-  ))
-_sym_db.RegisterMessage(Unknown6Response)
-_sym_db.RegisterMessage(Unknown6Response.Unknown2)
-_sym_db.RegisterMessage(Unknown6Response.Unknown2.StoreItem)
-_sym_db.RegisterMessage(Unknown6Response.Unknown2.StoreItem.Tag)
 
 
 # @@protoc_insertion_point(module_scope)
