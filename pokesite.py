@@ -6,7 +6,6 @@ import socket
 import SocketServer
 import signal
 import time
-import argparse
 
 import sqlite3
 
@@ -39,15 +38,6 @@ def server_start(port):
             f.close()
 
     exclude_ids = allsettings['exclude_ids']
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-id', '--id', help='group id', default=-1, type=int)
-    args = parser.parse_args()
-
-    if args.id == -1:
-        compid = 0
-    else:
-        compid = args.id
 
     list_profiles = []
     list_lats = []
