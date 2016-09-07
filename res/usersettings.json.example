@@ -37,7 +37,7 @@
 	},
 	"telegram":
 	{
-		"enabled": true,
+		"enabled": false,
 		"bot_token": "PUT_YOUR_TELEGRAM_BOT_TOKEN_HERE",
 		"chat_ids":["PUT_YOUR_CHAT_ID_HERE"]
 	}
