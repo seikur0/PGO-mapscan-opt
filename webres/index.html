@@ -14,7 +14,9 @@
     <div id="filterdialog"></div>
     <div id="findloc" title="Find Location" onclick="findLocation();"><img src="static/icons/map.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="static/js/jquery-3.1.0.js"><\/script>')</script>
+    <script>
+        window.jQuery || document.write('<script src="static/js/jquery-3.1.0.js"><\/script>')
+    </script>
     <script type="text/javascript">
         /////////////////////////////////////////////////////////////////////
         var map;
@@ -28,7 +30,11 @@
         var iconAnchor;
         var iconScaledSize;
         var icsize = 64;
-        var icsize_scaled = Math.ceil({{ icon_scalefactor }} * icsize);
+        var icsize_scaled = Math.ceil({
+            {
+                icon_scalefactor
+            }
+        } * icsize);
         var timelefttext;
         var timehiddentext;
         var changing = true;
@@ -40,7 +46,11 @@
         var datatill;
         var wholedata;
         var clean_c = 4;
-        var profile = {{ profile }};
+        var profile = {
+            {
+                profile
+            }
+        };
         /////////////////////////////////////////////////////////////////////
         function getFile(path, asynch, callback) {
             var xhr = new XMLHttpRequest();
@@ -58,12 +68,23 @@
             // Add updated markers
             for (var i = 0; i < newData.length; i++) {
                 var timenow = Math.round((new Date()).getTime() / 1000);
-                [p_spawnid,p_latitude,p_longitude,p_addinfo,p_pokeid,p_expiretime] = newData[i];
+                p_spawnid = newData[i][0];
+                p_latitude = newData[i][1];
+                p_longitude = newData[i][2];
+                p_addinfo = newData[i][3];
+                p_pokeid = newData[i][4];
+                p_expiretime = newData[i][5];
 
                 var timeleft = p_expiretime - timenow;
                 if (timeleft > 0) {
                     var newaddinfo = p_addinfo;
-                    var cIcon = {url: "static/icons/icons_gen1.png",size: iconSize,origin: new google.maps.Point(0, icsize_scaled*(p_pokeid-1)),anchor: iconAnchor,scaledSize: iconScaledSize};
+                    var cIcon = {
+                        url: "static/icons/icons_gen1.png",
+                        size: iconSize,
+                        origin: new google.maps.Point(0, icsize_scaled * (p_pokeid - 1)),
+                        anchor: iconAnchor,
+                        scaledSize: iconScaledSize
+                    };
                     var s = 0;
                     while (s < spawns.length && spawns[s] != p_spawnid) {
                         s++;
@@ -152,13 +173,16 @@
         function cleanWholedata() {
             var timenow = Math.round((new Date()).getTime() / 1000);
             wholedata = wholedata.filter(entry => entry[5] > timenow);
-            localStorage.setItem('pokedata'+profile, JSON.stringify(wholedata));
-            localStorage.setItem('datatill'+profile,datatill.toString());
+            localStorage.setItem('pokedata' + profile, JSON.stringify(wholedata));
+            localStorage.setItem('datatill' + profile, datatill.toString());
         }
 
         /////////////////////////////////////////////////////////////////////
         function refreshData() {
-            $.getJSON('/_getdata', {data_till: datatill, profile: profile}, function(data,status) {
+            $.getJSON('/_getdata', {
+                data_till: datatill,
+                profile: profile
+            }, function(data, status) {
                 datatill = data[0];
                 wholedata = wholedata.concat(data[1]);
                 if (clean_c > 3) {
@@ -206,8 +230,16 @@
 
             map = new google.maps.Map(document.getElementById('map'), {
                 center: {
-                    lat: {{ lat }},
-                    lng: {{ lng }}
+                    lat: {
+                        {
+                            lat
+                        }
+                    },
+                    lng: {
+                        {
+                            lng
+                        }
+                    }
                 },
                 zoom: 15,
                 disableDoubleClickZoom: true,
@@ -235,11 +267,11 @@
             }
             // filter interface
             pokefilter = getCookie("pokefilter");
-            datatill = parseInt(localStorage.getItem('datatill'+profile));
+            datatill = parseInt(localStorage.getItem('datatill' + profile));
             if (datatill === null)
                 datatill = 0;
 
-            wholedata = JSON.parse(localStorage.getItem('pokedata'+profile));
+            wholedata = JSON.parse(localStorage.getItem('pokedata' + profile));
             if (wholedata === null)
                 wholedata = [];
             cleanWholedata();
@@ -289,8 +321,8 @@
             currentLocationMarker = new google.maps.Marker();
             infowindow = new google.maps.InfoWindow();
             iconSize = new google.maps.Size(icsize_scaled, icsize_scaled);
-            iconAnchor = new google.maps.Point(Math.round(icsize_scaled/2), Math.round(icsize_scaled/2));
-            iconScaledSize = new google.maps.Size(icsize_scaled, 151*icsize_scaled);
+            iconAnchor = new google.maps.Point(Math.round(icsize_scaled / 2), Math.round(icsize_scaled / 2));
+            iconScaledSize = new google.maps.Size(icsize_scaled, 151 * icsize_scaled);
 
             google.maps.event.addListener(map, 'click', function(event) {
                 infowindow.close()
@@ -340,7 +372,7 @@
                     entry.style.opacity = 1;
                 }
             }
-            setCookie('pokefilter',pokefilter);
+            setCookie('pokefilter', pokefilter);
             showMarkers();
         }
 
@@ -354,12 +386,12 @@
                     entry.style.opacity = 0.5;
                 }
             }
-            setCookie('pokefilter',pokefilter);
+            setCookie('pokefilter', pokefilter);
             showMarkers();
         }
 
         /////////////////////////////////////////////////////////////////////
-        function setCookie(name,value) {
+        function setCookie(name, value) {
             var d = new Date(21474800000000);
             document.cookie = name + '=' + value + "; expires=" + d.toUTCString();;
         }
@@ -384,7 +416,7 @@
                     pokefilter = pokefilter + i + ','
                 }
             }
-            setCookie('pokefilter',pokefilter);
+            setCookie('pokefilter', pokefilter);
             showMarkers();
         }
 
