@@ -30,11 +30,7 @@
         var iconAnchor;
         var iconScaledSize;
         var icsize = 64;
-        var icsize_scaled = Math.ceil({
-            {
-                icon_scalefactor
-            }
-        } * icsize);
+        var icsize_scaled = Math.ceil({{ icon_scalefactor }} * icsize);
         var timelefttext;
         var timehiddentext;
         var changing = true;
@@ -230,16 +226,8 @@
 
             map = new google.maps.Map(document.getElementById('map'), {
                 center: {
-                    lat: {
-                        {
-                            lat
-                        }
-                    },
-                    lng: {
-                        {
-                            lng
-                        }
-                    }
+                    lat: {{ lat }},
+                    lng: {{ lng }}
                 },
                 zoom: 15,
                 disableDoubleClickZoom: true,
