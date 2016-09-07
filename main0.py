@@ -1226,7 +1226,7 @@ def main():
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 if addinfo:
-                                    time_text += reappear_texts[reappear_ind[addinfo]]
+                                    time_text += reappear_texts[reappear_ind[addinfo-1]]
                                 for pushacc in pb:
                                     try:
                                         pushacc.push_link(notification_text, 'https://maps.google.com/?ll={},{}&q={},{}&z=14'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude), body=time_text)
