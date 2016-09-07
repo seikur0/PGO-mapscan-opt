@@ -219,7 +219,7 @@ def do_settings():
                     this_pb = Pushbullet(key)
                     if allsettings['notifications']['pushbullet']['use_channels'] is True:
                         for channel in this_pb.channels:
-                            if channel.channel_tag in allsettings['pushbullet']['channel_tags']:
+                            if channel.channel_tag in allsettings['notifications']['pushbullet']['channel_tags']:
                                 pb.append(channel)
                     else:
                         pb.append(this_pb)
