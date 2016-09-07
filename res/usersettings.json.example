@@ -26,14 +26,14 @@
   "_comment9": "Notification settings. Put ids of pokemon you want to be notified about into push_ids.",
   "notifications":
   {
-	"enabled": true,
+	"enabled": false,
 	"push_ids": [1,2,3,4,5,6,7,8,9,131,132,142,143,144,145,146,147,148,149,150,151],
 	"pushbullet":
 	{
 		"enabled": false,
 		"api_key": ["PUT_YOUR_PUSHBULLET_API_KEY_HERE"],
 		"use_channels": false,
-		"channel_tags": []
+		"channel_tags": [""]
 	},
 	"telegram":
 	{
