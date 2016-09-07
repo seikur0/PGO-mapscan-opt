@@ -164,14 +164,14 @@
         /////////////////////////////////////////////////////////////////////
         function cleanWholedata() {
             var timenow = Math.round((new Date()).getTime() / 1000);
-            wholedata = wholedata.filter(function(entry) {return entry[5] > timenow});
+            wholedata = wholedata.filter(entry => entry[5] > timenow);
             localStorage.setItem('pokedata' + profile, JSON.stringify(wholedata));
             localStorage.setItem('datatill' + profile, datatill.toString());
         }
 
         /////////////////////////////////////////////////////////////////////
         function refreshData() {
-            $.getJSON('/_getdata', {
+            $.getJSON('_getdata', {
                 data_till: datatill,
                 profile: profile
             }, function(data, status) {
