@@ -113,7 +113,7 @@ workdir = os.path.dirname(os.path.realpath(__file__))
 data_file = '{}/webres/data.db'.format(workdir)
 data_buffer = []
 
-LAT_C, LNG_C, ALT_C = [None, None, None]
+LAT_C, LNG_C= [None, None]
 accuracy = random.random()*7+3
 
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
@@ -150,7 +150,7 @@ spawns = []
 safetysecs = 3
 
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies
+    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -158,7 +158,6 @@ def do_settings():
     parser.add_argument('-t', '--timeinterval', help='time interval')
     parser.add_argument('-lat', '--latitude', help='latitude')
     parser.add_argument('-lng', '--longitude', help='longitude')
-    parser.add_argument('-alt', '--altitude', help='altitude')
     parser.add_argument('-loc', '--location', help='location')
     parser.add_argument('-s', "--scannum", help="number of scans to run")
     parser.add_argument('-tos', "--tosaccept", help="let accounts accept tos at start", action="store_true")
@@ -167,7 +166,6 @@ def do_settings():
     HEX_NUM = args.range
     interval = args.timeinterval
 
-    ALT_C = args.altitude
     LAT_C = args.latitude
     LNG_C = args.longitude
     if args.location is not None:
@@ -271,10 +269,6 @@ def do_settings():
         LNG_C = allsettings['profiles'][idlist[0]]['coordinates']['lng']
     else:
         LNG_C = float(LNG_C)
-    if ALT_C is None:
-        ALT_C = allsettings['profiles'][idlist[0]]['coordinates']['alt']
-    else:
-        ALT_C = float(ALT_C)
 
     if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
         proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
@@ -431,8 +425,8 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
         ticket_serialized = p_req.auth_ticket.SerializeToString()
 
     sig = POGOProtos.Networking.Envelopes_pb2.Signature()
-    sig.location_hash1 = generateLocation1(ticket_serialized, location[0], location[1], location[2])
-    sig.location_hash2 = generateLocation2(location[0], location[1], location[2])
+    sig.location_hash1 = generateLocation1(ticket_serialized, location[0], location[1], accuracy)
+    sig.location_hash2 = generateLocation2(location[0], location[1], accuracy)
 
     for req in p_req.requests:
         req_hash = generateRequestHash(ticket_serialized, req.SerializeToString())
@@ -447,7 +441,10 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
     request_sig = p_req.platform_requests.add()
     request_sig.type = POGOProtos.Networking.Platform_pb2.SEND_ENCRYPTED_SIGNATURE
-    request_sig.wrap.request_message = generate_signature(signature_proto, signature_lib)
+    sig_env = POGOProtos.Networking.Platform.Requests_pb2.SendEncryptedSignatureRequest()
+
+    sig_env.encrypted_signature = generate_signature(signature_proto, signature_lib)
+    request_sig.request_message = sig_env.SerializeToString()
 
     request_str = p_req.SerializeToString()
 
@@ -536,7 +533,7 @@ def get_profile(rtype, location, account, *reqq):
     if len(reqq) >= 6:
         req6.MergeFrom(reqq[5])
 
-    while True:  # 1 for hearbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
+    while True:  # 1 for heartbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         time.sleep(time_hb)
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
         if response is None:
@@ -1087,7 +1084,7 @@ def main():
             do_login(self.account)
             lprint('[{}] Login for {} account: {}'.format(self.account['num'], self.account['type'], self.account['user']))
             lprint('[{}] RPC Session Token: {}'.format(self.account['num'], self.account['access_token']))
-            location = LAT_C, LNG_C , ALT_C
+            location = LAT_C, LNG_C
             set_api_endpoint(location, self.account)
             lprint('[{}] API endpoint: {}'.format(self.account['num'], self.account['api_url']))
             if acc_tos:
@@ -1098,8 +1095,7 @@ def main():
 
             # ////////////////////
             while True:
-                this_loc = addlocation.get()
-                location = this_loc[0], this_loc[1], ALT_C
+                location = addlocation.get()
                 h = heartbeat(location, self.account)
                 count = 0
                 while h is None and count < tries:
@@ -1107,13 +1103,13 @@ def main():
                     h = heartbeat(location, self.account)
                 if h is None:
                     if not smartscan:
-                        empty_loc[all_loc.index(this_loc)] += 1
+                        empty_loc[all_loc.index(location)] += 1
                         empty_thisrun += 1
                     else:
                         lprint('[-] Non-empty cell returned as empty.')
                 else:
                     if not smartscan:
-                        empty_loc[all_loc.index(this_loc)] = 0
+                        empty_loc[all_loc.index(location)] = 0
                         countmax = max(countmax, count)
                         countall += count
                     for cell in h.map_cells:

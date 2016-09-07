@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='POGOProtos.Networking.Envelopes.proto',
   package='POGOProtos.Networking.Envelopes',
   syntax='proto3',
-  serialized_pb=_b('\n%POGOProtos.Networking.Envelopes.proto\x12\x1fPOGOProtos.Networking.Envelopes\x1a$POGOProtos.Networking.Requests.proto\x1a$POGOProtos.Networking.Platform.proto\"E\n\nAuthTicket\x12\r\n\x05start\x18\x01 \x01(\x0c\x12\x1b\n\x13\x65xpire_timestamp_ms\x18\x02 \x01(\x04\x12\x0b\n\x03\x65nd\x18\x03 \x01(\x0c\"\xa7\x06\n\x0fRequestEnvelope\x12\x13\n\x0bstatus_code\x18\x01 \x01(\x05\x12\x12\n\nrequest_id\x18\x03 \x01(\x04\x12\x39\n\x08requests\x18\x04 \x03(\x0b\x32\'.POGOProtos.Networking.Requests.Request\x12[\n\x11platform_requests\x18\x06 \x03(\x0b\x32@.POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest\x12\x10\n\x08latitude\x18\x07 \x01(\x01\x12\x11\n\tlongitude\x18\x08 \x01(\x01\x12\x10\n\x08\x61\x63\x63uracy\x18\t \x01(\x01\x12L\n\tauth_info\x18\n \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo\x12@\n\x0b\x61uth_ticket\x18\x0b \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12!\n\x19ms_since_last_locationfix\x18\x0c \x01(\x03\x1a\x95\x01\n\x08\x41uthInfo\x12\x10\n\x08provider\x18\x01 \x01(\t\x12L\n\x05token\x18\x02 \x01(\x0b\x32=.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo.JWT\x1a)\n\x03JWT\x12\x10\n\x08\x63ontents\x18\x01 \x01(\t\x12\x10\n\x08unknown2\x18\x02 \x01(\x05\x1a\xd0\x01\n\x0fPlatformRequest\x12\x41\n\x04type\x18\x01 \x01(\x0e\x32\x33.POGOProtos.Networking.Platform.PlatformRequestType\x12V\n\x04wrap\x18\x02 \x01(\x0b\x32H.POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER\x1a\"\n\x07WRAPPER\x12\x17\n\x0frequest_message\x18\x01 \x01(\x0c\"\xf6\x04\n\x10ResponseEnvelope\x12Q\n\x0bstatus_code\x18\x01 \x01(\x0e\x32<.POGOProtos.Networking.Envelopes.ResponseEnvelope.StatusCode\x12\x12\n\nrequest_id\x18\x02 \x01(\x04\x12\x0f\n\x07\x61pi_url\x18\x03 \x01(\t\x12\\\n\x10platform_returns\x18\x06 \x03(\x0b\x32\x42.POGOProtos.Networking.Envelopes.ResponseEnvelope.PlatformResponse\x12@\n\x0b\x61uth_ticket\x18\x07 \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12\x0f\n\x07returns\x18\x64 \x03(\x0c\x12\r\n\x05\x65rror\x18\x65 \x01(\t\x1ag\n\x10PlatformResponse\x12\x41\n\x04type\x18\x01 \x01(\x0e\x32\x33.POGOProtos.Networking.Platform.PlatformRequestType\x12\x10\n\x08response\x18\x02 \x01(\x0c\"\xc0\x01\n\nStatusCode\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x06\n\x02OK\x10\x01\x12\x1a\n\x16OK_RPC_URL_IN_RESPONSE\x10\x02\x12\x0f\n\x0b\x42\x41\x44_REQUEST\x10\x03\x12\x13\n\x0fINVALID_REQUEST\x10\x33\x12\x1c\n\x18INVALID_PLATFORM_REQUEST\x10\x34\x12\x0c\n\x08REDIRECT\x10\x35\x12\x17\n\x13SESSION_INVALIDATED\x10\x64\x12\x16\n\x12INVALID_AUTH_TOKEN\x10\x66\"\xd2\x0f\n\tSignature\x12\x1d\n\x15timestamp_since_start\x18\x02 \x01(\x04\x12L\n\x0clocation_fix\x18\x04 \x03(\x0b\x32\x36.POGOProtos.Networking.Envelopes.Signature.LocationFix\x12K\n\x08gps_info\x18\x05 \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo\x12J\n\x0bsensor_info\x18\x07 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.SensorInfo\x12J\n\x0b\x64\x65vice_info\x18\x08 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.DeviceInfo\x12R\n\x0f\x61\x63tivity_status\x18\t \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.ActivityStatus\x12\x16\n\x0elocation_hash1\x18\n \x01(\r\x12\x16\n\x0elocation_hash2\x18\x14 \x01(\r\x12\x14\n\x0csession_hash\x18\x16 \x01(\x0c\x12\x11\n\ttimestamp\x18\x17 \x01(\x04\x12\x14\n\x0crequest_hash\x18\x18 \x03(\x04\x12\x11\n\tunknown25\x18\x19 \x01(\x03\x1a\x88\x02\n\x0bLocationFix\x12\x10\n\x08provider\x18\x01 \x01(\t\x12\x1a\n\x12timestamp_snapshot\x18\x02 \x01(\x04\x12\x10\n\x08\x61ltitude\x18\x04 \x01(\x02\x12\x10\n\x08latitude\x18\r \x01(\x02\x12\x11\n\tlongitude\x18\x0e \x01(\x02\x12\r\n\x05speed\x18\x12 \x01(\x02\x12\x0e\n\x06\x63ourse\x18\x14 \x01(\x02\x12\x1b\n\x13horizontal_accuracy\x18\x15 \x01(\x02\x12\x19\n\x11vertical_accuracy\x18\x16 \x01(\x02\x12\x17\n\x0fprovider_status\x18\x1a \x01(\x04\x12\r\n\x05\x66loor\x18\x1b \x01(\r\x12\x15\n\rlocation_type\x18\x1c \x01(\x04\x1a\xaf\x01\n\x0e\x41ndroidGpsInfo\x12\x13\n\x0btime_to_fix\x18\x01 \x01(\x04\x12\x16\n\x0esatellites_prn\x18\x02 \x03(\x05\x12\x0f\n\x07\x61zimuth\x18\x03 \x03(\x02\x12\x11\n\televation\x18\x04 \x03(\x02\x12\x0b\n\x03snr\x18\x05 \x03(\x02\x12\x13\n\x0bhas_almanac\x18\x06 \x03(\x08\x12\x15\n\rhas_ephemeris\x18\x07 \x03(\x08\x12\x13\n\x0bused_in_fix\x18\x08 \x03(\x08\x1a\xc4\x03\n\nSensorInfo\x12\x1a\n\x12timestamp_snapshot\x18\x01 \x01(\x04\x12\x1d\n\x15linear_acceleration_x\x18\x03 \x01(\x01\x12\x1d\n\x15linear_acceleration_y\x18\x04 \x01(\x01\x12\x1d\n\x15linear_acceleration_z\x18\x05 \x01(\x01\x12\x18\n\x10magnetic_field_x\x18\x06 \x01(\x01\x12\x18\n\x10magnetic_field_y\x18\x07 \x01(\x01\x12\x18\n\x10magnetic_field_z\x18\x08 \x01(\x01\x12\x19\n\x11rotation_vector_x\x18\n \x01(\x01\x12\x19\n\x11rotation_vector_y\x18\x0b \x01(\x01\x12\x19\n\x11rotation_vector_z\x18\x0c \x01(\x01\x12\x17\n\x0fgyroscope_raw_x\x18\r \x01(\x01\x12\x17\n\x0fgyroscope_raw_y\x18\x0e \x01(\x01\x12\x17\n\x0fgyroscope_raw_z\x18\x0f \x01(\x01\x12\x11\n\tgravity_x\x18\x10 \x01(\x01\x12\x11\n\tgravity_y\x18\x11 \x01(\x01\x12\x11\n\tgravity_z\x18\x12 \x01(\x01\x12\x1a\n\x12\x61\x63\x63\x65lerometer_axes\x18\x13 \x01(\x04\x1a\xda\x02\n\nDeviceInfo\x12\x11\n\tdevice_id\x18\x01 \x01(\t\x12\x1a\n\x12\x61ndroid_board_name\x18\x02 \x01(\t\x12\x1a\n\x12\x61ndroid_bootloader\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x65vice_brand\x18\x04 \x01(\t\x12\x14\n\x0c\x64\x65vice_model\x18\x05 \x01(\t\x12\x1f\n\x17\x64\x65vice_model_identifier\x18\x06 \x01(\t\x12\x19\n\x11\x64\x65vice_model_boot\x18\x07 \x01(\t\x12\x1d\n\x15hardware_manufacturer\x18\x08 \x01(\t\x12\x16\n\x0ehardware_model\x18\t \x01(\t\x12\x16\n\x0e\x66irmware_brand\x18\n \x01(\t\x12\x15\n\rfirmware_tags\x18\x0c \x01(\t\x12\x15\n\rfirmware_type\x18\r \x01(\t\x12\x1c\n\x14\x66irmware_fingerprint\x18\x0e \x01(\t\x1a\xbb\x01\n\x0e\x41\x63tivityStatus\x12\x15\n\rstart_time_ms\x18\x01 \x01(\x04\x12\x16\n\x0eunknown_status\x18\x02 \x01(\x08\x12\x0f\n\x07walking\x18\x03 \x01(\x08\x12\x0f\n\x07running\x18\x04 \x01(\x08\x12\x12\n\nstationary\x18\x05 \x01(\x08\x12\x12\n\nautomotive\x18\x06 \x01(\x08\x12\x0f\n\x07tilting\x18\x07 \x01(\x08\x12\x0f\n\x07\x63ycling\x18\x08 \x01(\x08\x12\x0e\n\x06status\x18\t \x01(\x0cP\x00P\x01\x62\x06proto3')
+  serialized_pb=_b('\n%POGOProtos.Networking.Envelopes.proto\x12\x1fPOGOProtos.Networking.Envelopes\x1a$POGOProtos.Networking.Requests.proto\x1a$POGOProtos.Networking.Platform.proto\"E\n\nAuthTicket\x12\r\n\x05start\x18\x01 \x01(\x0c\x12\x1b\n\x13\x65xpire_timestamp_ms\x18\x02 \x01(\x04\x12\x0b\n\x03\x65nd\x18\x03 \x01(\x0c\"\xc3\x05\n\x0fRequestEnvelope\x12\x13\n\x0bstatus_code\x18\x01 \x01(\x05\x12\x12\n\nrequest_id\x18\x03 \x01(\x04\x12\x39\n\x08requests\x18\x04 \x03(\x0b\x32\'.POGOProtos.Networking.Requests.Request\x12[\n\x11platform_requests\x18\x06 \x03(\x0b\x32@.POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest\x12\x10\n\x08latitude\x18\x07 \x01(\x01\x12\x11\n\tlongitude\x18\x08 \x01(\x01\x12\x10\n\x08\x61\x63\x63uracy\x18\t \x01(\x01\x12L\n\tauth_info\x18\n \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo\x12@\n\x0b\x61uth_ticket\x18\x0b \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12!\n\x19ms_since_last_locationfix\x18\x0c \x01(\x03\x1a\x95\x01\n\x08\x41uthInfo\x12\x10\n\x08provider\x18\x01 \x01(\t\x12L\n\x05token\x18\x02 \x01(\x0b\x32=.POGOProtos.Networking.Envelopes.RequestEnvelope.AuthInfo.JWT\x1a)\n\x03JWT\x12\x10\n\x08\x63ontents\x18\x01 \x01(\t\x12\x10\n\x08unknown2\x18\x02 \x01(\x05\x1am\n\x0fPlatformRequest\x12\x41\n\x04type\x18\x01 \x01(\x0e\x32\x33.POGOProtos.Networking.Platform.PlatformRequestType\x12\x17\n\x0frequest_message\x18\x02 \x01(\x0c\"\xf6\x04\n\x10ResponseEnvelope\x12Q\n\x0bstatus_code\x18\x01 \x01(\x0e\x32<.POGOProtos.Networking.Envelopes.ResponseEnvelope.StatusCode\x12\x12\n\nrequest_id\x18\x02 \x01(\x04\x12\x0f\n\x07\x61pi_url\x18\x03 \x01(\t\x12\\\n\x10platform_returns\x18\x06 \x03(\x0b\x32\x42.POGOProtos.Networking.Envelopes.ResponseEnvelope.PlatformResponse\x12@\n\x0b\x61uth_ticket\x18\x07 \x01(\x0b\x32+.POGOProtos.Networking.Envelopes.AuthTicket\x12\x0f\n\x07returns\x18\x64 \x03(\x0c\x12\r\n\x05\x65rror\x18\x65 \x01(\t\x1ag\n\x10PlatformResponse\x12\x41\n\x04type\x18\x01 \x01(\x0e\x32\x33.POGOProtos.Networking.Platform.PlatformRequestType\x12\x10\n\x08response\x18\x02 \x01(\x0c\"\xc0\x01\n\nStatusCode\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x06\n\x02OK\x10\x01\x12\x1a\n\x16OK_RPC_URL_IN_RESPONSE\x10\x02\x12\x0f\n\x0b\x42\x41\x44_REQUEST\x10\x03\x12\x13\n\x0fINVALID_REQUEST\x10\x33\x12\x1c\n\x18INVALID_PLATFORM_REQUEST\x10\x34\x12\x0c\n\x08REDIRECT\x10\x35\x12\x17\n\x13SESSION_INVALIDATED\x10\x64\x12\x16\n\x12INVALID_AUTH_TOKEN\x10\x66\"\xd2\x0f\n\tSignature\x12\x1d\n\x15timestamp_since_start\x18\x02 \x01(\x04\x12L\n\x0clocation_fix\x18\x04 \x03(\x0b\x32\x36.POGOProtos.Networking.Envelopes.Signature.LocationFix\x12K\n\x08gps_info\x18\x05 \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.AndroidGpsInfo\x12J\n\x0bsensor_info\x18\x07 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.SensorInfo\x12J\n\x0b\x64\x65vice_info\x18\x08 \x01(\x0b\x32\x35.POGOProtos.Networking.Envelopes.Signature.DeviceInfo\x12R\n\x0f\x61\x63tivity_status\x18\t \x01(\x0b\x32\x39.POGOProtos.Networking.Envelopes.Signature.ActivityStatus\x12\x16\n\x0elocation_hash1\x18\n \x01(\r\x12\x16\n\x0elocation_hash2\x18\x14 \x01(\r\x12\x14\n\x0csession_hash\x18\x16 \x01(\x0c\x12\x11\n\ttimestamp\x18\x17 \x01(\x04\x12\x14\n\x0crequest_hash\x18\x18 \x03(\x04\x12\x11\n\tunknown25\x18\x19 \x01(\x03\x1a\x88\x02\n\x0bLocationFix\x12\x10\n\x08provider\x18\x01 \x01(\t\x12\x1a\n\x12timestamp_snapshot\x18\x02 \x01(\x04\x12\x10\n\x08\x61ltitude\x18\x04 \x01(\x02\x12\x10\n\x08latitude\x18\r \x01(\x02\x12\x11\n\tlongitude\x18\x0e \x01(\x02\x12\r\n\x05speed\x18\x12 \x01(\x02\x12\x0e\n\x06\x63ourse\x18\x14 \x01(\x02\x12\x1b\n\x13horizontal_accuracy\x18\x15 \x01(\x02\x12\x19\n\x11vertical_accuracy\x18\x16 \x01(\x02\x12\x17\n\x0fprovider_status\x18\x1a \x01(\x04\x12\r\n\x05\x66loor\x18\x1b \x01(\r\x12\x15\n\rlocation_type\x18\x1c \x01(\x04\x1a\xaf\x01\n\x0e\x41ndroidGpsInfo\x12\x13\n\x0btime_to_fix\x18\x01 \x01(\x04\x12\x16\n\x0esatellites_prn\x18\x02 \x03(\x05\x12\x0f\n\x07\x61zimuth\x18\x03 \x03(\x02\x12\x11\n\televation\x18\x04 \x03(\x02\x12\x0b\n\x03snr\x18\x05 \x03(\x02\x12\x13\n\x0bhas_almanac\x18\x06 \x03(\x08\x12\x15\n\rhas_ephemeris\x18\x07 \x03(\x08\x12\x13\n\x0bused_in_fix\x18\x08 \x03(\x08\x1a\xc4\x03\n\nSensorInfo\x12\x1a\n\x12timestamp_snapshot\x18\x01 \x01(\x04\x12\x1d\n\x15linear_acceleration_x\x18\x03 \x01(\x01\x12\x1d\n\x15linear_acceleration_y\x18\x04 \x01(\x01\x12\x1d\n\x15linear_acceleration_z\x18\x05 \x01(\x01\x12\x18\n\x10magnetic_field_x\x18\x06 \x01(\x01\x12\x18\n\x10magnetic_field_y\x18\x07 \x01(\x01\x12\x18\n\x10magnetic_field_z\x18\x08 \x01(\x01\x12\x19\n\x11rotation_vector_x\x18\n \x01(\x01\x12\x19\n\x11rotation_vector_y\x18\x0b \x01(\x01\x12\x19\n\x11rotation_vector_z\x18\x0c \x01(\x01\x12\x17\n\x0fgyroscope_raw_x\x18\r \x01(\x01\x12\x17\n\x0fgyroscope_raw_y\x18\x0e \x01(\x01\x12\x17\n\x0fgyroscope_raw_z\x18\x0f \x01(\x01\x12\x11\n\tgravity_x\x18\x10 \x01(\x01\x12\x11\n\tgravity_y\x18\x11 \x01(\x01\x12\x11\n\tgravity_z\x18\x12 \x01(\x01\x12\x1a\n\x12\x61\x63\x63\x65lerometer_axes\x18\x13 \x01(\x04\x1a\xda\x02\n\nDeviceInfo\x12\x11\n\tdevice_id\x18\x01 \x01(\t\x12\x1a\n\x12\x61ndroid_board_name\x18\x02 \x01(\t\x12\x1a\n\x12\x61ndroid_bootloader\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x65vice_brand\x18\x04 \x01(\t\x12\x14\n\x0c\x64\x65vice_model\x18\x05 \x01(\t\x12\x1f\n\x17\x64\x65vice_model_identifier\x18\x06 \x01(\t\x12\x19\n\x11\x64\x65vice_model_boot\x18\x07 \x01(\t\x12\x1d\n\x15hardware_manufacturer\x18\x08 \x01(\t\x12\x16\n\x0ehardware_model\x18\t \x01(\t\x12\x16\n\x0e\x66irmware_brand\x18\n \x01(\t\x12\x15\n\rfirmware_tags\x18\x0c \x01(\t\x12\x15\n\rfirmware_type\x18\r \x01(\t\x12\x1c\n\x14\x66irmware_fingerprint\x18\x0e \x01(\t\x1a\xbb\x01\n\x0e\x41\x63tivityStatus\x12\x15\n\rstart_time_ms\x18\x01 \x01(\x04\x12\x16\n\x0eunknown_status\x18\x02 \x01(\x08\x12\x0f\n\x07walking\x18\x03 \x01(\x08\x12\x0f\n\x07running\x18\x04 \x01(\x08\x12\x12\n\nstationary\x18\x05 \x01(\x08\x12\x12\n\nautomotive\x18\x06 \x01(\x08\x12\x0f\n\x07tilting\x18\x07 \x01(\x08\x12\x0f\n\x07\x63ycling\x18\x08 \x01(\x08\x12\x0e\n\x06status\x18\t \x01(\x0cP\x00P\x01\x62\x06proto3')
   ,
   dependencies=[POGOProtos_dot_Networking_dot_Requests__pb2.DESCRIPTOR,POGOProtos_dot_Networking_dot_Platform__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -75,8 +75,8 @@ _RESPONSEENVELOPE_STATUSCODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1470,
-  serialized_end=1662,
+  serialized_start=1370,
+  serialized_end=1562,
 )
 _sym_db.RegisterEnumDescriptor(_RESPONSEENVELOPE_STATUSCODE)
 
@@ -200,16 +200,23 @@ _REQUESTENVELOPE_AUTHINFO = _descriptor.Descriptor(
   serialized_end=818,
 )
 
-_REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER = _descriptor.Descriptor(
-  name='WRAPPER',
-  full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER',
+_REQUESTENVELOPE_PLATFORMREQUEST = _descriptor.Descriptor(
+  name='PlatformRequest',
+  full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='request_message', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER.request_message', index=0,
-      number=1, type=12, cpp_type=9, label=1,
+      name='type', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='request_message', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.request_message', index=1,
+      number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -226,45 +233,8 @@ _REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=995,
-  serialized_end=1029,
-)
-
-_REQUESTENVELOPE_PLATFORMREQUEST = _descriptor.Descriptor(
-  name='PlatformRequest',
-  full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='type', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.type', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='wrap', full_name='POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.wrap', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=821,
-  serialized_end=1029,
+  serialized_start=820,
+  serialized_end=929,
 )
 
 _REQUESTENVELOPE = _descriptor.Descriptor(
@@ -357,7 +327,7 @@ _REQUESTENVELOPE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=222,
-  serialized_end=1029,
+  serialized_end=929,
 )
 
 
@@ -394,8 +364,8 @@ _RESPONSEENVELOPE_PLATFORMRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1364,
-  serialized_end=1467,
+  serialized_start=1264,
+  serialized_end=1367,
 )
 
 _RESPONSEENVELOPE = _descriptor.Descriptor(
@@ -467,8 +437,8 @@ _RESPONSEENVELOPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1032,
-  serialized_end=1662,
+  serialized_start=932,
+  serialized_end=1562,
 )
 
 
@@ -575,8 +545,8 @@ _SIGNATURE_LOCATIONFIX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2231,
-  serialized_end=2495,
+  serialized_start=2131,
+  serialized_end=2395,
 )
 
 _SIGNATURE_ANDROIDGPSINFO = _descriptor.Descriptor(
@@ -654,8 +624,8 @@ _SIGNATURE_ANDROIDGPSINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2498,
-  serialized_end=2673,
+  serialized_start=2398,
+  serialized_end=2573,
 )
 
 _SIGNATURE_SENSORINFO = _descriptor.Descriptor(
@@ -796,8 +766,8 @@ _SIGNATURE_SENSORINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2676,
-  serialized_end=3128,
+  serialized_start=2576,
+  serialized_end=3028,
 )
 
 _SIGNATURE_DEVICEINFO = _descriptor.Descriptor(
@@ -910,8 +880,8 @@ _SIGNATURE_DEVICEINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3131,
-  serialized_end=3477,
+  serialized_start=3031,
+  serialized_end=3377,
 )
 
 _SIGNATURE_ACTIVITYSTATUS = _descriptor.Descriptor(
@@ -996,8 +966,8 @@ _SIGNATURE_ACTIVITYSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3480,
-  serialized_end=3667,
+  serialized_start=3380,
+  serialized_end=3567,
 )
 
 _SIGNATURE = _descriptor.Descriptor(
@@ -1103,16 +1073,14 @@ _SIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1665,
-  serialized_end=3667,
+  serialized_start=1565,
+  serialized_end=3567,
 )
 
 _REQUESTENVELOPE_AUTHINFO_JWT.containing_type = _REQUESTENVELOPE_AUTHINFO
 _REQUESTENVELOPE_AUTHINFO.fields_by_name['token'].message_type = _REQUESTENVELOPE_AUTHINFO_JWT
 _REQUESTENVELOPE_AUTHINFO.containing_type = _REQUESTENVELOPE
-_REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER.containing_type = _REQUESTENVELOPE_PLATFORMREQUEST
 _REQUESTENVELOPE_PLATFORMREQUEST.fields_by_name['type'].enum_type = POGOProtos_dot_Networking_dot_Platform__pb2._PLATFORMREQUESTTYPE
-_REQUESTENVELOPE_PLATFORMREQUEST.fields_by_name['wrap'].message_type = _REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER
 _REQUESTENVELOPE_PLATFORMREQUEST.containing_type = _REQUESTENVELOPE
 _REQUESTENVELOPE.fields_by_name['requests'].message_type = POGOProtos_dot_Networking_dot_Requests__pb2._REQUEST
 _REQUESTENVELOPE.fields_by_name['platform_requests'].message_type = _REQUESTENVELOPE_PLATFORMREQUEST
@@ -1163,13 +1131,6 @@ RequestEnvelope = _reflection.GeneratedProtocolMessageType('RequestEnvelope', (_
   ,
 
   PlatformRequest = _reflection.GeneratedProtocolMessageType('PlatformRequest', (_message.Message,), dict(
-
-    WRAPPER = _reflection.GeneratedProtocolMessageType('WRAPPER', (_message.Message,), dict(
-      DESCRIPTOR = _REQUESTENVELOPE_PLATFORMREQUEST_WRAPPER,
-      __module__ = 'POGOProtos.Networking.Envelopes_pb2'
-      # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest.WRAPPER)
-      ))
-    ,
     DESCRIPTOR = _REQUESTENVELOPE_PLATFORMREQUEST,
     __module__ = 'POGOProtos.Networking.Envelopes_pb2'
     # @@protoc_insertion_point(class_scope:POGOProtos.Networking.Envelopes.RequestEnvelope.PlatformRequest)
@@ -1183,7 +1144,6 @@ _sym_db.RegisterMessage(RequestEnvelope)
 _sym_db.RegisterMessage(RequestEnvelope.AuthInfo)
 _sym_db.RegisterMessage(RequestEnvelope.AuthInfo.JWT)
 _sym_db.RegisterMessage(RequestEnvelope.PlatformRequest)
-_sym_db.RegisterMessage(RequestEnvelope.PlatformRequest.WRAPPER)
 
 ResponseEnvelope = _reflection.GeneratedProtocolMessageType('ResponseEnvelope', (_message.Message,), dict(
 
