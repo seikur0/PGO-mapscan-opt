@@ -82,6 +82,7 @@ def getNeighbors(location):
 API_URL = 'https://pgorelease.nianticlabs.com/plfe/rpc'
 
 requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+random.seed()
 
 NET_MAXWAIT = 30
 LOGIN_MAXWAIT = 30
@@ -113,6 +114,7 @@ data_file = '{}/webres/data.db'.format(workdir)
 data_buffer = []
 
 LAT_C, LNG_C, ALT_C = [None, None, None]
+accuracy = random.random()*7+3
 
 SETTINGS_FILE = '{}/res/usersettings.json'.format(workdir)
 
@@ -410,7 +412,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
 
     p_req.status_code = POGOProtos.Networking.Envelopes_pb2.GET_PLAYER
 
-    p_req.latitude, p_req.longitude, p_req.accuracy = location
+    p_req.latitude, p_req.longitude, p_req.accuracy = location[0],location[1],accuracy
 
     for s_req in reqs:
         p_req.MergeFrom(s_req)
@@ -1271,8 +1273,6 @@ def main():
         sys.exit()
 
     signal.signal(signal.SIGINT, signal_handler)
-
-    random.seed()
 
     signature_lib = ctypes.cdll.LoadLibrary('{}/res/encrypt.so'.format(workdir))
     signature_lib.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_size_t)]
