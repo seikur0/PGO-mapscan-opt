@@ -3,7 +3,6 @@
 ## Instructions
 * Rename 'usersettings.json.example' in the res subfolder to 'usersettings.json' and edit the file to your liking.
   * The first 'profile' has to be edited and if you want the map functionality the 'api_key' setting as well. Profiles with same ids form a scan group. They use the location and the (optional) proxy from the first profile in that group.
-  * An altitude, which is not 0, may be less suspicious, just saying ;)
 * 'pip install -r requirements.txt'
   * if it fails 'pip install --user -r requirements.txt' (mostly for unix systems) or try to sudo it
   * if it fails and you're using windows, you may need to install these runtimes from Microsoft: http://aka.ms/vcpython27
