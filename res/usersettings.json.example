@@ -50,7 +50,7 @@
   "login_simu": true,
   
   "_comment12": "Port that the webserver will use. Set to 0 to use random open port.",
-  "port": 0,
+  "port": 8000,
   
   "_comment13": "The profiles. Each with their own id, login info, coordinates and proxy.",
   "profiles": [
