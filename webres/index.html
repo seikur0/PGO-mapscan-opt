@@ -22,13 +22,13 @@
         var spawns = [];
         var pokenames;
         var language = '{{ language }}';
-        var scalefac = {{ icon_scalefactor }};
         var timenow;
         var infowindow;
         var iconSize;
         var iconAnchor;
         var iconScaledSize;
         var icsize = 64;
+        var icsize_scaled = Math.ceil({{ icon_scalefactor }} * icsize);
         var timelefttext;
         var timehiddentext;
         var changing = true;
@@ -63,7 +63,7 @@
                 var timeleft = p_expiretime - timenow;
                 if (timeleft > 0) {
                     var newaddinfo = p_addinfo;
-                    var cIcon = {url: "static/icons/icons_gen1.png",size: iconSize,origin: new google.maps.Point(0, 64*(p_pokeid-1)),anchor: iconAnchor,scaledSize: iconScaledSize};
+                    var cIcon = {url: "static/icons/icons_gen1.png",size: iconSize,origin: new google.maps.Point(0, icsize_scaled*(p_pokeid-1)),anchor: iconAnchor,scaledSize: iconScaledSize};
                     var s = 0;
                     while (s < spawns.length && spawns[s] != p_spawnid) {
                         s++;
@@ -288,9 +288,9 @@
 
             currentLocationMarker = new google.maps.Marker();
             infowindow = new google.maps.InfoWindow();
-            iconSize = new google.maps.Size(icsize, icsize);
-            iconAnchor = new google.maps.Point(icsize/2, icsize/2);
-            iconScaledSize = new google.maps.Size(64*scalefac, 151*64*scalefac);
+            iconSize = new google.maps.Size(icsize_scaled, icsize_scaled);
+            iconAnchor = new google.maps.Point(Math.round(icsize_scaled/2), Math.round(icsize_scaled/2));
+            iconScaledSize = new google.maps.Size(icsize_scaled, 151*icsize_scaled);
 
             google.maps.event.addListener(map, 'click', function(event) {
                 infowindow.close()
