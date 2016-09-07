@@ -49,16 +49,17 @@
   "_comment11": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
   "login_simu": true,
   
-  "_comment12": "Port that the webserver will use. Set to 0 to disable.",
+  "_comment12": "Port that the webserver will use. Set to 0 to use random open port.",
   "port": 0,
   
-  "_comment13": "The profiles. Each with their own id, login info, and coordinates.",
+  "_comment13": "The profiles. Each with their own id, login info, coordinates and proxy.",
   "profiles": [
     {
       "id": 0,
       "type": "ptc",
       "username": "agent0",
       "password": "pass",
+	  "proxy": "",
       "coordinates":
           {
               "lat": 0,
@@ -70,49 +71,25 @@
       "id": 0,
       "type": "ptc",
       "username": "agent1",
-      "password": "pass",
-      "coordinates":
-          {
-              "lat": 0,
-              "lng": 0,
-              "alt": 0
-          }
+      "password": "pass"
     },
     {
       "id": 0,
       "type": "google",
       "username": "agent2",
-      "password": "pass",
-      "coordinates":
-          {
-              "lat": 0,
-              "lng": 0,
-              "alt": 0
-          }
+      "password": "pass"
     },
     {
       "id": 0,
       "type": "ptc",
       "username": "agent3",
-      "password": "pass",
-      "coordinates":
-          {
-              "lat": 0,
-              "lng": 0,
-              "alt": 0
-          }
+      "password": "pass"
     },
     {
       "id": 0,
       "type": "google",
       "username": "agent4",
-      "password": "pass",
-      "coordinates":
-          {
-              "lat": 0,
-              "lng": 0,
-              "alt": 0
-          }
+      "password": "pass"
     }
   ]
 }

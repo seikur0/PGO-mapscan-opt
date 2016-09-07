@@ -86,6 +86,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 NET_MAXWAIT = 30
 LOGIN_MAXWAIT = 30
 MAXWAIT = LOGIN_MAXWAIT
+proxies = None
 
 EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
@@ -147,7 +148,7 @@ spawns = []
 safetysecs = 3
 
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot
+    global LANGUAGE, LAT_C, LNG_C, ALT_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -273,6 +274,10 @@ def do_settings():
     else:
         ALT_C = float(ALT_C)
 
+    if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
+        proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
+        lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
+
     return accounts
 
 
@@ -309,6 +314,8 @@ def login_google(account):
             session = requests.session()
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'}) #session.headers.update({'User-Agent': 'niantic'})
+            if not proxies is None:
+                session.proxies.update(proxies)
             account['session'] = session
             return
         except Exception as e:
@@ -328,6 +335,8 @@ def login_ptc(account):
             session = requests.session()
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'})  # session.headers.update({'User-Agent': 'niantic'})
+            if not proxies is None:
+                session.proxies.update(proxies)
 
             step = 0
             r = session.get(LOGIN_URL)
