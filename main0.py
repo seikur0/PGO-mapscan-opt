@@ -1293,7 +1293,9 @@ def main():
                                         if re.search('Connection aborted', str(e)) is None:
                                             lprint('[-] Connection Error during Pushbullet, error: {}'.format(e))
                                 for telegram in telegrams:
-                                    telebot.sendMessage(chat_id=telegram, text= '<b>' + notification_text + '</b>\n' + '<a href="https://maps.google.com/?ll={},{}&q={},{}&z=14">location</a>\n'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude) + time_text, parse_mode= 'HTML',disable_web_page_preview='False',disable_notification='False')
+                                    telebot.sendMessage(chat_id=telegram, text= '<b>' + notification_text + '</b>\n' +  time_text, parse_mode= 'HTML',disable_web_page_preview='False',disable_notification='False')
+
+                                    telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude)
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
