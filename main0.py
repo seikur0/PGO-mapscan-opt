@@ -643,6 +643,7 @@ def init_data():
     with con:
         cur = con.cursor()
         cur.execute("CREATE TABLE IF NOT EXISTS spawns(spawnid INTEGER PRIMARY KEY, latitude REAL, longitude REAL, spawntype INTEGER, pokeid INTEGER, expiretime INTEGER, fromtime INTEGER, profile INTEGER)")
+        cur.execute("PRAGMA journal_mode = OFF")
 
 def update_data():
     timenow = int(round(time.time(),0))
@@ -1269,7 +1270,7 @@ def main():
                             if addinfo:
                                 f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime_2nd,
                                                                                       mod_spawntime_2nd+finished_ms, addinfo_phase_sec[addinfo]-finished_ms, wild.encounter_id))
-                            data_buffer.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int(wild.last_modified_timestamp_ms + mod_tth + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]) / 1000.0 ,addinfo])
+                            data_buffer.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int(round((wild.last_modified_timestamp_ms + mod_tth + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]) / 1000.0)) ,addinfo])
                             if not silent:
                                 other_ll = LatLng.from_degrees(wild.latitude, wild.longitude)
                                 origin_ll = LatLng.from_degrees(LAT_C, LNG_C)
@@ -1293,9 +1294,7 @@ def main():
                                         if re.search('Connection aborted', str(e)) is None:
                                             lprint('[-] Connection Error during Pushbullet, error: {}'.format(e))
                                 for telegram in telegrams:
-                                    telebot.sendMessage(chat_id=telegram, text= '<b>' + notification_text + '</b>\n' +  time_text, parse_mode= 'HTML',disable_web_page_preview='False',disable_notification='False')
-
-                                    telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude)
+                                    telebot.sendMessage(chat_id=telegram, text= '<b>' + notification_text + '</b>\n' + '<a href="https://maps.google.com/?ll={},{}&q={},{}&z=14">location</a>\n'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude) + time_text, parse_mode= 'HTML',disable_web_page_preview='False',disable_notification='False')
 
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
@@ -1310,6 +1309,7 @@ def main():
 
                                 nextdatwrite = time.time() + interval_datwrite
                     addpokemon.task_done()
+                f.close()
             finally:
                 if 'f' in vars() and not f.closed:
                     f.close()
