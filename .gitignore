@@ -1,7 +1,7 @@
 *.pyc
 res/spawns*.txt
 res/banned*.txt
-webres/data*.json
+webres/data.db
 webres/websettings.json
 res/encrypt.so
 res/*.json
