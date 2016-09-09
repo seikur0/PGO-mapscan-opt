@@ -146,6 +146,7 @@ lock_banfile = threading.Lock()
 locktime = None
 smartscan = False
 silent = False
+verbose = False
 safetysecs = 3
 
 def do_settings():
@@ -160,6 +161,7 @@ def do_settings():
     parser.add_argument('-loc', '--location', help='location')
     parser.add_argument('-s', "--scannum", help="number of scans to run")
     parser.add_argument('-tos', "--tosaccept", help="let accounts accept tos at start", action="store_true")
+    parser.add_argument('-v', '--verbose', help='makes it put out all found pokemon all the time', action='store_true')
     args = parser.parse_args()
     wID = args.id
     HEX_NUM = args.range
@@ -180,6 +182,8 @@ def do_settings():
 
     if args.tosaccept:
         acc_tos = True
+    if args.verbose:
+        verbose = True
 
     if wID is None:
         wID = 0
@@ -961,6 +965,7 @@ def main():
                         lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
                         caughtup = True
                         tries = 3
+                        actT = get_time()
                     time.sleep(timediff / 1000.0 + safetysecs)
                 elif timediff > (time_4q - safetysecs * 1000):
                     time.sleep(timediff/ 1000.0 - 3600 + safetysecs)
@@ -974,6 +979,12 @@ def main():
                 indx_sort += 1
                 if indx_sort == pointnum:
                     indx_sort = 0
+
+                if caughtup and get_time()-actT > time_1q/3:
+                    if not verbose:
+                        lprint('[+] Switching to silent mode.\n')
+                        silent = True
+
 
             addlocation.join()
             addforts.join()
@@ -996,8 +1007,9 @@ def main():
             lprint('\n[+] Catch up phase, cleanup finished.')
             lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
-            lprint('[+] Switching to silent mode.\n')
-            silent = True
+            if not verbose and not silent:
+                lprint('[+] Switching to silent mode.\n')
+                silent = True
 
             while True:
                 timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000) % time_4q
