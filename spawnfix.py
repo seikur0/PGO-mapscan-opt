@@ -32,8 +32,6 @@ def spawnstats(scandata):
         for t in range(0, len(types)):
             if spawn['type'] == types[t]:
                 typecount[t] += 1
-        if spawn['type'] in [SPAWN_1x60h2, SPAWN_1x60h3]:
-            print([spawn['type'],spawn['lat'],spawn['lng']])
     print('[+] Spawn point count: {}'.format(tallcount))
     for t in range(0, len(types)):
         print('[+] Type: {}, Count: {}, Percentage: {}%'.format(typestrs[t], typecount[t], round(100.0 * typecount[t] / tallcount, 2)))
@@ -130,7 +128,7 @@ def main():
     json.dump(alldata,f, indent=1, separators=(',', ': '))
     f.close()
     spawnstats(alldata)
-    
+
     for entry in alldata['spawns']:
         entry['spawn_minute'] = round(entry['spawntime'] / 60000.0,2)
         entry['location'] = '{},{}'.format(round(entry['lat'],5),round(entry['lng'],5))
