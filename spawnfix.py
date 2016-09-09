@@ -129,7 +129,8 @@ def main():
     f = open(workdir + '/' + alldata_path, 'w')
     json.dump(alldata,f, indent=1, separators=(',', ': '))
     f.close()
-
+    spawnstats(alldata)
+    
     for entry in alldata['spawns']:
         entry['spawn_minute'] = round(entry['spawntime'] / 60000.0,2)
         entry['location'] = '{},{}'.format(round(entry['lat'],5),round(entry['lng'],5))
@@ -148,7 +149,6 @@ def main():
     json.dump(alldata, f, indent=1, separators=(',', ': '), sort_keys=True)
     f.close()
 
-    spawnstats(alldata)
 
 if __name__=="__main__":
     main()
