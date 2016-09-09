@@ -13,11 +13,13 @@
   * When you have the appropriate file (32 bit for 32 bit Python installed!), name it 'encrypt.so' and put it into the res subfolder.
 * 'python main0.py' to run the program
 * intelligent spawn point scanning:
-  * let it run for 3 hours and it'll write the scan data like empty cells/spawnpoints/forts into a file
+  * let it run for one hour at max and it'll write the scan data like empty cells/spawnpoints/forts into a file
   * during that time the scan time should stay below 10 minutes, below 15 minutes may work too, no guarantee though. if it's longer than that, consider reducing range or add more workers (normally you don't have any undefined/"-1" points at the end)
 * customize scan area:
   * You can use the spawnfix.py file to merge all learning files in its folder into one, then rename that 'mapdata.json' file to fit the parameters of some of your profiles, for example "123.1234_1.1234_30_70.0.json" and it'll scan all the points.
   * You can use https://github.com/brandonshults/pipoam to visualize the whole area and fine select, which points you want, don't ask me for support on it, figure it out yourself or don't use it ;)
+* recent change from s to ms unit in learning files:
+  * Use spawnfix.py to migrate your old learning files to the new format
 
 * Execute "python pokesite.py" to host the website with your map on 'http://localhost:8000'.
 * That port can be changed in the settings file.
@@ -29,7 +31,7 @@
 
 ## Features
 * uses hexagon algorithm for normal scanning
-* after 3 hours of normal scanning, it saves a spawnpoint file and starts intelligent scan (iscan)
+* after maximally one hour of normal scanning, it saves a spawnpoint file and starts intelligent scan (iscan)
 * iscan = spawnpoints are scanned directly after spawn (no wasted scans and very efficient)
 * perfect recognition and support for all spawn point types for both the logging and the map
 * iscan uses much less workers
