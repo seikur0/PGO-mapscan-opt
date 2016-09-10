@@ -4,6 +4,7 @@ import os, sys
 import logging
 import socket
 import SocketServer
+import BaseHTTPServer
 import signal
 import time
 import json
@@ -64,6 +65,7 @@ def server_start():
             sys.stdout.write('socket error: {}\n'.format(e))
         self.rfile.close()
     SocketServer.StreamRequestHandler.finish = patched_finish
+    BaseHTTPServer.HTTPServer.allow_reuse_address = False
 
     compress = Compress()
     app = Flask(__name__,template_folder=workdir+'/'+'webres',static_url_path='/static',static_folder=workdir+'/webres/static')
@@ -118,11 +120,13 @@ def server_start():
             sub_ind = list_profiles.index(profile)
             return render_template('index.html', api_key=allsettings['api_key'], icon_scalefactor=allsettings['icon_scalefactor'], mobile_scale=allsettings['mobile_scalefactor'],lat=list_lats[sub_ind],lng=list_lngs[sub_ind], language=allsettings['language'], profile=profile)
 
-    if not(__name__ == "__main__"):
-        logging.getLogger('werkzeug').setLevel(logging.ERROR)
-        app.logger.disabled = True
     while True:
-        app.run(host='0.0.0.0', port=port)
+        try:
+            app.run(host='0.0.0.0', port=port)
+        except socket.error as e:
+            if e.errno == 10048:
+                print('[-] Error, the specified port {} is already in use.'.format(port))
+                break
 
 if __name__ == "__main__":
     server_start()
