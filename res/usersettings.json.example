@@ -28,6 +28,7 @@
   {
 	"enabled": false,
 	"push_ids": [1,2,3,4,5,6,7,8,9,131,132,142,143,144,145,146,147,148,149,150,151],
+	"add_location_name": false,
 	"pushbullet":
 	{
 		"enabled": false,

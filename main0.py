@@ -104,6 +104,7 @@ telegrams = []
 telebot = None
 PUSHPOKS = []
 geolocator = Nominatim()
+add_location_name = False
 
 F_LIMIT = None
 LANGUAGE = None
@@ -150,7 +151,7 @@ verbose = False
 safetysecs = 3
 
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies
+    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies,add_location_name,verbose
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -214,13 +215,15 @@ def do_settings():
     else:
         scannum = int(args.scans)
 
-    if allsettings['notifications']['enabled'] is True:
+    if allsettings['notifications']['enabled']:
         PUSHPOKS = set(allsettings['notifications']['push_ids'])
-        if allsettings['notifications']['pushbullet']['enabled'] is True:
+        if allsettings['notifications']['add_location_name']:
+            add_location_name = True
+        if allsettings['notifications']['pushbullet']['enabled']:
             for key in allsettings['notifications']['pushbullet']['api_key']:
                 try:
                     this_pb = Pushbullet(key)
-                    if allsettings['notifications']['pushbullet']['use_channels'] is True:
+                    if allsettings['notifications']['pushbullet']['use_channels']:
                         for channel in this_pb.channels:
                             if channel.channel_tag in allsettings['notifications']['pushbullet']['channel_tags']:
                                 pb.append(channel)
@@ -229,7 +232,7 @@ def do_settings():
                 except Exception as e:
                     lprint('[-] Pushbullet error, key {} is invalid, {}'.format(key, e))
                     lprint('[-] This pushbullet will be disabled.')
-        if allsettings['notifications']['telegram']['enabled'] is True:
+        if allsettings['notifications']['telegram']['enabled']:
             telebot = telepot.Bot(allsettings['notifications']['telegram']['bot_token'])
             for chat_id in allsettings['notifications']['telegram']['chat_ids']:
                 telegrams.append(chat_id)
@@ -1294,7 +1297,12 @@ def main():
                                 lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), distance, direction))
 
                             if len(PUSHPOKS) > 0 and wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
+                                if add_location_name:
+                                    try:
+                                        location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
+                                        notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location.address)
+                                    except:
+                                        notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 if addinfo:
