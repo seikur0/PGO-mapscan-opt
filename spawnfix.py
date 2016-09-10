@@ -86,8 +86,10 @@ def fix3():
 
 def main():
     global scandata
+    foundfile = False
     for file in os.listdir(workdir):
         if file.endswith(".json") and not file == alldata_readable_path and not file == alldata_path:
+            foundfile = True
             path = workdir + '/' + file
 
             f = open(path, 'r')
@@ -123,29 +125,31 @@ def main():
                     if entry['id'] not in list_stops:
                         alldata['stops'].append(entry)
                         list_stops.add(entry['id'])
+    if foundfile:
+        f = open(workdir + '/' + alldata_path, 'w')
+        json.dump(alldata,f, indent=1, separators=(',', ': '))
+        f.close()
+        spawnstats(alldata)
 
-    f = open(workdir + '/' + alldata_path, 'w')
-    json.dump(alldata,f, indent=1, separators=(',', ': '))
-    f.close()
-    spawnstats(alldata)
+        for entry in alldata['spawns']:
+            entry['spawn_minute'] = round(entry['spawntime'] / 60000.0,2)
+            entry['location'] = '{},{}'.format(round(entry['lat'],5),round(entry['lng'],5))
+            entry['type'] = typestrs[types.index(entry['type'])]
 
-    for entry in alldata['spawns']:
-        entry['spawn_minute'] = round(entry['spawntime'] / 60000.0,2)
-        entry['location'] = '{},{}'.format(round(entry['lat'],5),round(entry['lng'],5))
-        entry['type'] = typestrs[types.index(entry['type'])]
+            entry.pop('spawntime')
+            entry.pop('pausetime')
+            entry.pop('lat')
+            entry.pop('lng')
+        alldata.pop('emptylocs')
+        alldata.pop('gyms')
+        alldata.pop('parameters')
+        alldata.pop('stops')
 
-        entry.pop('spawntime')
-        entry.pop('pausetime')
-        entry.pop('lat')
-        entry.pop('lng')
-    alldata.pop('emptylocs')
-    alldata.pop('gyms')
-    alldata.pop('parameters')
-    alldata.pop('stops')
-
-    f = open(workdir + '/' + alldata_readable_path, 'w')
-    json.dump(alldata, f, indent=1, separators=(',', ': '), sort_keys=True)
-    f.close()
+        f = open(workdir + '/' + alldata_readable_path, 'w')
+        json.dump(alldata, f, indent=1, separators=(',', ': '), sort_keys=True)
+        f.close()
+    else:
+        print('Spawnfix couldn\'t find any learning files. Put the files that you wish to fix and join into the same folder as "spawnfix.py".')
 
 
 if __name__=="__main__":
