@@ -980,7 +980,7 @@ def main():
                 if indx_sort == pointnum:
                     indx_sort = 0
 
-                if caughtup and get_time()-actT > time_1q/3:
+                if not silent and caughtup and get_time()-actT > time_1q/3:
                     if not verbose:
                         lprint('[+] Switching to silent mode.\n')
                         silent = True
