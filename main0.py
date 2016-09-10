@@ -1314,6 +1314,8 @@ def main():
                                         notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location)
                                     except:
                                         notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
+                                else:
+                                    notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 if addinfo:
