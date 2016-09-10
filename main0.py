@@ -53,7 +53,7 @@ def format_address(input, fieldnum):
     output = fields[0]
     for f in range(1,min(fieldnum,len(fields))):
         output += ', ' + fields[f]
-    output = unidecode(output.encode('utf-8').replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss').decode('utf-8'))
+    output = unidecode(output.encode('utf-8').replace('�','ae').replace('�','oe').replace('�','ue').replace('�','ss').decode('utf-8'))
     return output
 
 def get_time():
@@ -160,6 +160,7 @@ locktime = None
 smartscan = False
 silent = False
 verbose = False
+dumb = False
 safetysecs = 3
 
 def get_encryption_lib_path():
@@ -209,7 +210,7 @@ def get_encryption_lib_path():
     return lib_path
 
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies,add_location_name,verbose
+    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies,add_location_name,verbose,dumb
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -221,6 +222,7 @@ def do_settings():
     parser.add_argument('-s', "--scannum", help="number of scans to run")
     parser.add_argument('-tos', "--tosaccept", help="let accounts accept tos at start", action="store_true")
     parser.add_argument('-v', '--verbose', help='makes it put out all found pokemon all the time', action='store_true')
+    parser.add_argument('-d','--dumb', help='disables smartscan', action='store_true')
     args = parser.parse_args()
     wID = args.id
     HEX_NUM = args.range
@@ -243,6 +245,8 @@ def do_settings():
         acc_tos = True
     if args.verbose:
         verbose = True
+    if args.dumb:
+        dumb = True
 
     if wID is None:
         wID = 0
@@ -1164,7 +1168,7 @@ def main():
                         sys.exit()
 
                 #########################################################################
-                if nowtime - starttime >= 2700000:
+                if nowtime - starttime >= 2700000 and not smartscan:
                     smartscan = True
                     addforts.put(True)
                     addspawns.put((True,True))
@@ -1177,12 +1181,13 @@ def main():
                     finally:
                         if 'f' in vars() and not f.closed:
                             f.close()
-                    del all_loc[:]
-                    del empty_loc
                     del all_scans
-
-                    exit()
-
+                    if not dumb:
+                        del empty_loc
+                        del all_loc[:]
+                        exit()
+                    else:
+                        del scandata
                 #########################################################################
 
                 curT = max(interval - curT, 0)
@@ -1226,13 +1231,13 @@ def main():
                     count += 1
                     h = heartbeat(location, self.account)
                 if emptyheartbeat(h):
-                    if not smartscan:
+                    if dumb or not smartscan:
                         empty_loc[all_loc.index(location)] += 1
                         empty_thisrun += 1
                     else:
                         lprint('[-] Non-empty cell returned as empty.')
                 else:
-                    if not smartscan:
+                    if dumb or not smartscan:
                         empty_loc[all_loc.index(location)] = 0
                         countmax = max(countmax, count)
                         countall += count
@@ -1305,7 +1310,7 @@ def main():
                             mod_tth = wild.time_till_hidden_ms
                             mod_spawntime = 0
                             addinfo = 0
-                            if smartscan:
+                            if smartscan and not dumb:
                                 list_unique.add(wild.encounter_id)
                                 if spawnIDint in list_spawns:
                                     spawn = scandata['spawns'][list_spawns.index(spawnIDint)]
@@ -1443,7 +1448,8 @@ def main():
         f = open(scan_file, 'r')
         scandata = json.load(f)
         f.close()
-        smartscan = True
+        if not dumb:
+            smartscan = True
     except Exception as e:
         smartscan = False
         lprint('[+] Can\'t load location database file: {}.'.format(e))
