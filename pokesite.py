@@ -132,7 +132,7 @@ def server_start():
 
     while True:
         try:
-            app.run(host='0.0.0.0', port=port)
+            app.run(host='0.0.0.0', port=port, threaded=True)
         except socket.error as e:
             if e.errno == 10048:
                 print('[-] Error: The specified port {} is already in use.'.format(port))
