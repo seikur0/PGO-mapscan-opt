@@ -9,3 +9,4 @@ flask
 flask_compress
 telepot
 requests[socks]
+unidecode

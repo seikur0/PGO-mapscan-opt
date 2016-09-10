@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import requests
 import re
 import json
@@ -26,9 +27,11 @@ import random
 
 import sqlite3
 
+import pushbullet
 from pushbullet import Pushbullet
 import telepot
 from geopy.geocoders import Nominatim
+from unidecode import unidecode
 from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
@@ -43,6 +46,14 @@ import Queue
 import pokesite
 
 import signal
+
+def format_address(input, fieldnum):
+    fields = input.split(', ')
+    output = fields[0]
+    for f in range(1,min(fieldnum,len(fields))):
+        output += ', ' + fields[f]
+    output = unidecode(output.encode('utf-8').replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss').decode('utf-8'))
+    return output
 
 def get_time():
     return int(round(time.time() * 1000))
@@ -1299,20 +1310,32 @@ def main():
                             if len(PUSHPOKS) > 0 and wild.pokemon_data.pokemon_id in PUSHPOKS:
                                 if add_location_name:
                                     try:
-                                        location = geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude))
-                                        notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location.address)
+                                        location = format_address(geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude)).address, 3)
+                                        notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location)
                                     except:
                                         notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 if addinfo:
                                     time_text += reappear_texts[reappear_ind[addinfo-1]]
-                                for pushacc in pb:
+                                li = 0
+                                while li < len(pb):
                                     try:
-                                        pushacc.push_link(notification_text, 'https://maps.google.com/?ll={},{}&q={},{}&z=14'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude), body=time_text)
+                                        pb[li].push_link(notification_text, 'https://maps.google.com/?ll={},{}&q={},{}&z=14'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude), body=time_text)
                                     except requests.ConnectionError as e:
                                         if re.search('Connection aborted', str(e)) is None:
                                             lprint('[-] Connection Error during Pushbullet, error: {}'.format(e))
+                                    except pushbullet.PushbulletError as e:
+                                        if e['error_code'] == "pushbullet_pro_required":
+                                            lprint('[-] Pushbullet Error: "free limit exceeded", {} is removed from future notifications.'.format(pb[li]))
+                                            pb.pop(li)
+                                            li -= 1
+                                        else:
+                                            lprint('[-] Pushbullet Error: {}'.format(e))
+                                    except Exception as e:
+                                        lprint('[-] Pushbullet Error: {}'.format(e))
+                                    li += 1
+
                                 for telegram in telegrams:
                                     telebot.sendMessage(chat_id=telegram, text='<b>' + notification_text + '</b>\n' + time_text, parse_mode='HTML', disable_web_page_preview='False', disable_notification='False')
                                     telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude)
