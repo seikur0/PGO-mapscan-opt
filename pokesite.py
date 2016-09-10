@@ -40,6 +40,16 @@ def server_start():
 
     exclude_ids = allsettings['exclude_ids']
     port = allsettings['port']
+    if allsettings['icon_set'] == 'standard':
+        icon_set = 'icons_gen1_standard.png'
+    elif allsettings['icon_set'] == 'shuffle':
+        icon_set = 'icons_gen1_shuffle.png'
+    elif allsettings['icon_set'] == 'alt':
+        icon_set = 'icons_gen1_alt.png'
+    elif allsettings['icon_set'] == 'toon':
+        icon_set = 'icons_gen1_toon.png'
+    else:
+        print('[-] Error: Icon set in settings file is invalid, possible sets are: "standard", "shuffle", "toon", "alt".')
     list_profiles = []
     list_lats = []
     list_lngs = []
@@ -50,7 +60,7 @@ def server_start():
             list_lngs.append(allsettings['profiles'][i]['coordinates']['lng'])
 
     if len(list_profiles) == 0:
-        print('[-] error: no profiles in settings file')
+        print('[-] Error: No profiles in settings file.')
         sys.exit()
     else:
         main_ind = 0
@@ -112,20 +122,20 @@ def server_start():
 
     @app.route("/")
     def mainapp():
-        return render_template('index.html',api_key=allsettings['api_key'],icon_scalefactor=allsettings['icon_scalefactor'],mobile_scale=allsettings['mobile_scalefactor'],lat=list_lats[main_ind],lng=list_lngs[main_ind],language=allsettings['language'],profile=-1)
+        return render_template('index.html',api_key=allsettings['api_key'],icon_scalefactor=allsettings['icon_scalefactor'],mobile_scale=allsettings['mobile_scalefactor'],lat=list_lats[main_ind],lng=list_lngs[main_ind],language=allsettings['language'],icon_set = icon_set, profile=-1)
 
     @app.route("/id<int:profile>")
     def subapp(profile):
         if profile in list_profiles:
             sub_ind = list_profiles.index(profile)
-            return render_template('index.html', api_key=allsettings['api_key'], icon_scalefactor=allsettings['icon_scalefactor'], mobile_scale=allsettings['mobile_scalefactor'],lat=list_lats[sub_ind],lng=list_lngs[sub_ind], language=allsettings['language'], profile=profile)
+            return render_template('index.html', api_key=allsettings['api_key'], icon_scalefactor=allsettings['icon_scalefactor'], mobile_scale=allsettings['mobile_scalefactor'],lat=list_lats[sub_ind],lng=list_lngs[sub_ind], language=allsettings['language'], icon_set = icon_set, profile=profile)
 
     while True:
         try:
             app.run(host='0.0.0.0', port=port)
         except socket.error as e:
             if e.errno == 10048:
-                print('[-] Error, the specified port {} is already in use.'.format(port))
+                print('[-] Error: The specified port {} is already in use.'.format(port))
                 break
 
 if __name__ == "__main__":

@@ -13,6 +13,9 @@
 
   "_comment5": "Google API key.",
   "api_key": "PUT_YOUR_GOOGLE_API_KEY_HERE",
+  
+  "_comment5.1": "Icon set to use for the map, can be 'standard'/'shuffle'/'alt'/'toon'.",
+  "icon_set": "shuffle",
 
   "_comment6": "Pokemon with these ids won't be shown in the map. (data still gets collected)",
   "exclude_ids": [10,11,13,14,16,17,19,21,41,96],
