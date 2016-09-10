@@ -7,10 +7,6 @@
   * if it fails 'pip install --user -r requirements.txt' (mostly for unix systems) or try to sudo it
   * if it fails and you're using windows, you may need to install these runtimes from Microsoft: http://aka.ms/vcpython27
   * if you have trouble with these Microsoft VC runtimes, get the wheel for the problematic package directly, for example from here: http://www.lfd.uci.edu/~gohlke/pythonlibs/ and install it directly with pip
-* With the unknown6 now being required you need a library file named 'encrypt.so'.
-  * As for instructions how to get it, please look here: https://github.com/PokemonGoF/PokemonGo-Bot/issues/2966
-  * Or get it directly here (windows): https://github.com/PokemonGoMap/PokemonGo-Map/tree/develop/pogom/libencrypt
-  * When you have the appropriate file (32 bit for 32 bit Python installed!), name it 'encrypt.so' and put it into the res subfolder.
 * 'python main0.py' to run the program
 * intelligent spawn point scanning:
   * let it run for one hour at max and it'll write the scan data like empty cells/spawnpoints/forts into a file

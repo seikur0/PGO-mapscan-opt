@@ -24,6 +24,7 @@ import sys
 import math
 import os
 import random
+import platform
 
 import sqlite3
 
@@ -160,6 +161,52 @@ smartscan = False
 silent = False
 verbose = False
 safetysecs = 3
+
+def get_encryption_lib_path():
+    # win32 doesn't mean necessarily 32 bits
+    if sys.platform == "win32" or sys.platform == "cygwin":
+        if platform.architecture()[0] == '64bit':
+            lib_name = "encrypt64bit.dll"
+        else:
+            lib_name = "encrypt32bit.dll"
+
+    elif sys.platform == "darwin":
+        lib_name = "libencrypt-osx-64.so"
+
+    elif os.uname()[4].startswith("arm") and platform.architecture()[0] == '32bit':
+        lib_name = "libencrypt-linux-arm-32.so"
+
+    elif os.uname()[4].startswith("aarch64") and platform.architecture()[0] == '64bit':
+        lib_name = "libencrypt-linux-arm-64.so"
+
+    elif sys.platform.startswith('linux'):
+        if "centos" in platform.platform():
+            if platform.architecture()[0] == '64bit':
+                lib_name = "libencrypt-centos-x86-64.so"
+            else:
+                lib_name = "libencrypt-linux-x86-32.so"
+        else:
+            if platform.architecture()[0] == '64bit':
+                lib_name = "libencrypt-linux-x86-64.so"
+            else:
+                lib_name = "libencrypt-linux-x86-32.so"
+
+    elif sys.platform.startswith('freebsd'):
+        lib_name = "libencrypt-freebsd-64.so"
+
+    else:
+        err = "Unexpected/unsupported platform '{}'.".format(sys.platform)
+        lprint(err)
+        raise Exception(err)
+
+    lib_path = os.path.join(os.path.dirname(__file__), "res", "libencrypt", lib_name)
+
+    if not os.path.isfile(lib_path):
+        err = "Could not find {} encryption library {}".format(sys.platform, lib_path)
+        lprint(err)
+        raise Exception(err)
+
+    return lib_path
 
 def do_settings():
     global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies,add_location_name,verbose
@@ -1370,7 +1417,7 @@ def main():
     time_1q = 900000
     time_4q = 4 * time_1q
 
-    signature_lib = ctypes.cdll.LoadLibrary('{}/res/encrypt.so'.format(workdir))
+    signature_lib = ctypes.cdll.LoadLibrary(get_encryption_lib_path())
     signature_lib.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_size_t)]
     signature_lib.restype = ctypes.c_int
 
