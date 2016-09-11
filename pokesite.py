@@ -64,8 +64,6 @@ def server_start():
         sys.exit()
     else:
         main_ind = 0
-        while main_ind not in list_profiles:
-            main_ind += 1
 
     def patched_finish(self):
         try:
