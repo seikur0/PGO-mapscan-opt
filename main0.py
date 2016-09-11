@@ -1045,10 +1045,9 @@ def main():
                 if indx_sort == pointnum:
                     indx_sort = 0
 
-                if not silent and caughtup and get_time()-actT > time_1q/3:
-                    if not verbose:
-                        lprint('[+] Switching to silent mode.\n')
-                        silent = True
+                if not silent and caughtup and get_time()-actT > time_1q/3 and not verbose:
+                    lprint('[+] Switching to silent mode.\n')
+                    silent = True
 
 
             addlocation.join()
@@ -1072,7 +1071,7 @@ def main():
             lprint('\n[+] Catch up phase, cleanup finished.')
             lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
-            if not verbose and not silent:
+            if not silent and not verbose:
                 lprint('[+] Switching to silent mode.\n')
                 silent = True
 
@@ -1187,7 +1186,7 @@ def main():
                         del all_loc[:]
                         exit()
                     else:
-                        del scandata
+                        scandata.clear()
                 #########################################################################
 
                 curT = max(interval - curT, 0)
