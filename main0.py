@@ -99,7 +99,7 @@ random.seed()
 NET_MAXWAIT = 30
 LOGIN_MAXWAIT = 30
 MAXWAIT = LOGIN_MAXWAIT
-proxies = None
+time_socks5_retry = 30
 
 EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
@@ -210,7 +210,7 @@ def get_encryption_lib_path():
     return lib_path
 
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies,add_location_name,verbose,dumb
+    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,add_location_name,verbose,dumb
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -322,10 +322,17 @@ def do_settings():
 
     accounts = []
     if len(idlist) > 0:
+        if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
+            proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
+            lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
         for i in range(0, len(idlist)):
             account = {'num': i, 'type': allsettings['profiles'][idlist[i]]['type'], 'user': allsettings['profiles'][idlist[i]]['username'], 'pw': allsettings['profiles'][idlist[i]]['password']}
-            if 'proxy' in allsettings['profiles'][idlist[i]]:
-                account['proxy']=allsettings['profiles'][idlist[i]]['proxy']
+            if 'proxy' in allsettings['profiles'][idlist[i]] and allsettings['profiles'][idlist[i]]['proxy']:
+                account['proxy']={'http': allsettings['profiles'][idlist[i]]['proxy'], 'https': allsettings['profiles'][idlist[i]]['proxy']}
+            elif not proxies is None:
+                account['proxy'] = proxies
+            else:
+                account['proxy'] = None
             accounts.append(account)
     else:
         lprint('[-] Error: No profile exists for the set id.')
@@ -339,10 +346,6 @@ def do_settings():
         LNG_C = allsettings['profiles'][idlist[0]]['coordinates']['lng']
     else:
         LNG_C = float(LNG_C)
-
-    #if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
-    #    proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
-    #    lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
 
     return accounts
 
@@ -381,9 +384,7 @@ def login_google(account):
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'}) #session.headers.update({'User-Agent': 'niantic'})
             if not account['proxy'] is None:
-                proxies = {'http': account['proxy'], 'https': account['proxy']}
-                lprint('[{}] Using proxy: {}'.format(account['num'], account['proxy']))
-                session.proxies.update(proxies)
+                session.proxies.update(account['proxy'])
             account['session'] = session
             return
         except Exception as e:
@@ -404,9 +405,7 @@ def login_ptc(account):
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'})  # session.headers.update({'User-Agent': 'niantic'})
             if not account['proxy'] is None:
-                proxies = {'http': account['proxy'], 'https': account['proxy']}
-                lprint('[{}] Using proxy: {}'.format(account['num'], account['proxy']))
-                session.proxies.update(proxies)
+                session.proxies.update(account['proxy'])
 
             step = 0
             r = session.get(LOGIN_URL)
@@ -536,8 +535,15 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 p_ret.ParseFromString(r.content)
                 return p_ret
             elif r.status_code == 403:
-                lprint('[-] Access denied, your IP is blocked by the N-company. ({})'.format(account['user']))
-                sys.exit()
+                if account['proxy'] is not None:
+                    if str(account['proxy']['http']).startswith('socks5'):
+                        lprint('[+] Socks5 Proxy detected. Sleeping and retrying after 30 s.')
+                        time.sleep(time_socks5_retry)
+                    else:
+                        lprint('[-] Access denied, your IP is blocked by the N-company. ({})'.format(account['user']))
+                else:
+                    lprint('[-] Access denied, your IP is blocked by the N-company.')
+                    sys.exit()
             elif r.status_code == 502:
                 lprint('[{}] Servers busy (502), retrying...'.format(account['num']))
                 time.sleep(2)
