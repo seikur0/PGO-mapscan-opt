@@ -157,6 +157,7 @@ signature_lib = None
 lock_network = threading.Lock()
 lock_banfile = threading.Lock()
 locktime = None
+plan = False
 smartscan = False
 silent = False
 verbose = False
@@ -223,6 +224,7 @@ def do_settings():
     parser.add_argument('-tos', "--tosaccept", help="let accounts accept tos at start", action="store_true")
     parser.add_argument('-v', '--verbose', help='makes it put out all found pokemon all the time', action='store_true')
     parser.add_argument('-d','--dumb', help='disables smartscan', action='store_true')
+    parser.add_argument('-p', '--plan', help='loads scan plans from planning folder')
     args = parser.parse_args()
     wID = args.id
     HEX_NUM = args.range
@@ -985,6 +987,12 @@ def main():
             typecount[8] += typecount[9]
             pointnum -= typecount[8]
 
+            if not pointnum:
+                lprint('[-] Learning file contains no valid spawn points.')
+                sys.exit()
+            elif typecount[8]:
+                lprint('[-] Learning file contains {} undefined spawn points. It is advised to recreate it. This can happen, if you either run into softban issues during the scan (very high range/very high amount of workers/other reasons) or if you\'re not using enough workers for your range.'.format(typecount[8]))
+
             infostring = 'ID: {}, {}, Range: {}, Start: {}'.format(wID, location_str, HEX_NUM, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
 
             lprint('\n[+] Starting intelligent scan mode.\n')
@@ -1189,8 +1197,10 @@ def main():
                     try:
                         f = open(scan_file, 'w', 0)
                         json.dump(scandata, f, indent=1, separators=(',', ': '))
-                        lprint('Scandata was written to file.')
+                        lprint('[+] Learning file was written.')
                         f.close()
+                    except Exception as e:
+                        lprint('[+] Error while writing learning file, error : {}'.format(e))
                     finally:
                         if 'f' in vars() and not f.closed:
                             f.close()
