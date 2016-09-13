@@ -263,7 +263,6 @@ def do_settings():
             lprint('[-] Error: The settings file is not in a valid format, {}'.format(e))
             f.close()
             sys.exit()
-        f.close()
     finally:
         if 'f' in vars() and not f.closed:
             f.close()
@@ -327,15 +326,17 @@ def do_settings():
         proxies = None
         if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
             proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
-            lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
+            lprint('[+] Using group proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
         for i in range(0, len(idlist)):
             account = {'num': i, 'type': allsettings['profiles'][idlist[i]]['type'], 'user': allsettings['profiles'][idlist[i]]['username'], 'pw': allsettings['profiles'][idlist[i]]['password']}
-            if 'proxy' in allsettings['profiles'][idlist[i]] and allsettings['profiles'][idlist[i]]['proxy']:
+            if i > 0 and 'proxy' in allsettings['profiles'][idlist[i]] and allsettings['profiles'][idlist[i]]['proxy']:
                 account['proxy']={'http': allsettings['profiles'][idlist[i]]['proxy'], 'https': allsettings['profiles'][idlist[i]]['proxy']}
+                lprint('[{}] Using individual proxy: {}'.format(i,allsettings['profiles'][idlist[i]]['proxy']))
             elif not proxies is None:
                 account['proxy'] = proxies
             else:
                 account['proxy'] = None
+
             accounts.append(account)
     else:
         lprint('[-] Error: No profile exists for the set id.')
@@ -350,6 +351,7 @@ def do_settings():
     else:
         LNG_C = float(LNG_C)
 
+    lprint('')
     return accounts
 
 
@@ -666,7 +668,6 @@ def get_profile(rtype, location, account, *reqq):
             try:
                 f = open('{}/res/banned{}.txt'.format(workdir, wID), 'a')
                 f.write('{}\n'.format(account['user']))
-                f.close()
             finally:
                 if 'f' in vars() and not f.closed:
                     f.close()
@@ -1198,7 +1199,6 @@ def main():
                         f = open(scan_file, 'w', 0)
                         json.dump(scandata, f, indent=1, separators=(',', ': '))
                         lprint('[+] Learning file was written.')
-                        f.close()
                     except Exception as e:
                         lprint('[+] Error while writing learning file, error : {}'.format(e))
                     finally:
@@ -1432,7 +1432,6 @@ def main():
 
                                 nextdatwrite = time.time() + interval_datwrite
                     addpokemon.task_done()
-                f.close()
             finally:
                 if 'f' in vars() and not f.closed:
                     f.close()
@@ -1473,7 +1472,6 @@ def main():
     try:
         f = open(scan_file, 'r')
         scandata = json.load(f)
-        f.close()
         if not dumb:
             smartscan = True
     except Exception as e:
