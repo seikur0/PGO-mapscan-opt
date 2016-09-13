@@ -536,7 +536,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 return p_ret
             elif r.status_code == 403:
                 if account['proxy'] is not None:
-                    if str(account['proxy']['http']).startswith('socks5'):
+                    if account['proxy']['http'].startswith('socks5'):
                         lprint('[+] Socks5 Proxy detected. Sleeping and retrying after 30 s.')
                         time.sleep(time_socks5_retry)
                     else:
