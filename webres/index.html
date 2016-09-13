@@ -127,6 +127,7 @@
                     var timeleft = markers[i].validTill - timenow;
                     var ishidden = false;
                     var backmsg = "";
+                    var firstmsg = "";
 
                     if (timeleft > 0) {
                         switch(markers[i].addinfo) { // addinfo = spawntype
@@ -183,13 +184,13 @@
                          * 1. Line: Pokemonname
                          * (2. Line: backmsg)
                          * 3. Line: Countdown*/
-                        markers[i].infotext = "<b>" + pokenames[markers[i].id] + " (" + markers[i].id + ")</b><br>";
+                        firstmsg = "<b>" + pokenames[markers[i].id] + " (" + markers[i].id + ")</b><br>";
 
                         if (ishidden == false){ // different format if the pokemon is hidden
-                            markers[i].infotext += timeuntiltext + " <i>" + new Date(markers[i].validTill * 1000).toLocaleTimeString() + "</i> " + timeuntiltext1 + "<br>";
-                            markers[i].infotext += timelefttext + "<b>" + formatTimeleftString(timeleft) + "</b><br>" + backmsg
+                            markers[i].infotext = firstmsg + timeuntiltext + " <i>" + new Date(markers[i].validTill * 1000).toLocaleTimeString() + "</i> " + timeuntiltext1 + "<br>";
+                            markers[i].infotext += timelefttext + formatTimeleftString(timeleft) + "<br>" + backmsg
                         }else{
-                            markers[i].infotext += "<font color=\"#a9a9a9\">" + timeuntiltext + new Date(markers[i].validTill * 1000).toLocaleTimeString() + timeuntiltext1 + "<br>";
+                            markers[i].infotext = "<font color=\"#a9a9a9\">" + firstmsg + timeuntiltext + new Date(markers[i].validTill * 1000).toLocaleTimeString() + timeuntiltext1 + "<br>";
                             markers[i].infotext += timehiddentext + formatTimeleftString(timeleft) + "<br>" + backmsg + "</font>"
                         }
 
