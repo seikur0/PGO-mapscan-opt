@@ -36,3 +36,9 @@
 9. "Error: The settings file is not in a valid format, No JSON object could be decoded." Any advice?
 	-You messed up the settings file format. Validate the file with this: http://jsonlint.com/
 	Mind your commas and brackets, don't use fancy quotation marks. Change it step by step and revalidate to find the error.
+	
+10. "It's like its scanning all the spawn points exactly when it shouldn't be./ It's finding less pokemon after catchup."
+	-Well then it's definitely a system clock time issue, don't you think so? The times in the learning file are exact and don't depend on your system clock but on the Niantic one and are pretty reliable as expected from a time based game. There is a line "safetysecs = 3" in the main0.py, you can change it to something higher like 30, that should do the trick, but rather than telling my tool to scan every spawn point 30 seconds late, which may be just in time, if your system clock is faster by 30 seconds, you should just get your system clock synchronized.
+
+11. "It seems to be finding less pokemon after catchup/after a while."
+	-Think about it, during catchup it has to scan all points, that spawned in the last hour and are still active in a short time. After that it only has to scan the new spaws, which are very few in comparison to that, so your console is getting less pokemon to show per time. It's similar with non iscan mode.
