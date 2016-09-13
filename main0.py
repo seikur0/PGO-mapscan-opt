@@ -324,6 +324,8 @@ def do_settings():
     if len(idlist) > 0:
         for i in range(0, len(idlist)):
             account = {'num': i, 'type': allsettings['profiles'][idlist[i]]['type'], 'user': allsettings['profiles'][idlist[i]]['username'], 'pw': allsettings['profiles'][idlist[i]]['password']}
+            if 'proxy' in allsettings['profiles'][idlist[i]]:
+                account['proxy']=allsettings['profiles'][idlist[i]]['proxy']
             accounts.append(account)
     else:
         lprint('[-] Error: No profile exists for the set id.')
@@ -338,9 +340,9 @@ def do_settings():
     else:
         LNG_C = float(LNG_C)
 
-    if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
-        proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
-        lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
+    #if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
+    #    proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
+    #    lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
 
     return accounts
 
@@ -378,7 +380,9 @@ def login_google(account):
             session = requests.session()
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'}) #session.headers.update({'User-Agent': 'niantic'})
-            if not proxies is None:
+            if not account['proxy'] is None:
+                proxies = {'http': account['proxy'], 'https': account['proxy']}
+                lprint('[{}] Using proxy: {}'.format(account['num'], account['proxy']))
                 session.proxies.update(proxies)
             account['session'] = session
             return
@@ -399,7 +403,9 @@ def login_ptc(account):
             session = requests.session()
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'})  # session.headers.update({'User-Agent': 'niantic'})
-            if not proxies is None:
+            if not account['proxy'] is None:
+                proxies = {'http': account['proxy'], 'https': account['proxy']}
+                lprint('[{}] Using proxy: {}'.format(account['num'], account['proxy']))
                 session.proxies.update(proxies)
 
             step = 0
@@ -530,7 +536,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 p_ret.ParseFromString(r.content)
                 return p_ret
             elif r.status_code == 403:
-                lprint('[-] Access denied, your IP is blocked by the N-company.')
+                lprint('[-] Access denied, your IP is blocked by the N-company. ({})'.format(account['user']))
                 sys.exit()
             elif r.status_code == 502:
                 lprint('[{}] Servers busy (502), retrying...'.format(account['num']))
