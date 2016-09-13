@@ -24,15 +24,12 @@ import sys
 import math
 import os
 import random
-import platform
 
 import sqlite3
 
-import pushbullet
 from pushbullet import Pushbullet
 import telepot
 from geopy.geocoders import Nominatim
-from unidecode import unidecode
 from s2sphere import CellId, LatLng
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
@@ -47,14 +44,6 @@ import Queue
 import pokesite
 
 import signal
-
-def format_address(input, fieldnum):
-    fields = input.split(', ')
-    output = fields[0]
-    for f in range(1,min(fieldnum,len(fields))):
-        output += ', ' + fields[f]
-    output = unidecode(output.encode('utf-8').replace('�','ae').replace('�','oe').replace('�','ue').replace('�','ss').decode('utf-8'))
-    return output
 
 def get_time():
     return int(round(time.time() * 1000))
@@ -104,7 +93,6 @@ proxies = None
 EARTH_Rmax = 6378137.0
 EARTH_Rmin = 6356752.3
 HEX_R = 70.0
-num_cells = 9
 
 safety = 0.999
 
@@ -116,7 +104,6 @@ telegrams = []
 telebot = None
 PUSHPOKS = []
 geolocator = Nominatim()
-add_location_name = False
 
 F_LIMIT = None
 LANGUAGE = None
@@ -140,10 +127,10 @@ maxR = None
 starttime = None
 runs = 0
 location_str = ''
+spawnlyzetime = 0
 countmax = 0
 countall = 0
 empty_thisrun = 0
-scan_compromised = False
 all_loc = None
 empty_loc = None
 addlocation = None
@@ -154,63 +141,17 @@ login_simu = False
 acc_tos = False
 
 signature_lib = None
-lock_network = threading.Lock()
-lock_banfile = threading.Lock()
 locktime = None
+lock_network = None
+lock_banfile = None
 smartscan = False
+emptyremoved = False
 silent = False
-verbose = False
-dumb = False
+spawns = []
 safetysecs = 3
 
-def get_encryption_lib_path():
-    # win32 doesn't mean necessarily 32 bits
-    if sys.platform == "win32" or sys.platform == "cygwin":
-        if platform.architecture()[0] == '64bit':
-            lib_name = "encrypt64bit.dll"
-        else:
-            lib_name = "encrypt32bit.dll"
-
-    elif sys.platform == "darwin":
-        lib_name = "libencrypt-osx-64.so"
-
-    elif os.uname()[4].startswith("arm") and platform.architecture()[0] == '32bit':
-        lib_name = "libencrypt-linux-arm-32.so"
-
-    elif os.uname()[4].startswith("aarch64") and platform.architecture()[0] == '64bit':
-        lib_name = "libencrypt-linux-arm-64.so"
-
-    elif sys.platform.startswith('linux'):
-        if "centos" in platform.platform():
-            if platform.architecture()[0] == '64bit':
-                lib_name = "libencrypt-centos-x86-64.so"
-            else:
-                lib_name = "libencrypt-linux-x86-32.so"
-        else:
-            if platform.architecture()[0] == '64bit':
-                lib_name = "libencrypt-linux-x86-64.so"
-            else:
-                lib_name = "libencrypt-linux-x86-32.so"
-
-    elif sys.platform.startswith('freebsd'):
-        lib_name = "libencrypt-freebsd-64.so"
-
-    else:
-        err = "Unexpected/unsupported platform '{}'.".format(sys.platform)
-        lprint(err)
-        raise Exception(err)
-
-    lib_path = os.path.join(os.path.dirname(__file__), "res", "libencrypt", lib_name)
-
-    if not os.path.isfile(lib_path):
-        err = "Could not find {} encryption library {}".format(sys.platform, lib_path)
-        lprint(err)
-        raise Exception(err)
-
-    return lib_path
-
 def do_settings():
-    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies,add_location_name,verbose,dumb
+    global LANGUAGE, LAT_C, LNG_C, HEX_NUM, interval, F_LIMIT, pb, PUSHPOKS, scannum, login_simu, wID, acc_tos, exclude_ids, telebot,proxies
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-id', '--id', help='group id')
@@ -221,8 +162,6 @@ def do_settings():
     parser.add_argument('-loc', '--location', help='location')
     parser.add_argument('-s', "--scannum", help="number of scans to run")
     parser.add_argument('-tos', "--tosaccept", help="let accounts accept tos at start", action="store_true")
-    parser.add_argument('-v', '--verbose', help='makes it put out all found pokemon all the time', action='store_true')
-    parser.add_argument('-d','--dumb', help='disables smartscan', action='store_true')
     args = parser.parse_args()
     wID = args.id
     HEX_NUM = args.range
@@ -243,10 +182,6 @@ def do_settings():
 
     if args.tosaccept:
         acc_tos = True
-    if args.verbose:
-        verbose = True
-    if args.dumb:
-        dumb = True
 
     if wID is None:
         wID = 0
@@ -277,15 +212,13 @@ def do_settings():
     else:
         scannum = int(args.scans)
 
-    if allsettings['notifications']['enabled']:
+    if allsettings['notifications']['enabled'] is True:
         PUSHPOKS = set(allsettings['notifications']['push_ids'])
-        if allsettings['notifications']['add_location_name']:
-            add_location_name = True
-        if allsettings['notifications']['pushbullet']['enabled']:
+        if allsettings['notifications']['pushbullet']['enabled'] is True:
             for key in allsettings['notifications']['pushbullet']['api_key']:
                 try:
                     this_pb = Pushbullet(key)
-                    if allsettings['notifications']['pushbullet']['use_channels']:
+                    if allsettings['notifications']['pushbullet']['use_channels'] is True:
                         for channel in this_pb.channels:
                             if channel.channel_tag in allsettings['notifications']['pushbullet']['channel_tags']:
                                 pb.append(channel)
@@ -294,7 +227,7 @@ def do_settings():
                 except Exception as e:
                     lprint('[-] Pushbullet error, key {} is invalid, {}'.format(key, e))
                     lprint('[-] This pushbullet will be disabled.')
-        if allsettings['notifications']['telegram']['enabled']:
+        if allsettings['notifications']['telegram']['enabled'] is True:
             telebot = telepot.Bot(allsettings['notifications']['telegram']['bot_token'])
             for chat_id in allsettings['notifications']['telegram']['chat_ids']:
                 telegrams.append(chat_id)
@@ -324,6 +257,8 @@ def do_settings():
     if len(idlist) > 0:
         for i in range(0, len(idlist)):
             account = {'num': i, 'type': allsettings['profiles'][idlist[i]]['type'], 'user': allsettings['profiles'][idlist[i]]['username'], 'pw': allsettings['profiles'][idlist[i]]['password']}
+            if 'proxy' in allsettings['profiles'][idlist[i]]:
+                account['proxy']=allsettings['profiles'][idlist[i]]['proxy']
             accounts.append(account)
     else:
         lprint('[-] Error: No profile exists for the set id.')
@@ -338,9 +273,9 @@ def do_settings():
     else:
         LNG_C = float(LNG_C)
 
-    if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
-        proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
-        lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
+    #if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
+    #    proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
+    #    lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
 
     return accounts
 
@@ -378,7 +313,9 @@ def login_google(account):
             session = requests.session()
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'}) #session.headers.update({'User-Agent': 'niantic'})
-            if not proxies is None:
+            if not account['proxy'] is None:
+                proxies = {'http': account['proxy'], 'https': account['proxy']}
+                lprint('[{}] Using proxy: {}'.format(account['num'], account['proxy']))
                 session.proxies.update(proxies)
             account['session'] = session
             return
@@ -399,7 +336,9 @@ def login_ptc(account):
             session = requests.session()
             session.verify = True
             session.headers.update({'User-Agent': 'Niantic App'})  # session.headers.update({'User-Agent': 'niantic'})
-            if not proxies is None:
+            if not account['proxy'] is None:
+                proxies = {'http': account['proxy'], 'https': account['proxy']}
+                lprint('[{}] Using proxy: {}'.format(account['num'], account['proxy']))
                 session.proxies.update(proxies)
 
             step = 0
@@ -530,7 +469,7 @@ def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
                 p_ret.ParseFromString(r.content)
                 return p_ret
             elif r.status_code == 403:
-                lprint('[-] Access denied, your IP is blocked by the N-company.')
+                lprint('[-] Access denied, your IP is blocked by the N-company. ({})'.format(account['user']))
                 sys.exit()
             elif r.status_code == 502:
                 lprint('[{}] Servers busy (502), retrying...'.format(account['num']))
@@ -679,20 +618,14 @@ def heartbeat(location, account):
     m11.latitude = location[0]
     m11.longitude = location[1]
     m1.request_message = m11.SerializeToString()
-
-    timenow = get_time()
-    if timenow > account['access_expire_timestamp'] - 30000:
-        lprint('[+] Login refresh.')
-        do_login(account)
-        set_api_endpoint(location, account)
-    elif timenow > account['auth_ticket'].expire_timestamp_ms:
-        lprint('[+] Authorization refresh.')
-        set_api_endpoint(location,account)
-
     response = get_profile(1, location, account, m1)
     heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
     heartbeat.ParseFromString(response.returns[0])
-    return heartbeat
+
+    for cell in heartbeat.map_cells:  # tests if an empty heartbeat was returned
+        if len(cell.ListFields()) > 2:
+            return heartbeat
+    return None
 
 
 def accept_tos(location, account):
@@ -712,7 +645,6 @@ def init_data():
     with con:
         cur = con.cursor()
         cur.execute("CREATE TABLE IF NOT EXISTS spawns(spawnid INTEGER PRIMARY KEY, latitude REAL, longitude REAL, spawntype INTEGER, pokeid INTEGER, expiretime INTEGER, fromtime INTEGER, profile INTEGER)")
-        cur.execute("PRAGMA journal_mode = OFF")
 
 def update_data():
     timenow = int(round(time.time(),0))
@@ -741,31 +673,21 @@ def main():
     SPAWN_1x60h2 = 202
     SPAWN_1x60h3 = 203
     SPAWN_1x60h23 = 204
-    VSPAWN_2x15 = 2201
-    VSPAWN_1x60h2 = 2202
-    VSPAWN_1x60h3 = 2203
-    VSPAWN_1x60h23 = 2204
+    VSPAWN = 2222
 
     class spawnpoint:
         def __init__(self, lat, lng, spawnid):
             self.type = SPAWN_UNDEF
+            self.spawntime = -1
+            self.phasetime = -1
             self.lat = lat
             self.lng = lng
             self.spawnid = spawnid
-
-            self.spawntime = -1
-            self.pausetime = -1
-
-            self.encounters = []
-
-    class scan:
-        def __init__(self,location):
-            self.location = location
-            self.spawns = []
-            self.times = []
-            for c in range(0,num_cells):
-                self.spawns.append(set([]))
-                self.times.append([])
+            self.prev_encid = -1
+            self.prev_time = starttime
+            self.phase = 0
+            self.pauses = 0
+            self.pausetime = []
 
 #########################################################################
 #########################################################################
@@ -774,161 +696,74 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global scan_compromised
-            scan_compromised = False
+            thistime = -1
 
-            list_spawns = []
-            all_spawns = []
-            list_encounters = []
+            while thistime < spawnlyzetime:
+                wild = addspawns.get()
 
-            list_free_eids = []
-            list_free_times = []
-
-            location, h = addspawns.get()
-            while not smartscan:
-                scan = all_scans[all_loc.index(location)]
-
-                for n in range(0,num_cells):
-                    cell = h.map_cells[n]
-                    cell_time = cell.current_timestamp_ms
-                    scan.times[n].append(cell_time)
-                    if len(scan.times[n]) > 1 and scan.times[n][-1] - scan.times[n][-2] > time_1q - 1:
-                        scan_compromised = True
-
-                    for wild in cell.wild_pokemons:
-                        spawnIDint = int(wild.spawn_point_id, 16)
-                        scan.spawns[n].add(spawnIDint)
-
-                        if spawnIDint not in list_spawns:
-                            list_spawns.append(spawnIDint)
-                            list_encounters.append(wild.encounter_id)
-                            spawn = spawnpoint(wild.latitude,wild.longitude,spawnIDint)
-                            all_spawns.append(spawn)
-                            spawn.encounters.append((wild.encounter_id,[wild.last_modified_timestamp_ms]))
-                        else:
-                            ind = list_spawns.index(spawnIDint)
-                            spawn = all_spawns[ind]
-                            if spawn.encounters[-1][0] == wild.encounter_id:
-                                spawn.encounters[-1][1].append(wild.last_modified_timestamp_ms)
-                            else:
-                                spawn.encounters.append((wild.encounter_id, [wild.last_modified_timestamp_ms]))
-                                list_encounters[ind] = wild.encounter_id
-
-                        if wild.time_till_hidden_ms > 0:
-                            spawn.spawntime = (wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - time_1q) % time_4q
-                            spawn.encounters[-1][1].append(wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - time_1q)
-                            spawn.encounters[-1][1].append(wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1)
-
-                    for nearby in cell.nearby_pokemons:
-                        if nearby.encounter_id in list_encounters:
-                            ind = list_encounters.index(nearby.encounter_id)
-                            spawn = all_spawns[ind]
-                            if not spawn.encounters[-1][1][-1] == cell_time:
-                                spawn.encounters[-1][1].append(cell_time)
-                        else:
-                            list_free_eids.append(nearby.encounter_id)
-                            list_free_times.append(cell_time)
-
-                addspawns.task_done()
-                location, h = addspawns.get()
-
-            #######
-            for spawn in all_spawns:
-                scanned_times = []
-                occupied_times = []
-
-                for encounter in spawn.encounters:
-                    while encounter[0] in list_free_eids:
-                        ind = list_free_eids.index(encounter[0])
-                        encounter[1].append(list_free_times[ind])
-                        list_free_eids.pop(ind)
-                        list_free_times.pop(ind)
-                    occupied_times.extend(encounter[1])
-
-                for t in range(0,len(occupied_times)):
-                    occupied_times[t] %= time_4q
-                occupied_times.sort()
-
-                for scan in all_scans:
-                    for c in range(0,num_cells):
-                        if spawn.spawnid in scan.spawns[c]:
-                            scanned_times.extend(scan.times[c])
-                for t in range(0,len(scanned_times)):
-                    scanned_times[t] %= time_4q
-
-                scanned_times.extend(occupied_times)
-                scanned_times.sort()
-
-                spawn_compromised = False
-                for t in range(1,len(scanned_times)):
-                    if scanned_times[t]-scanned_times[t-1] > time_1q-1:
-                        spawn_compromised = True
-                        break
-                if spawn_compromised or scanned_times[0]+time_4q - scanned_times[-1] > time_1q-1:
-                    continue
-
-                pausetime = 0
-                for t in range(1,len(occupied_times)):
-                    pausetime = max(occupied_times[t]-occupied_times[t-1],pausetime)
-                pausetime = max(occupied_times[0] + time_4q -occupied_times[-1],pausetime)
-
-                if pausetime > time_4q - 1:
-                    continue
-
-                first_time = min(spawn.encounters[0][1])
-                last_time = max(spawn.encounters[0][1])
-                for en in range(1,len(spawn.encounters)):
-                    first_time = min(min(spawn.encounters[en][1]) - time_4q*en, first_time)
-                    last_time = min(min(spawn.encounters[en][1]) - time_4q*en, last_time)
-
-                if pausetime < time_1q + 1:
-                    spawn.type = SPAWN_1x60
-                    spawn.spawntime = first_time % time_4q
-                    spawn.pausetime = time_4q - (last_time - first_time)
-                    continue
-
-                spawn.pausetime = int(math.floor(float(pausetime)/time_1q))*time_1q
-
-                qdiff = int(math.ceil(float((spawn.spawntime - first_time) % time_4q)/time_1q)) % 4
-                spawn.spawntime = (spawn.spawntime - qdiff * time_1q) % time_4q
-
-                occupied = [True,False,False,False]
-                occupied[qdiff] = True
-                for occ in range(1,4):
-                    if not occupied[occ]:
-                        for time in occupied_times:
-                            if (time - (spawn.spawntime + time_1q*occ)) % time_4q < time_1q:
-                                occupied[occ] = True
-                                break
-
-                if pausetime < 2*time_1q + 1:
-                    if occupied == [True,True,True,False]:
-                        spawn.type = SPAWN_1x45
-                    elif occupied == [True, False, True, False]:
-                        spawn.type = SPAWN_2x15
-                    elif occupied == [True,False,True,True]:
-                        spawn.type = SPAWN_1x60h2
-                    elif occupied == [True,True,False,True]:
-                        spawn.type = SPAWN_1x60h3
-                elif pausetime < 3*time_1q + 1:
-                    if occupied == [True,True,False,False]:
-                        spawn.type = SPAWN_1x30
-                    elif occupied == [True,False,False,True]:
-                        spawn.type = SPAWN_1x60h23
+                spawnIDint = int(wild.spawn_point_id, 16)
+                if spawnIDint not in list_spawns:
+                    list_spawns.append(spawnIDint)
+                    spawns.append(spawnpoint(wild.latitude, wild.longitude, spawnIDint))
+                    position = len(spawns) - 1
                 else:
-                    if occupied == [True,False,False,False]:
-                        spawn.type = SPAWN_1x15
+                    position = list_spawns.index(spawnIDint)
+                thisspawn = spawns[position]
 
-            #######
-            for s in all_spawns:
-                scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'pausetime': s.pausetime})
+                if thisspawn.phasetime == -1:
+                    thisspawn.phasetime = wild.last_modified_timestamp_ms
 
-            for l in range(0,len(all_loc)):
-                if empty_loc[l] == runs:
-                    scandata['emptylocs'].append({'lat':  all_loc[l][0], 'lng':  all_loc[l][1]})
+                if thisspawn.phase < 2 and wild.time_till_hidden_ms > 0:
+                    thisspawn.spawntime = (((wild.last_modified_timestamp_ms + wild.time_till_hidden_ms) / 1000.0) / 60) % 15
 
-            addspawns.task_done()
+                if thisspawn.phase == 0:
+                    if thisspawn.prev_encid != -1 and thisspawn.prev_encid != wild.encounter_id:
+                        thisspawn.phase = 1
+                        thisspawn.phasetime = wild.last_modified_timestamp_ms
+                        if wild.time_till_hidden_ms > 0:
+                            thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
+                        else:
+                            thisspawn.prev_time = wild.last_modified_timestamp_ms
+                    thisspawn.prev_encid = wild.encounter_id
 
+                elif thisspawn.phase == 1:
+                    cpausetime = int(math.floor((wild.last_modified_timestamp_ms - thisspawn.prev_time - 1) / 900000.0)) * 15
+                    if cpausetime > 0:
+                        thisspawn.pauses += 1
+                    cquarter = ((wild.last_modified_timestamp_ms / 1000.0) / 60) % 60
+                    thisspawn.pausetime.append(cquarter)
+
+                    if thisspawn.prev_encid != wild.encounter_id:
+                        thisspawn.phase = 2
+                        thisspawn.phasetime = int(round((wild.last_modified_timestamp_ms - thisspawn.phasetime) / 1800000.0))*30
+                        if thisspawn.spawntime != -1:
+                            quarter = (((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60) / 15) + 4
+                            thisspawn.spawntime += math.floor(quarter) * 15
+                            if thisspawn.spawntime > 15 * quarter:
+                                thisspawn.spawntime -= 15
+                            thisspawn.spawntime %= 60
+                        else:
+                            thisspawn.spawntime = ((wild.last_modified_timestamp_ms / 1000.0 / 60) % 60)
+                        if thisspawn.pauses == 0:
+                            thisspawn.pausetime = (wild.last_modified_timestamp_ms - thisspawn.prev_time) / 60000.0
+                        else:
+                            if thisspawn.phasetime == 60:
+                                realpauses = [False,True,True,True]
+                                for p in range(1,4):
+                                    for ptime in thisspawn.pausetime:
+                                        dist = int(math.floor(((ptime-thisspawn.spawntime) % 60 / 15)))
+                                        if dist == p:
+                                            realpauses[p] = False
+                                            break
+                                thisspawn.pausetime = realpauses
+                        thisspawn.type = SPAWN_DEF
+                        lprint('id: {}, spawntime: {}, pausetime: {}'.format(thisspawn.spawnid,thisspawn.spawntime,thisspawn.pausetime))
+                    if wild.time_till_hidden_ms > 0:
+                        thisspawn.prev_time = wild.last_modified_timestamp_ms + wild.time_till_hidden_ms - 1
+                    else:
+                        thisspawn.prev_time = wild.last_modified_timestamp_ms
+                thistime = time.time()
+                addspawns.task_done()
 #########################################################################
 #########################################################################
     class smartlocgiver(threading.Thread):
@@ -936,12 +771,13 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global countmax, countall, empty_thisrun, tries, silent
+            global smartscan, curR, countmax, countall, empty_thisrun, tries, silent
+            curR = 0
+            smartscan = True
             all_sort = []
 
-            types = (SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF, SPAWN_DEF,VSPAWN_2x15,VSPAWN_1x60h2,VSPAWN_1x60h3,VSPAWN_1x60h23)
-            type_first_time = (15,30,45,60,15,15,30,15,-1,-1,15,30,15,15)
-            typestrs = ('1x15', '1x30', '1x45', '1x60', '2x15', '1x60h2', '1x60h3', '1x60h23', 'UNDEF/DEF')
+            types = [SPAWN_1x15, SPAWN_1x30, SPAWN_1x45, SPAWN_1x60, SPAWN_2x15, SPAWN_1x60h2, SPAWN_1x60h3, SPAWN_1x60h23, SPAWN_UNDEF, SPAWN_DEF]
+            typestrs = ['1x15', '1x30', '1x45', '1x60', '2x15', '1x60h2', '1x60h3', '1x60h23', 'UNDEF/DEF']
             typecount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             tallcount = len(scandata['spawns'])
 
@@ -951,21 +787,21 @@ def main():
                 spawn = scandata['spawns'][s]
                 list_spawns.append(spawn['id'])
                 if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
-                    all_sort.append((spawn['spawntime'], s))
-                for t in range(0, len(typecount)):
+                    all_sort.append([int(spawn['spawntime']*60000), s])
+                for t in range(0, len(types)):
                     if spawn['type'] == types[t]:
                         typecount[t] += 1
                         break
                 if spawn['type'] > 200:
                     vspawn = spawn.copy()
-                    vspawn['type'] += 2000
+                    vspawn['type'] = VSPAWN
                     if spawn['type'] == SPAWN_2x15 or spawn['type'] == SPAWN_1x60h2:
-                        vspawn['spawntime'] = (vspawn['spawntime'] + 2*time_1q) % time_4q
+                        vspawn['spawntime'] = (vspawn['spawntime'] + 30) % 60
                     elif spawn['type'] == SPAWN_1x60h23 or spawn['type'] == SPAWN_1x60h3:
-                        vspawn['spawntime'] = (vspawn['spawntime'] + 3*time_1q) % time_4q
+                        vspawn['spawntime'] = (vspawn['spawntime'] + 45) % 60
 
                     scandata['spawns'].append(vspawn)
-                    all_sort.append([vspawn['spawntime'], pointnum])
+                    all_sort.append([int(vspawn['spawntime'] * 60000), pointnum])
                     pointnum += 1
                     vleft += 1
             typecount[8] += typecount[9]
@@ -982,7 +818,7 @@ def main():
             all_sort = sorted(all_sort, key=itemgetter(0))
 
             indx_sort = 0
-            curT = get_time() % time_4q
+            curT = get_time() % 3600000
             if curT <= all_sort[pointnum-1][0]:
                 while curT > all_sort[indx_sort][0]:
                     indx_sort += 1
@@ -999,13 +835,12 @@ def main():
             caughtup = False
             nextperc = percinterval
             curT = get_time()
-            ignoretime = 5
             while indx_sort != wrapindx:
                 spawn = scandata['spawns'][all_sort[indx_sort][1]]
                 actT = get_time()
-                if (actT-curT) < (actT - all_sort[indx_sort][0]) % 3600000 < (type_first_time[types.index(spawn['type'])]-ignoretime)*60000:
-                    addlocation.put((spawn['lat'], spawn['lng']))
-                    if spawn['type'] > 2000:
+                if (actT-curT) < (actT - all_sort[indx_sort][0]) % 3600000 < (spawn['phasetime'] - spawn['pausetime'] - 5) * 60000:
+                    addlocation.put([spawn['lat'], spawn['lng']])
+                    if spawn['type'] == VSPAWN:
                         vleft -= 1
                 indx_sort -= 1
                 if indx_sort == -1:
@@ -1024,31 +859,25 @@ def main():
 
             while not caughtup or vleft > 0:
                 timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000) % 3600000
-                if timediff < 2*time_1q:
+                if timediff < 1800000:
                     if not caughtup:
                         lprint('\n[+] Catch up phase 2/2 complete. Map is now live.')
                         lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
                         caughtup = True
                         tries = 3
-                        actT = get_time()
                     time.sleep(timediff / 1000.0 + safetysecs)
-                elif timediff > (time_4q - safetysecs * 1000):
+                elif timediff > (3600000 - safetysecs * 1000):
                     time.sleep(timediff/ 1000.0 - 3600 + safetysecs)
-                elif timediff < (time_4q - (time_hb + 1) * 1000):
+                elif timediff < (3600000 - (time_hb + 1) * 1000):
                     lprint('{} s behind.'.format(3600 - safetysecs - round(timediff / 1000.0, 2)))
 
                 spawn = scandata['spawns'][all_sort[indx_sort][1]]
-                addlocation.put((spawn['lat'],spawn['lng']))
-                if spawn['type'] > 2000:
+                addlocation.put([spawn['lat'],spawn['lng']])
+                if spawn['type'] == VSPAWN:
                     vleft -= 1
                 indx_sort += 1
                 if indx_sort == pointnum:
                     indx_sort = 0
-
-                if not silent and caughtup and get_time()-actT > time_1q/3 and not verbose:
-                    lprint('[+] Switching to silent mode.\n')
-                    silent = True
-
 
             addlocation.join()
             addforts.join()
@@ -1059,11 +888,11 @@ def main():
             for s in range(0, tallcount):
                 spawn = scandata['spawns'][s]
                 if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
-                    all_sort.append((spawn['spawntime'], s))
+                    all_sort.append([int(spawn['spawntime']*60000), s])
             all_sort = sorted(all_sort, key=itemgetter(0))
             pointnum = tallcount - typecount[8]
             indx_sort = 0
-            curT = get_time() % time_4q
+            curT = get_time() % 3600000
             if curT <= all_sort[pointnum-1][0]:
                 while curT > all_sort[indx_sort][0]:
                     indx_sort += 1
@@ -1071,21 +900,20 @@ def main():
             lprint('\n[+] Catch up phase, cleanup finished.')
             lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
-            if not silent and not verbose:
-                lprint('[+] Switching to silent mode.\n')
-                silent = True
+            lprint('[+] Switching to silent mode.\n')
+            silent = True
 
             while True:
-                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000) % time_4q
-                if timediff < 2*time_1q:
+                timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000) % 3600000
+                if timediff < 1800000:
                     time.sleep(timediff / 1000.0 + safetysecs)
-                elif timediff > (time_4q - safetysecs * 1000):
+                elif timediff > (3600000 - safetysecs * 1000):
                     time.sleep(timediff/ 1000.0 - 3600 + safetysecs)
-                elif timediff < (time_4q - (time_hb + 1) * 1000):
+                elif timediff < (3600000 - (time_hb + 1) * 1000):
                     lprint('{} s behind.'.format(3600 - safetysecs - round(timediff / 1000.0, 2)))
 
                 spawn = scandata['spawns'][all_sort[indx_sort][1]]
-                addlocation.put((spawn['lat'], spawn['lng']))
+                addlocation.put([spawn['lat'], spawn['lng']])
 
                 indx_sort += 1
                 if indx_sort == pointnum:
@@ -1106,7 +934,7 @@ def main():
             threading.Thread.__init__(self)
 
         def run(self):
-            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, runs, location_str, empty_loc, smartscan, all_scans
+            global curR, maxR, scannum, countmax, countall, empty_thisrun, starttime, spawnlyzetime, emptyremoved, runs, location_str, empty_loc, spawns, smartscan
             starttime = get_time()
             runs = 0
             try:
@@ -1115,21 +943,29 @@ def main():
                 location_str = 'Lat: {}, Lng: {}'.format(LAT_C, LNG_C)
 
             if smartscan:
+                emptyremoved = True
                 exit()
 
             maxR = len(all_loc)
 
             infostring = 'ID: {}, {}, Interval: {} s, Range: {}, Start: {}'.format(wID, location_str, interval, HEX_NUM, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
+            lprint('')
+            lprint('[+] Distributing {} locations to {} threads.'.format(len(all_loc), threadnum))
+
+            emptymaxtime = 7200
+            spawnmaxtime = 10800
+            emptytime = int(time.time()) + emptymaxtime - interval
+            spawnlyzetime = int(time.time()) + spawnmaxtime
 
             ##################################################################################################################################################
             while True:
                 runs += 1
                 curR = 0
                 nextperc = percinterval
-                nowtime = get_time()
+                curT = int(time.time())
 
                 lprint('\n\n')
-                lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.fromtimestamp(nowtime / 1000.0).strftime('%H:%M:%S'), infostring))
+                lprint('[+] Run #{}, Time: {}, {}'.format(runs, datetime.now().strftime('%H:%M:%S'), infostring))
                 for this_loc in all_loc:
                     addlocation.put(this_loc)
                     if (100.0 * curR / maxR) >= nextperc:
@@ -1140,15 +976,28 @@ def main():
                 addlocation.join()
                 addforts.join()
                 addpokemon.join()
-                lprint('[+] Finished: 100 %\n')
-
-                if scan_compromised:
-                    lprint('[-] Warning, maximum interval of 15 m was exceeded. It is advised to restart the scan with a smaller range or more workers.\n')
+                lprint('[+] Finished: 100 %')
+                lprint('')
 
                 lprint('[+] {} of {} cells detected as empty during last run.'.format(empty_thisrun, maxR))
                 lprint('[+] Non-empty heartbeats reached a maximum of {} retries, allowed: {}.'.format(countmax, tries))
                 ave_retries = float(countall) / maxR
                 lprint('[+] Average number of retries was {}, total number {}.'.format(round(ave_retries, 2), countall))
+
+                #########################################################################
+                if not emptyremoved and curT > emptytime:
+                    emptyremoved = True
+                    l = 0
+                    while l < len(all_loc):
+                        if empty_loc[l] == runs:  # within whole time came up as empty, standard setting 2 hours
+                            this_loc = all_loc.pop(l)
+                            scandata['emptylocs'].append({'lat': this_loc[0], 'lng': this_loc[1]})
+                            empty_loc.pop(l)
+                        else:
+                            l += 1
+
+                    lprint('[+] {} locations were permanently removed as empty. They\'ve been empty during {} consecutive scans covering a time of {} seconds.'.format(maxR - len(all_loc), runs, emptymaxtime))
+                    maxR = len(all_loc)
 
                 #########################################################################
                 countmax = 0
@@ -1158,20 +1007,50 @@ def main():
                 list_unique.intersection_update(list_seen)
                 list_seen.clear()
 
-                curT = (get_time() - nowtime) / 1000.0
-                lprint('[+] Scan Time: {} s'.format(int(round(curT))))
-
-                if scannum > 0:
-                    scannum -= 1
-                    if scannum == 0:
-                        sys.exit()
-
                 #########################################################################
-                if nowtime - starttime >= 2700000 and not smartscan:
-                    smartscan = True
-                    addforts.put(True)
-                    addspawns.put((True,True))
+                if curT > spawnlyzetime:
                     addspawns.join()
+                    for s in spawns:
+                        if s.type == SPAWN_DEF:
+                            if s.phasetime == 60:
+                                if s.pauses == 0:
+                                    s.type = SPAWN_1x60
+                                elif s.pauses == 1:
+                                    if s.pausetime[1]:
+                                        if s.pausetime[2]:
+                                            if s.pausetime[3]:
+                                                s.type = SPAWN_1x15
+                                                s.pausetime = 45
+                                            else:
+                                                s.type = SPAWN_1x60h23
+                                                s.pausetime = 30
+                                        else:
+                                            s.type = SPAWN_1x60h2
+                                            s.pausetime = 15
+                                    elif s.pausetime[2]:
+                                        if s.pausetime[3]:
+                                            s.type = SPAWN_1x30
+                                            s.pausetime = 30
+                                        else:
+                                            s.type = SPAWN_1x60h3
+                                            s.pausetime = 15
+                                    elif s.pausetime[3]:
+                                        s.type = SPAWN_1x45
+                                        s.pausetime = 15
+                                elif s.pauses == 2:
+                                    if s.pausetime[1] and s.pausetime[3]:
+                                        s.type = SPAWN_2x15
+                                        s.pausetime = 15
+                            else:
+                                s.type = SPAWN_UNDEF
+                        else:
+                            if s.spawntime == -1:
+                                s.spawntime = ((s.phasetime / 1000.0) / 60) % 60
+                            s.phasetime = -1
+                            s.pauses = -1
+                            s.pausetime = -1
+                        scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'phasetime': s.phasetime, 'pauses': s.pauses, 'pausetime': s.pausetime})
+                    del spawns
                     try:
                         f = open(scan_file, 'w', 0)
                         json.dump(scandata, f, indent=1, separators=(',', ': '))
@@ -1180,17 +1059,23 @@ def main():
                     finally:
                         if 'f' in vars() and not f.closed:
                             f.close()
-                    del all_scans
-                    if not dumb:
-                        del empty_loc
-                        del all_loc[:]
-                        exit()
-                    else:
-                        scandata.clear()
+                    del all_loc[:]
+                    del list_spawns[:]
+                    del empty_loc
+                    smartscan = True
+                    exit()
+
                 #########################################################################
+                curT = int(time.time()) - curT
+                lprint('[+] Scan Time: {} s'.format(curT))
+
+                if scannum > 0:
+                    scannum -= 1
+                    if scannum == 0:
+                        sys.exit()
 
                 curT = max(interval - curT, 0)
-                lprint('[+] Sleeping for {} seconds...'.format(int(round(curT))))
+                lprint('[+] Sleeping for {} seconds...'.format(curT))
                 time.sleep(curT)
 
 #########################################################################
@@ -1202,12 +1087,6 @@ def main():
 
         def run(self):
             global curR, countmax, countall, empty_loc, empty_thisrun, safetysecs
-
-            def emptyheartbeat(heartbeat):
-                for cell in heartbeat.map_cells:  # tests if an empty heartbeat was returned
-                    if len(cell.ListFields()) > 2:
-                        return False
-                return True
 
             do_login(self.account)
             lprint('[{}] Login for {} account: {}'.format(self.account['num'], self.account['type'], self.account['user']))
@@ -1226,17 +1105,17 @@ def main():
                 location = addlocation.get()
                 h = heartbeat(location, self.account)
                 count = 0
-                while emptyheartbeat(h) and count < tries:
+                while h is None and count < tries:
                     count += 1
                     h = heartbeat(location, self.account)
-                if emptyheartbeat(h):
-                    if dumb or not smartscan:
+                if h is None:
+                    if not smartscan:
                         empty_loc[all_loc.index(location)] += 1
                         empty_thisrun += 1
                     else:
                         lprint('[-] Non-empty cell returned as empty.')
                 else:
-                    if dumb or not smartscan:
+                    if not smartscan:
                         empty_loc[all_loc.index(location)] = 0
                         countmax = max(countmax, count)
                         countall += count
@@ -1245,12 +1124,10 @@ def main():
                             if cell.catchable_pokemons[p].expiration_timestamp_ms == -1:
                                 cell.wild_pokemons[p].time_till_hidden_ms = -1
                             addpokemon.put(cell.wild_pokemons[p])
-                        if not smartscan:
+                        if not emptyremoved:
                             for fort in cell.forts:
                                 addforts.put(fort)
-                if not smartscan:
-                    addspawns.put((location,h))
-                    curR += 1
+                curR += 1
                 addlocation.task_done()
 
 #########################################################################
@@ -1259,8 +1136,9 @@ def main():
         def __init__(self):
             threading.Thread.__init__(self)
         def run(self):
-            fort = addforts.get()
-            while not smartscan:
+            while not emptyremoved:
+                fort = addforts.get()
+
                 if fort.id not in list_forts:
                     list_forts.add(fort.id)
                     thisfort = {'id': fort.id, 'lat': fort.latitude, 'lng': fort.longitude}
@@ -1269,9 +1147,6 @@ def main():
                     else:
                         scandata['gyms'].append(thisfort)
                 addforts.task_done()
-                fort = addforts.get()
-
-            addforts.task_done()
 
 #########################################################################
 #########################################################################
@@ -1287,9 +1162,9 @@ def main():
             reappear_texts = ('\n15m later back for 15m','\n15m later back for 30m','\n30m later back for 15m')
             reappear_ind = (0,1,0,2)
 
-            addinfo_phase_sec = (0,time_1q,2*time_1q,time_1q,time_1q)
-            addinfo_phase_first = (0,time_1q,time_1q,2*time_1q,time_1q)
-            addinfo_pausetime =(0,time_1q,time_1q,time_1q,2*time_1q)
+            addinfo_phase_sec = (0,900,1800,900,900)
+            addinfo_phase_first = (0,900,900,1800,900)
+            addinfo_pausetime =(0,900,900,900,1800)
 
             interval_datwrite = 5
             nextdatwrite = time.time() + interval_datwrite
@@ -1305,49 +1180,51 @@ def main():
                         list_seen.add(wild.encounter_id)
                         if wild.encounter_id not in list_unique:
                             spawnIDint = int(wild.spawn_point_id, 16)
+                            if time.time() < spawnlyzetime:
+                                addspawns.put(wild)
 
                             mod_tth = wild.time_till_hidden_ms
                             mod_spawntime = 0
                             addinfo = 0
-                            if smartscan and not dumb:
+                            if smartscan:
                                 list_unique.add(wild.encounter_id)
                                 if spawnIDint in list_spawns:
                                     spawn = scandata['spawns'][list_spawns.index(spawnIDint)]
                                     if not spawn['type'] in [SPAWN_UNDEF, SPAWN_DEF]:
-                                        finished_ms = (wild.last_modified_timestamp_ms - spawn['spawntime']) % time_4q
-                                        if spawn['type'] == SPAWN_2x15 and finished_ms < time_1q:
+                                        finished_ms = (wild.last_modified_timestamp_ms - spawn['spawntime'] * 60000) % 3600000
+                                        if spawn['type'] == SPAWN_2x15 and finished_ms < 900000:
                                             addinfo = 1
-                                            mod_phasetime = 2*time_1q
-                                        elif spawn['type'] == SPAWN_1x60h2 and finished_ms < time_1q:
+                                            mod_phasetime = 30
+                                        elif spawn['type'] == SPAWN_1x60h2 and finished_ms < 900000:
                                             addinfo = 2
-                                            mod_phasetime = 2*time_1q
-                                        elif spawn['type'] == SPAWN_1x60h3 and finished_ms < 2*time_1q:
+                                            mod_phasetime = 30
+                                        elif spawn['type'] == SPAWN_1x60h3 and finished_ms < 1800000:
                                             addinfo = 3
-                                            mod_phasetime = 3*time_1q
-                                        elif spawn['type'] == SPAWN_1x60h23 and finished_ms < time_1q:
+                                            mod_phasetime = 45
+                                        elif spawn['type'] == SPAWN_1x60h23 and finished_ms < 900000:
                                             addinfo = 4
-                                            mod_phasetime = 2*time_1q
+                                            mod_phasetime = 30
                                         else:
-                                            mod_phasetime = time_4q
-                                        mod_tth = mod_phasetime - spawn['pausetime'] - finished_ms
+                                            mod_phasetime = 60
+                                        mod_tth = int((mod_phasetime - spawn['pausetime']) * 60000 - finished_ms)
                                         if addinfo > 0:
-                                            mod_spawntime = wild.last_modified_timestamp_ms + mod_tth - addinfo_phase_first[addinfo]
-                                            mod_spawntime_2nd = wild.last_modified_timestamp_ms + mod_tth + addinfo_pausetime[addinfo]
+                                            mod_spawntime = (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 - addinfo_phase_first[addinfo]
+                                            mod_spawntime_sec = (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 + addinfo_pausetime[addinfo]
                                         else:
-                                            mod_spawntime = wild.last_modified_timestamp_ms - finished_ms
+                                            mod_spawntime = (wild.last_modified_timestamp_ms - finished_ms) / 1000.0
                             if mod_tth > 0:
                                 list_unique.add(wild.encounter_id)
                             else:
-                                mod_tth = time_1q + 1000
+                                mod_tth = 901000
                             if mod_spawntime == 0:
-                                mod_spawntime = wild.last_modified_timestamp_ms + mod_tth - time_1q
+                                mod_spawntime = (wild.last_modified_timestamp_ms + mod_tth) / 1000.0 - 900.0
 
                             f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime,
-                                                                                  wild.last_modified_timestamp_ms, mod_tth, wild.encounter_id))
+                                                                                  wild.last_modified_timestamp_ms / 1000.0, mod_tth / 1000.0, wild.encounter_id))
                             if addinfo:
-                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime_2nd,
-                                                                                      mod_spawntime_2nd+finished_ms, addinfo_phase_sec[addinfo]-finished_ms, wild.encounter_id))
-                            data_buffer.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int(round((wild.last_modified_timestamp_ms + mod_tth + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]) / 1000.0)) ,addinfo])
+                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime_sec,
+                                                                                      mod_spawntime_sec+finished_ms/1000.0, addinfo_phase_sec[addinfo]-finished_ms/1000.0, wild.encounter_id))
+                            data_buffer.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0 + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]),addinfo])
                             if not silent:
                                 other_ll = LatLng.from_degrees(wild.latitude, wild.longitude)
                                 origin_ll = LatLng.from_degrees(LAT_C, LNG_C)
@@ -1359,39 +1236,20 @@ def main():
                                 lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), distance, direction))
 
                             if len(PUSHPOKS) > 0 and wild.pokemon_data.pokemon_id in PUSHPOKS:
-                                if add_location_name:
-                                    try:
-                                        location = format_address(geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude)).address, 3)
-                                        notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location)
-                                    except:
-                                        notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
-                                else:
-                                    notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
+                                notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {}'.format(disappear_time)
                                 if addinfo:
                                     time_text += reappear_texts[reappear_ind[addinfo-1]]
-                                li = 0
-                                while li < len(pb):
+                                for pushacc in pb:
                                     try:
-                                        pb[li].push_link(notification_text, 'https://maps.google.com/?ll={},{}&q={},{}&z=14'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude), body=time_text)
+                                        pushacc.push_link(notification_text, 'https://maps.google.com/?ll={},{}&q={},{}&z=14'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude), body=time_text)
                                     except requests.ConnectionError as e:
                                         if re.search('Connection aborted', str(e)) is None:
                                             lprint('[-] Connection Error during Pushbullet, error: {}'.format(e))
-                                    except pushbullet.PushbulletError as e:
-                                        if e['error_code'] == "pushbullet_pro_required":
-                                            lprint('[-] Pushbullet Error: "free limit exceeded", {} is removed from future notifications.'.format(pb[li]))
-                                            pb.pop(li)
-                                            li -= 1
-                                        else:
-                                            lprint('[-] Pushbullet Error: {}'.format(e))
-                                    except Exception as e:
-                                        lprint('[-] Pushbullet Error: {}'.format(e))
-                                    li += 1
-
                                 for telegram in telegrams:
-                                    telebot.sendMessage(chat_id=telegram, text='<b>' + notification_text + '</b>\n' + time_text, parse_mode='HTML', disable_web_page_preview='False', disable_notification='False')
-                                    telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude)
+                                    telebot.sendMessage(chat_id=telegram, text= '<b>' + notification_text + '</b>\n' + '<a href="https://maps.google.com/?ll={},{}&q={},{}&z=14">location</a>\n'.format(wild.latitude, wild.longitude,wild.latitude, wild.longitude) + time_text, parse_mode= 'HTML',disable_web_page_preview='False',disable_notification='False')
+
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
                             if addpokemon.empty() or time.time() >= nextdatwrite:
@@ -1405,23 +1263,21 @@ def main():
 
                                 nextdatwrite = time.time() + interval_datwrite
                     addpokemon.task_done()
-                f.close()
             finally:
                 if 'f' in vars() and not f.closed:
                     f.close()
 
 #########################################################################
 #########################################################################
-    global all_loc, empty_loc, all_scans, signature_lib, locktime, addlocation, synch_li, smartscan
+
+    global all_loc, empty_loc, signature_lib, lock_network, lock_banfile, locktime, addlocation, synch_li, smartscan
 
     def signal_handler(signal, frame):
         sys.exit()
+
     signal.signal(signal.SIGINT, signal_handler)
 
-    time_1q = 900000
-    time_4q = 4 * time_1q
-
-    signature_lib = ctypes.cdll.LoadLibrary(get_encryption_lib_path())
+    signature_lib = ctypes.cdll.LoadLibrary('{}/res/encrypt.so'.format(workdir))
     signature_lib.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_size_t)]
     signature_lib.restype = ctypes.c_int
 
@@ -1442,17 +1298,18 @@ def main():
     addspawns = Queue.Queue(threadnum)
     addforts = Queue.Queue(threadnum)
 
+    lock_network = threading.Lock()
+    lock_banfile = threading.Lock()
     scan_file = '{}/res/{}_{}_{}_{}.json'.format(workdir, LAT_C, LNG_C, HEX_NUM, HEX_R)
     try:
         f = open(scan_file, 'r')
         scandata = json.load(f)
         f.close()
-        if not dumb:
-            smartscan = True
+        smartscan = True
     except Exception as e:
         smartscan = False
-        lprint('[+] Can\'t load location database file: {}.'.format(e))
-        lprint('[+] After a learning phase of one hour this file will be created and it\'ll make subsequent scans with the same parameters very efficient.\n')
+        lprint('Can\'t load location database file: {}'.format(e))
+        lprint('After a learning phase of 3 hours this file will be created and it\'ll make subsequent scans with the same parameters very efficient.\n')
         scandata = {'parameters': {'lat': LAT_C, 'lng': LNG_C, 'range': HEX_NUM, 'sight': HEX_R}, 'emptylocs': [], 'spawns': [], 'stops': [], 'gyms': []}
     finally:
         if 'f' in vars() and not f.closed:
@@ -1472,9 +1329,8 @@ def main():
     # sys.exit()
 
     if not smartscan:
-        all_loc = [(LAT_C, LNG_C)]
+        all_loc = [[LAT_C, LNG_C]]
         empty_loc = []
-        all_scans = []
 
         for a in range(1, HEX_NUM + 1):
             for s in range(0, 6):
@@ -1498,18 +1354,10 @@ def main():
                         lat = LAT_C - y_un * (a + i)
                         lng = LNG_C - x_un * (a - i)
 
-                    all_loc.append((lat, lng))
+                    all_loc.append([lat, lng])
 
         empty_loc = [0] * len(all_loc)
 
-        lprint('[+] Distributing {} locations to {} threads.'.format(len(all_loc), threadnum))
-        runtime = float(len(all_loc) * time_hb) / threadnum
-        lprint('[+] Time for each run can vary between {} s (urban) and {} s (rural).'.format(int(round(math.floor(runtime))), int(round(math.ceil(2 * runtime + time_hb)))))
-        lprint('[+] If it\'s higher than 600 s (720 s, if you feel lucky), consider adding more workers or reducing the range.\n')
-        time.sleep(5)
-
-        for location in all_loc:
-            all_scans.append(scan(location))
         newthread = spawnjoiner()
         newthread.deaemon = True
         newthread.start()
