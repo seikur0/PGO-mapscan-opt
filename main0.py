@@ -322,6 +322,7 @@ def do_settings():
 
     accounts = []
     if len(idlist) > 0:
+        proxies = None
         if 'proxy' in allsettings['profiles'][idlist[0]] and allsettings['profiles'][idlist[0]]['proxy']:
             proxies = {'http': allsettings['profiles'][idlist[0]]['proxy'], 'https': allsettings['profiles'][idlist[0]]['proxy']}
             lprint('[+] Using proxy: {}'.format(allsettings['profiles'][idlist[0]]['proxy']))
