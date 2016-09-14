@@ -1418,7 +1418,7 @@ def main():
                                         telebot.sendMessage(chat_id=telegram, text='<b>' + notification_text + '</b>\n' + time_text, parse_mode='HTML', disable_web_page_preview='False', disable_notification='False')
                                         telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude)
                                     except Exception as e:
-                                        print('[-] Connection Error during Telegram, error: {]'.format(e))
+                                        print('[-] Connection Error during Telegram, error: {}'.format(e))
                             if addpokemon.empty() and time.time() < nextdatwrite:
                                 time.sleep(1)
                             if addpokemon.empty() or time.time() >= nextdatwrite:
