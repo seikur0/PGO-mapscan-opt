@@ -146,11 +146,14 @@ function useData(newData) {
                     markers[s].validTill = p_expiretime;
                 }
             } else {
-                var marker = new google.maps.Marker({
+                var marker = new MarkerWithLabel({
                     position: {
                         lat: p_latitude,
                         lng: p_longitude
                     },
+                    labelContent: "",
+                    labelAnchor: new google.maps.Point(30, -30),
+                    labelClass: "label",
                     optimized: false,
                     id: p_pokeid,
                     validTill: p_expiretime,
@@ -247,13 +250,16 @@ function useData(newData) {
                 if (ishidden == false){ // different format if the pokemon is hidden
                     markers[i].infotext = firstmsg + timelefttext + formatTimeleftString(timeleft) + "<br>" + backmsg;
                     markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + "</i> " + "<br>";
-
+                    markers[i].labelClass = "label";
                 }else{
                     markers[i].infotext = "<font color=\"#a9a9a9\">";
                     markers[i].infotext += firstmsg + timehiddentext + formatTimeleftString(timeleft) + "<br>" + backmsg;
                     markers[i].infotext += timeuntiltext + new Date(markers[i].validTill * 1000).toLocaleTimeString() + "<br>";
                     markers[i].infotext += "</font>";
+                    markers[i].labelClass = "hidden_label";
                 }
+                markers[i].labelContent = formatTimeleftString(timeleft);
+                markers[i].label.setContent();
             } else {
                 markers[i].validTill = 0;
             }
@@ -296,6 +302,8 @@ function showMarkers() {
     var filt_inactive = (document.getElementById("filter_active").style.opacity < 1)
 
     for (var i = 0; i < markers.length; i++) {
+        markers[i].labelVisible = showCdn;
+        markers[i].label.setVisible();
         if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && (filt_inactive || !filteredOut(markers[i].id))) {
             if (markers[i].map == null)
                 markers[i].setMap(map);
@@ -333,6 +341,11 @@ function findLocation() {
         }, function(error) {
             alert(error.message)
         });
+}
+
+function showCountdown(){
+    showCdn = !showCdn;
+    showMarkers()
 }
 
 function filt_toogle() {

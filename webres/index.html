@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7">
     <link rel="site icon" href="static/icons/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" type="text/css" href="static/css/sitestyle.css">
+    <link rel="stylesheet" type="text/css" href="static/css/labels.css">
 
     <script src="static/js/jquery-3.1.0.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}"></script>
     <script src="static/js/mapscan.js"></script>
+    <script src="static/js/markerwithlabel.js"></script>
     <script type="text/javascript">
         var map;
         var markers = [];
@@ -38,6 +40,7 @@
         var icon_set = "{{ icon_set }}";
         var lat = {{ lat }};
         var lng = {{ lng }};
+        var showCdn = false;
         document.getElementsByName("viewport").content = "width=device-width, initial-scale={{ mobile_scale }}, maximum-scale={{ mobile_scale }}";
     </script>
 
@@ -48,6 +51,7 @@
     <div id="filter" title="Filter" onclick="showFilterDialog();"><img src="static/icons/ic_filter_list_black_24px.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
     <div id="filterdialog"></div>
     <div id="findloc" title="Find Location" onclick="findLocation();"><img src="static/icons/map.svg" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
+    <div id="showcountdown" title="Show Contdown" onclick="showCountdown();"><img src="static/icons/countdown.png" onload="this.style.opacity=0.5;" onmouseover="this.style.opacity=1;" onmouseout="this.style.opacity=0.5;"></div>
 </body>
 
 </html>
