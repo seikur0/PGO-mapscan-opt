@@ -249,12 +249,12 @@ function useData(newData) {
 
                 if (ishidden == false){ // different format if the pokemon is hidden
                     markers[i].infotext = firstmsg + timelefttext + formatTimeleftString(timeleft) + "<br>" + backmsg;
-                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i> -" + "<br>";
+                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i>-" + "<br>";
                     markers[i].labelClass = "label";
                 }else{
                     markers[i].infotext = "<font color=\"#a9a9a9\">";
                     markers[i].infotext += firstmsg + timehiddentext + formatTimeleftString(timeleft) + "<br>" + backmsg;
-                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i> -" + "<br>";
+                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i>-" + "<br>";
                     markers[i].infotext += "</font>";
                     markers[i].labelClass = "hidden_label";
                 }
