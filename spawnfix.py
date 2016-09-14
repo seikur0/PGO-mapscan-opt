@@ -106,9 +106,10 @@ def main():
                 f.close()
 
                 for entry in scandata['spawns']:
-                    if entry['id'] in list_spawns and entry['type'] in (SPAWN_UNDEF,SPAWN_DEF):
+                    if entry['id'] in list_spawns:
                         ind = list_spawns.index(entry['id'])
-                        alldata['spawns'][ind] = entry
+                        if alldata['spawns'][ind]['type'] in (SPAWN_UNDEF,SPAWN_DEF):
+                            alldata['spawns'][ind] = entry
                     else:
                         alldata['spawns'].append(entry)
                         list_spawns.append(entry['id'])
