@@ -896,7 +896,7 @@ def main():
                 last_time = max(spawn.encounters[0][1])
                 for en in range(1,len(spawn.encounters)):
                     first_time = min(min(spawn.encounters[en][1]) - time_4q*en, first_time)
-                    last_time = min(min(spawn.encounters[en][1]) - time_4q*en, last_time)
+                    last_time = max(max(spawn.encounters[en][1]) - time_4q*en, last_time)
 
                 if pausetime < time_1q + 1:
                     spawn.type = SPAWN_1x60
