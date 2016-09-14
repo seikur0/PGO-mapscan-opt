@@ -36,6 +36,20 @@ html,
             text-align: center;
             vertical-align: middle;
         }
+
+        #showcountdown {
+            position: absolute;
+            right: 12px;
+            top: 92px;
+            width: 27px;
+            height: 28px;
+            box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+            border-radius: 2px;
+            cursor: pointer;
+            background-color: white;
+            text-align: center;
+            vertical-align: middle;
+        }
         
         #filterdialog {
             position: absolute;

@@ -1,0 +1,26 @@
+.label {
+    color: black;
+    background-color: white;
+    font-family: "Lucida Grande", "Arial", sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    width: 60px;
+    border-radius: 20px;
+    margin-top:    20px;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+.hidden_label {
+    color: darkslategrey;
+    background-color: lightgray;
+    font-family: "Lucida Grande", "Arial", sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    width: 60px;
+    border-radius: 20px;
+    opacity: 0.8;
+    white-space: nowrap;
+}
