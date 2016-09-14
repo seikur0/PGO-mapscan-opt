@@ -12,7 +12,7 @@ function initMap() {
         pokenames = JSON.parse(tnames);
     });
     if (language == "german") {
-        timeuntiltext = "-bis:";
+        timeuntiltext = "- bis";
         timelefttext = "Zeit &#252;brig: ";
         timehiddentext = "Versteckt f&#252;r: ";
         timehiddentext_15min = "(danach zur&#252;ck f&#252;r 15m)";
@@ -21,7 +21,7 @@ function initMap() {
         timereturntext_15min_30min = "(15m danach zur&#252;ck f&#252;r 30m)";
         timereturntext_30min_15min = "(30m danach zur&#252;ck f&#252;r 15m)";
     } else if (language == "english") {
-        timeuntiltext = "-until:";
+        timeuntiltext = "- until";
         timelefttext = "Time left: ";
         timehiddentext = "Hidden for: ";
         timehiddentext_15min = "(then back for 15m)";
@@ -249,12 +249,12 @@ function useData(newData) {
 
                 if (ishidden == false){ // different format if the pokemon is hidden
                     markers[i].infotext = firstmsg + timelefttext + formatTimeleftString(timeleft) + "<br>" + backmsg;
-                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + "</i> " + "<br>";
+                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i> -" + "<br>";
                     markers[i].labelClass = "label";
                 }else{
                     markers[i].infotext = "<font color=\"#a9a9a9\">";
                     markers[i].infotext += firstmsg + timehiddentext + formatTimeleftString(timeleft) + "<br>" + backmsg;
-                    markers[i].infotext += timeuntiltext + new Date(markers[i].validTill * 1000).toLocaleTimeString() + "<br>";
+                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i> -" + "<br>";
                     markers[i].infotext += "</font>";
                     markers[i].labelClass = "hidden_label";
                 }
