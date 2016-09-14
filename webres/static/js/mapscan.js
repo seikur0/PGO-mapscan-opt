@@ -12,7 +12,7 @@ function initMap() {
         pokenames = JSON.parse(tnames);
     });
     if (language == "german") {
-        timeuntiltext = "- bis";
+        timeuntiltext = "bis";
         timelefttext = "Zeit &#252;brig: ";
         timehiddentext = "Versteckt f&#252;r: ";
         timehiddentext_15min = "(danach zur&#252;ck f&#252;r 15m)";
@@ -21,7 +21,7 @@ function initMap() {
         timereturntext_15min_30min = "(15m danach zur&#252;ck f&#252;r 30m)";
         timereturntext_30min_15min = "(30m danach zur&#252;ck f&#252;r 15m)";
     } else if (language == "english") {
-        timeuntiltext = "- until";
+        timeuntiltext = "until";
         timelefttext = "Time left: ";
         timehiddentext = "Hidden for: ";
         timehiddentext_15min = "(then back for 15m)";
@@ -242,19 +242,18 @@ function useData(newData) {
                  * (2. Line: backmsg)
                  * 3. Line: Countdown*/
                 firstmsg = "<b>" + pokenames[markers[i].id] + " (" + markers[i].id + ")</b><br>";
-
+				timemsg = new Date(markers[i].validTill * 1000)
+				timemsg = "<i>- " + timeuntiltext + " " + padZero(timemsg.getHours())+":" + padZero(timemsg.getMinutes()) + ":" + padZero(timemsg.getSeconds()) + " -</i><br>"
                 if (backmsg != ""){
                     backmsg += "<br>";
                 }
 
                 if (ishidden == false){ // different format if the pokemon is hidden
-                    markers[i].infotext = firstmsg + timelefttext + formatTimeleftString(timeleft) + "<br>" + backmsg;
-                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i>-" + "<br>";
+                    markers[i].infotext = firstmsg + timelefttext + formatTimeleftString(timeleft) + "<br>" + timemsg;
                     markers[i].labelClass = "label";
                 }else{
                     markers[i].infotext = "<font color=\"#a9a9a9\">";
-                    markers[i].infotext += firstmsg + timehiddentext + formatTimeleftString(timeleft) + "<br>" + backmsg;
-                    markers[i].infotext += timeuntiltext + "<i> " + new Date(markers[i].validTill * 1000).toLocaleTimeString() + " </i>-" + "<br>";
+                    markers[i].infotext += firstmsg + timehiddentext + formatTimeleftString(timeleft) + "<br>" + timemsg + backmsg;
                     markers[i].infotext += "</font>";
                     markers[i].labelClass = "hidden_label";
                 }
@@ -267,6 +266,10 @@ function useData(newData) {
     }
     file_succ = true;
     showMarkers();
+}
+
+function padZero(number) {
+    if (number < 10) { return "0"+String(number)} else {return String(number)}
 }
 
 function formatTimeleftString(timeleft){
