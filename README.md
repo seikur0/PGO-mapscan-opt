@@ -16,6 +16,7 @@
   * You can use https://github.com/brandonshults/pipoam to visualize the whole area and fine select, which points you want, don't ask me for support on it, figure it out yourself or don't use it ;)
 * recent change from s to ms unit in learning files:
   * Use spawnfix.py to migrate your old learning files to the new format
+* for rare OS types you may need to compile the required encrypt.so yourself, see here: https://github.com/PokemonGoF/PokemonGo-Bot/issues/2966 Compile it and put it into the res folder.
 
 * Execute "python pokesite.py" to host the website with your map on 'http://localhost:8000'.
 * That port can be changed in the settings file.
