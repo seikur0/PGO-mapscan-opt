@@ -447,11 +447,21 @@ def login_ptc(account):
             return
 
         except Exception as e:
-            lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
             if r is not None:
-                lprint('[{}] Connection error, http code: {}'.format(account['num'], r.status_code))
-                #lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, r.content))
+                answer = json.loads(r.content)
+                if answer.get('error_code',None) == 'users.login.activation_required':
+                    lprint('[{}] Login error for {}, needs email verification.'.format(account['num'],account['user']))
+                    exit()
+                elif answer.get('errors',None)[0].startswith('Your username or password is incorrect.'):
+                    lprint('[{}] Login error for {}, incorrect username/password/account does not exist.'.format(account['num'], account['user']))
+                    exit()
+                elif answer.get('errors',None)[0].startswith('As a security measure, your account has been disabled for 15 minutes'):
+                    lprint('[{}] Login error for {}, incorrect username/password was entered 5 times, login for that account is disabled for 15 minutes.'.format(account['num'], account['user']))
+                    exit()
+                lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
+                lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, answer))
             else:
+                lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
                 lprint('[{}] Error happened before network request.'.format(account['num']))
             lprint('[{}] Retrying...'.format(account['num']))
             time.sleep(2)
