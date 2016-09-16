@@ -43,7 +43,7 @@
 
 * Arguments are not required, but if used, they overwrite the settings in the 'usersettings.json' file, standard id without arguments is 0
   * '-id': is the id of the worker(s) and determines stuff like the name of the data log file and the place where it will scan, account settings are read from the 'usersettings.json' file
-  * '-r': is the radius around the center scanning point in hexagon layers, real radius is approximately 175r in m
+  * '-r': is the radius around the center scanning point in hexagon layers, real radius is approximately 120r in m
   * '-t': is the minimum time interval between scans
   * '-lat': latitude
   * '-lng': longitude
