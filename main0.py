@@ -196,6 +196,9 @@ def get_encryption_lib_path():
     elif sys.platform.startswith('freebsd'):
         lib_name = "libencrypt-freebsd-64.so"
 
+    elif sys.platform.startswith('sunos5'):
+        lib_name = "libencrypt-sunos5-x86-64.so"
+
     else:
         err = "Unexpected/unsupported platform '{}'.".format(sys.platform)
         lprint(err)
