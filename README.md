@@ -1,5 +1,7 @@
 # PGO-mapscan-opt
 
+> We now have a discord channel, not sure how popular it will be: https://discord.gg/eEGz3Cx
+
 ## Instructions
 * Rename 'usersettings.json.example' in the res subfolder to 'usersettings.json' and edit the file to your liking.
   * The first 'profile' has to be edited and if you want the map functionality the 'api_key' setting as well. Profiles with same ids form a scan group. They use the location and the (optional) proxy from the first profile in that group.
