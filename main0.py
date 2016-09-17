@@ -1407,7 +1407,7 @@ def main():
                                 else:
                                     notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
-                                time_text = 'disappears at: {} ({}m)'.format(disappear_time,int(mod_tth / 1000.0 / 60))
+                                time_text = 'disappears at: {} ({}m {}s)'.format(disappear_time, mod_tth / 60000,int(round((mod_tth % 60000)/1000.0)))
                                 if addinfo:
                                     time_text += reappear_texts[reappear_ind[addinfo-1]]
                                 li = 0
