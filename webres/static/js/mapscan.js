@@ -29,6 +29,15 @@ function initMap() {
         timereturntext_15min_15min = "(15m later back for 15m)";
         timereturntext_15min_30min = "(15m later back for 30m)";
         timereturntext_30min_15min = "(30m later back for 15m)";
+    } else if(language == "spanish") {
+        timeuntiltext = "hasta";
+        timelefttext = "Tiempo restante: ";
+        timehiddentext = "Oculto por: ";
+        timehiddentext_15min = "(volvera por 15m)";
+        timehiddentext_30min = "(volvera por 30m)";
+        timereturntext_15min_15min = "(15m volvera mas tarde por 15m)";
+        timereturntext_15min_30min = "(15m volvera mas tarde por 30m)";
+        timereturntext_30min_15min = "(30m volvera mas tarde por 15m)";
     }
     // filter interface
     pokefilter = getCookie("pokefilter");
