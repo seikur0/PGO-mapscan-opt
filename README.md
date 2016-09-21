@@ -47,9 +47,3 @@ To AeonLucid for creating and expanding the POGO Protos Library: https://github.
 To the heroes of the unknown6 team.
 
 To HEKTakun, I'm using his awesome pokemon icons for the map.
-
-## Visualization of the algorithm
-
-Check out the github page of lordbaconcake, it visualizes the beauty of the hexagon algorithm quite well.
-And if you'd like to cover more complex or square areas rather than a circle-like pattern, check out his api.
-https://github.com/spezifisch/geoscrape
