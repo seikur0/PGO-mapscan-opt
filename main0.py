@@ -852,7 +852,7 @@ def lprint(message):
 def get_planid(plan):
     if plan['type'] == 'seikur0_s2':
         id = 'seikur0_s2__{}'.format(plan['token'])
-    elif plan['type'] == 'seiur0_spir':
+    elif plan['type'] == 'seikur0_spir':
         id = 'seikur0_spir__{}_{}__{}'.format(plan['location'][0],plan['location'][1],plan['range'])
     elif plan['type'] == 'seikur0_circle':
         id = 'seikur0_circle__{}_{}__{}'.format(plan['location'][0],plan['location'][1],plan['radius'])
