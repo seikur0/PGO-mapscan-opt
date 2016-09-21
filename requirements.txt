@@ -11,4 +11,4 @@ telepot
 requests[socks]
 unidecode
 grequests
--e git+git://github.com/seikur0/PokeAlarm#egg=pokealarm
+-e git+git://github.com/kvangent/PokeAlarm#egg=pokealarm

@@ -1670,7 +1670,7 @@ def main():
                                 direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
                                 lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), distance, direction))
 
-                            hookdata = {"type": "pokemon","message": {"encounter_id": wild.encounter_id,"spawnpoint_id": spawnIDint,"pokemon_id": wild.pokemon_data.pokemon_id,"latitude": wild.latitude,"longitude": wild.longitude,"disappear_time": int((wild.last_modified_timestamp_ms + mod_tth)/1000.0),"last_modified_time": wild.last_modified_timestamp_ms,"time_until_hidden_ms": mod_tth, 'addinfo': addinfo}}
+                            hookdata = {"type": "pokemon","message": {"encounter_id": wild.encounter_id,"spawnpoint_id": spawnIDint,"pokemon_id": wild.pokemon_data.pokemon_id,"latitude": wild.latitude,"longitude": wild.longitude,"disappear_time": int((wild.last_modified_timestamp_ms + mod_tth)/1000.0),"last_modified_time": wild.last_modified_timestamp_ms,"time_until_hidden_ms": mod_tth, 'respawn_info': addinfo}}
                             addhook.put(hookdata)
                             if len(PUSHPOKS) > 0 and wild.pokemon_data.pokemon_id in PUSHPOKS:
                                 if add_location_name:
