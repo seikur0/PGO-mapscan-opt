@@ -32,7 +32,7 @@ See [New User Guide (Windows)](https://github.com/seikur0/PGO-mapscan-opt/wiki/N
 If you have any learning files created with my tool, I'd like to have them, so I can collect them and create a larger database. So if possible I'd like you to send me these files per mail: seikur00@gmail.com I'll share them somewhere, maybe Google Drive, so everyone can access them. Thanks :)
 
 ## FAQ
-* https://github.com/seikur0/PGO-mapscan-opt/blob/master/FAQ.txt
+* [FAQ](https://github.com/seikur0/PGO-mapscan-opt/wiki/FAQ)
   * I will collect questions, when I answer them the first time, and then I'll include a FAQ in the files here on github.
   * Don't think I'm impolite, when I'll just answer FAQ to something you write me. It's just that I want to do more with my day than answering the same questions over and over again :)
   * Suggestions and feedback in general are very welcome though, that helps me in finding bugs and improvements.
