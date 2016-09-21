@@ -18,6 +18,8 @@
   * Use spawnfix.py to migrate your old learning files to the new format
 * recent path changes:
   * Learning files go into the res/learning/learn_files folder, in the settings put the name of the file you want to use for a profile into the learn_file entry (without the .json). Log files are now in the res/logs folder
+* recent scan pattern changes:
+  * The r parameter is now the circular scan range in m around a point. If you want to use the old hex pattern, use the -hx and the -r parameter to specify a radius in hex layers
 * for rare OS types you may need to compile the required encrypt.so yourself, see here: https://github.com/PokemonGoF/PokemonGo-Bot/issues/2966 Compile it and put it into the res folder.
 
 * Execute "python pokesite.py" to host the website with your map on 'http://localhost:8000'.
