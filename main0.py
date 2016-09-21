@@ -860,6 +860,15 @@ def get_planid(plan):
         id = 'raw__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['id'],Rsight)
     return id
 
+
+    {
+     "token": "47b729",
+     "subplan_index": 2,
+     "type": "seikur0_s2",
+     "location": [53.050097737019335,8.412929803540123],
+     "subplans": 2
+    }
+
 def get_plan_locations(plan):
     global LAT_C,LNG_C,location_str
     grid = mapl.Hexgrid()
@@ -970,7 +979,9 @@ def set_locations():
             all_scans = []
             for location in all_loc:
                 all_scans.append(scan(location))
-            scandata = {'parameters': {'lat': LAT_C, 'lng': LNG_C, 'range': scanrange, 'sight': Rsight}, 'plan': scanplan, 'quality': {'empty': [], 'emptynum': 0, 'retries': [], 'compromised': False, 'undefined': 0, 'runtimes': []}, 'emptylocs': [], 'spawns': [], 'stops': [], 'gyms': []}
+            scandata = {'parameters': {'lat': LAT_C, 'lng': LNG_C, 'range': scanrange, 'sight': Rsight}, 'plan': scanplan,
+                        'quality': {'empty': [], 'emptynum': 0, 'totalnum': len(all_loc), 'workers': threadnum, 'retries': [], 'compromised': False, 'undefined': 0, 'runtimes': []},
+                        'emptylocs': [], 'spawns': [], 'stops': [], 'gyms': []}
             lprint('')
 ##################################################################################################################################################
 ##################################################################################################################################################
