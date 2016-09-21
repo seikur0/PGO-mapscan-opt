@@ -1,12 +1,4 @@
-var refreshInterval;
-var swapProfile=true;
-
 function initMap() {
-    querylat=parseFloat(getParameterByName("lat"));
-    querylng=parseFloat(getParameterByName("lng"));
-    if (querylat) lat=querylat;
-    if (querylng) lng=querylng;
-
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
             lat: lat,
@@ -37,6 +29,15 @@ function initMap() {
         timereturntext_15min_15min = "(15m later back for 15m)";
         timereturntext_15min_30min = "(15m later back for 30m)";
         timereturntext_30min_15min = "(30m later back for 15m)";
+    } else if(language == "spanish") {
+        timeuntiltext = "hasta";
+        timelefttext = "Tiempo restante: ";
+        timehiddentext = "Oculto por: ";
+        timehiddentext_15min = "(volvera por 15m)";
+        timehiddentext_30min = "(volvera por 30m)";
+        timereturntext_15min_15min = "(15m volvera mas tarde por 15m)";
+        timereturntext_15min_30min = "(15m volvera mas tarde por 30m)";
+        timereturntext_30min_15min = "(30m volvera mas tarde por 15m)";
     }
     // filter interface
     pokefilter = getCookie("pokefilter");
@@ -49,7 +50,6 @@ function initMap() {
         wholedata = [];
     cleanWholedata();
     document.getElementById("filterdialog").style.display = "none";
-    document.getElementById("profiledialog").style.display = "none";
 
     var div = document.createElement("div");
     div.innerHTML = "active";
@@ -90,20 +90,6 @@ function initMap() {
         div.id = "filter" + i;
         div.addEventListener("click", callback, false)
         document.getElementById("filterdialog").appendChild(div);
-    }
-
-    var div = document.createElement("div");
-    div.innerHTML = "All Sections";
-    div.id="profile-1";
-    div.addEventListener("click", function() { setProfile(this.id); }, false)
-    document.getElementById("profiledialog").appendChild(div);
-
-    for (var i = 0; i < profiles.length; i++) {
-        var div = document.createElement("div");
-        div.innerHTML = "Section " + profiles[i];
-        div.id="profile" + profiles[i];
-        div.addEventListener("click", function() { setProfile(this.id); }, false)
-        document.getElementById("profiledialog").appendChild(div);
     }
 
     currentLocationMarker = new google.maps.Marker();
@@ -264,20 +250,20 @@ function useData(newData) {
                  * 1. Line: Pokemonname
                  * (2. Line: backmsg)
                  * 3. Line: Countdown*/
-                firstmsg = "<span class='label_pokemon_name'>" + pokenames[markers[i].id] + " (" + markers[i].id + ")</span> ";
-                timemsg = new Date(markers[i].validTill * 1000)
-                timemsg = "<span class='label_expire_time'>- " + timeuntiltext + " " + padZero(timemsg.getHours())+":" + padZero(timemsg.getMinutes()) + ":" + padZero(timemsg.getSeconds()) + " -</span>"
+                firstmsg = "<b>" + pokenames[markers[i].id] + " (" + markers[i].id + ")</b><br>";
+				timemsg = new Date(markers[i].validTill * 1000)
+				timemsg = "<i>- " + timeuntiltext + " " + padZero(timemsg.getHours())+":" + padZero(timemsg.getMinutes()) + ":" + padZero(timemsg.getSeconds()) + " -</i><br>"
                 if (backmsg != ""){
                     backmsg += "<br>";
                 }
 
                 if (ishidden == false){ // different format if the pokemon is hidden
-                    markers[i].infotext = firstmsg + "<span class='label_time_left'>" + timelefttext + formatTimeleftString(timeleft) + "</span> " + timemsg;
+                    markers[i].infotext = firstmsg + timelefttext + formatTimeleftString(timeleft) + "<br>" + timemsg;
                     markers[i].labelClass = "label";
                 }else{
-                    markers[i].infotext = "<span class='label_hidden_pokemon'>";
-                    markers[i].infotext += firstmsg + "<span class='label_time_left'>" + timehiddentext + formatTimeleftString(timeleft) + "<br>" + timemsg + backmsg + "</span>";
-                    markers[i].infotext += "</span>";
+                    markers[i].infotext = "<font color=\"#a9a9a9\">";
+                    markers[i].infotext += firstmsg + timehiddentext + formatTimeleftString(timeleft) + "<br>" + timemsg + backmsg;
+                    markers[i].infotext += "</font>";
                     markers[i].labelClass = "hidden_label";
                 }
                 markers[i].labelContent = formatTimeleftString(timeleft);
@@ -307,7 +293,7 @@ function cleanWholedata() {
 }
 
 function refreshData() {
-    $.getJSON('_getdata.php', {
+    $.getJSON('_getdata', {
         data_till: datatill,
         profile: profile
     }, function(data, status) {
@@ -316,8 +302,6 @@ function refreshData() {
         if (clean_c > 3) {
             clean_c = 0;
             cleanWholedata();
-        } else {
-            clean_c += 1;
         }
         useData(wholedata);
     });
@@ -351,9 +335,7 @@ function f_startup() {
         useData(wholedata);
         refreshData();
         cleanWholedata();
-        if (refreshInterval == null) {
-            refreshInterval = setInterval(refreshData, 10000);
-        }
+        setInterval(refreshData, 10000);
     }
 }
 
@@ -446,45 +428,11 @@ function filteredOut(id) {
     return (filtertest.indexOf("," + id + ",") > -1)
 }
 
-function setProfile(id) {
-    var index=parseInt(id.substring(7));
-    profile=index;
-
-    for (var i = 0; i < markers.length; i++) {
-        markers[i].setMap(null);
-        markers[i].validTill=0;
-    }
-
-    datatill = parseInt(localStorage.getItem('datatill' + profile));
-    if (datatill === null)
-        datatill = 0;
-
-    wholedata = JSON.parse(localStorage.getItem('pokedata' + profile));
-    if (wholedata === null)
-        wholedata = [];
-    cleanWholedata();
-
-    swapProfile=true;
-    clearInterval(refreshInterval);
-    refreshInterval=null;
-    f_startup();
-}
-
-function showDialog(name) {
-    var dialog = document.getElementById(name);
+function showFilterDialog() {
+    var dialog = document.getElementById("filterdialog");
     if (dialog.style.display == "none") {
         dialog.style.display = "inherit";
     } else {
         dialog.style.display = "none";
     };
-}
-
-function getParameterByName(name, url) {
-    if (!url) url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
