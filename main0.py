@@ -938,7 +938,7 @@ def set_locations():
         else:
             scanplan = {'type': 'seikur0_circle', 'location': (LAT_C,LNG_C), 'radius': scanrange}
 
-        if not mode_plan:
+        if not mode_plan and not dumb:
             if fname_spawnfile is not None: #loads learning file with custom name if there
                 fpath_iscan = '{}/res/learning/learn_files/{}.json'.format(workdir, fname_spawnfile)
                 try:
