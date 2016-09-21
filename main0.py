@@ -851,23 +851,17 @@ def lprint(message):
 
 def get_planid(plan):
     if plan['type'] == 'seikur0_s2':
-        id = 'seikur0_s2__{}__{}_{}__{}'.format(plan['token'],plan['subplan_index'],plan['subplans'],Rsight)
+        id = 'seikur0_s2__{}'.format(plan['token'])
     elif plan['type'] == 'seiur0_spir':
-        id = 'seikur0_spir__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['range'],Rsight)
+        id = 'seikur0_spir__{}_{}__{}'.format(plan['location'][0],plan['location'][1],plan['range'])
     elif plan['type'] == 'seikur0_circle':
-        id = 'seikur0_circle__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['radius'],Rsight)
+        id = 'seikur0_circle__{}_{}__{}'.format(plan['location'][0],plan['location'][1],plan['radius'])
     elif plan['type'] == 'raw':
-        id = 'raw__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['id'],Rsight)
+        id = 'raw__{}_{}__{}'.format(plan['location'][0],plan['location'][1],plan['id'])
+    if plan.get('subplan_index',None) is not None and plan.get('subplans',None) is not None:
+        id = '{}__{}_{}'.format(id,plan['subplan_index'],plan['subplans'])
+    id = '{}__{}'.format(id,Rsight)
     return id
-
-
-    {
-     "token": "47b729",
-     "subplan_index": 2,
-     "type": "seikur0_s2",
-     "location": [53.050097737019335,8.412929803540123],
-     "subplans": 2
-    }
 
 def get_plan_locations(plan):
     global LAT_C,LNG_C,location_str
@@ -876,34 +870,34 @@ def get_plan_locations(plan):
     if plan['type'] == 'seikur0_s2':
         cid = CellId.from_token(plan['token'])
         ll_location = LatLng.from_point(Cell(cid).get_center())
-        location = (ll_location.lat().degrees,ll_location.lng().degrees)
+        location = (ll_location.lat().degrees, ll_location.lng().degrees)
 
         locations = grid.cover_cell(cid)
-        ind_max = len(locations)
-        ind_part = int(math.ceil(ind_max/plan['subplans']))
-        ind = plan['subplan_index']-1
 
-        locations = locations[0+ind_part*ind:min(ind_max,ind_part*(ind+1))]
-        LAT_C, LNG_C = locations[0]
     elif plan['type'] == 'seikur0_spir':
         location = plan['location']
-
         range = plan['range']
+
         locations = mapl.get_area_spiral(location, range)
-        LAT_C, LNG_C = locations[0]
 
     elif plan['type'] == 'seikur0_circle':
         location = plan['location']
         radius = plan['radius']
+
         locations = grid.cover_circle(location,radius)
-        LAT_C, LNG_C = locations[0]
 
     elif plan['type'] == 'raw': #must contain plan['id']
         locations = plan['locations']
-        location = plan['location']
-        LAT_C,LNG_C = location
+        location = locations[0]
     else:
         return None
+
+    ind_max = len(locations)
+    ind_part = int(math.ceil(ind_max / plan.get('subplans',1)))
+    ind = plan.get('subplan_index',1) - 1
+
+    locations = locations[0 + ind_part * ind:min(ind_max, ind_part * (ind + 1))]
+    LAT_C, LNG_C = locations[0]
 
     try:
         location_str = 'Location: ({})'.format(geolocator.reverse('{},{}'.format(location[0], location[1])).address)
