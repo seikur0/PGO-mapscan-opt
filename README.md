@@ -9,7 +9,7 @@ See [New User Guide (Windows)](https://github.com/seikur0/PGO-mapscan-opt/wiki/N
 * recent path changes:
   * Learning files go into the res/learning/learn_files folder, in the settings put the name of the file you want to use for a profile into the learn_file entry (without the .json). Log files are now in the res/logs folder
 * recent scan pattern changes:
-  * The r parameter is now the circular scan range in m around a point. If you want to use the old hex pattern, use the -hx and the -r parameter to specify a radius in hex layers
+  * The r parameter is now the circular scan range in m around a point. If you want to use the old hex pattern, use the '-hx' and the '-r' parameter to specify a radius in hex layers
 
 ## Features
 * uses hexagon algorithm for normal scanning
