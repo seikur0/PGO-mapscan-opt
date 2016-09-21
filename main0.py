@@ -854,8 +854,8 @@ def get_planid(plan):
         id = 'seikur0_s2__{}__{}_{}__{}'.format(plan['token'],plan['subplan_index'],plan['subplans'],Rsight)
     elif plan['type'] == 'seiur0_spir':
         id = 'seikur0_spir__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['range'],Rsight)
-    elif plan['type'] == 'circle':
-        id = 'circle__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['radius'],Rsight)
+    elif plan['type'] == 'seikur0_circle':
+        id = 'seikur0_circle__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['radius'],Rsight)
     elif plan['type'] == 'raw':
         id = 'raw__{}_{}__{}__{}'.format(plan['location'][0],plan['location'][1],plan['id'],Rsight)
     return id
@@ -883,7 +883,7 @@ def get_plan_locations(plan):
         locations = mapl.get_area_spiral(location, range)
         LAT_C, LNG_C = locations[0]
 
-    elif plan['type'] == 'circle':
+    elif plan['type'] == 'seikur0_circle':
         location = plan['location']
         radius = plan['radius']
         locations = grid.cover_circle(location,radius)
@@ -933,7 +933,7 @@ def set_locations():
         elif usespiral:
             scanplan = {'type': 'seikur0_spir', 'location': (LAT_C, LNG_C), 'range': scanrange}
         else:
-            scanplan = {'type': 'circle', 'location': (LAT_C,LNG_C), 'radius': scanrange}
+            scanplan = {'type': 'seikur0_circle', 'location': (LAT_C,LNG_C), 'radius': scanrange}
 
         if not mode_plan:
             if fname_spawnfile is not None: #loads learning file with custom name if there
