@@ -47,8 +47,8 @@
 	}
   },
 
-  "_comment": "notification webhook urls, currently only for pokemon (Pokealarm standard: 'http://localhost:4000')"
-  "urls_webhook": []
+  "_comment": "notification webhook urls, currently only for pokemon (Pokealarm standard: 'http://localhost:4000')",
+  "urls_webhook": [],
 
   "_comment": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
   "scannum": 0,
