@@ -813,7 +813,7 @@ def heartbeat(location, account):
     heartbeat = POGOProtos.Networking.Responses_pb2.GetMapObjectsResponse()
     heartbeat.ParseFromString(response.returns[0])
     if safetysecs_auto:
-        safetysecs = math.ceil(0.5 + max(heartbeat.map_cells[0].current_timestamp_ms + 250 - time_post,0)/1000.0)
+        safetysecs = 0.5 + max(heartbeat.map_cells[0].current_timestamp_ms + 250 - time_post,0)/1000.0
     return heartbeat
 
 
