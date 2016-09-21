@@ -71,7 +71,8 @@
           {
               "lat": 0,
               "lng": 0
-          }
+          },
+      "learn_file": "INSERT_NAME"
     },
     {
       "id": 0,
