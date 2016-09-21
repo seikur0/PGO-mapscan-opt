@@ -41,18 +41,7 @@
 * pushbullet and telegram notifications
 * many more small things that contribute to a smooth user experience
 
-* Arguments are not required, but if used, they overwrite the settings in the 'usersettings.json' file, standard id without arguments is 0
-  * '-id': is the id of the worker(s) and determines stuff like the name of the data log file and the place where it will scan, account settings are read from the 'usersettings.json' file
-  * '-r': is the radius around the center scanning point in hexagon layers, real radius is approximately 120r in m
-  * '-t': is the minimum time interval between scans
-  * '-lat': latitude
-  * '-lng': longitude
-  * '-alt': altitude
-  * '-loc': location, you can specify the name of a location and the coordinates will be set to that, overwrites -lat and -lng
-  * '-s': scans, will quit after the specified number of scans, 1 for single scans
-  * '-tos': use this argument to make all accounts accept the tos at the start (only needed once for new accounts)
-  * '-v': use this to let it print the found pokemons in the console forever during iscan (without it, until 5 minutes after the map becomes live)
-  * '-d': aka dumb mode, will prevent it from changing to iscan mode. (learning file is still created)
+* Arguments are not required, but if used, they overwrite the settings in the 'usersettings.json' file, the standard id without arguments is 0, see [Command Line Arguments](https://github.com/seikur0/PGO-mapscan-opt/wiki/Command-Line-Arguments)
 
 ## What to do with collected data
 * 'python collector.py' will upload the backed up spawn files and share them
