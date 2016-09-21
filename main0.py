@@ -491,7 +491,7 @@ def login_ptc(account):
                         exit()
                     lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, answer))
                 except ValueError:
-                    lprint('[{}] Ptc login error in step {}: {}; content: {}'.format(account['num'], step, e, r.content))
+                    lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
             else:
                 lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
                 lprint('[{}] Error happened before network request.'.format(account['num']))
