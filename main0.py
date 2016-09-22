@@ -474,6 +474,7 @@ def login_ptc(account):
             step = 7
             account['access_expire_timestamp'] = 7200000 - 30000 + get_time() #account['access_expire_timestamp'] = int(result.groupdict()["expire_in"])*1000 + get_time()
             account['access_token'] = result.groupdict()["access_token"]
+            session.close()
             return
 
         except Exception as e:
@@ -510,15 +511,20 @@ def init_account_db():
         cur.execute("PRAGMA journal_mode = WAL")
 
 def new_session(account):
-    session = requests.session()
-    session.verify = True
-    session.headers.update({'User-Agent': 'Niantic App'})  # session.headers.update({'User-Agent': 'niantic'})
-    if not account['proxy'] is None:
-        session.proxies.update(account['proxy'])
+    if account.get('session',None) is None:
+        session = requests.session()
+
+        session.verify = True
+        session.headers.update({'User-Agent': 'Niantic App'})  # session.headers.update({'User-Agent': 'niantic'})
+        if not account['proxy'] is None:
+            session.proxies.update(account['proxy'])
+        account['session'] = session
+    else:
+        account['session'].close()
+        account['session'].cookies.clear()
 
     account['session_time'] = get_time()
     account['session_hash'] = os.urandom(32)
-    account['session'] = session
 
     account['api_url'] = API_URL
     account['auth_ticket'] = None
@@ -542,6 +548,7 @@ def do_login(account):
     else:
         do_full_login(account)
         lprint('[{}] New RPC Session Token: {}'.format(account['num'], account['access_token']))
+        acc_saved = None
 
     location = LAT_C, LNG_C
 
@@ -1545,10 +1552,11 @@ def main():
                     threading.Thread.__init__(self)
 
                 def run(self):
+                    session = requests.session()
                     while True:
                         requrl,data = addhookup.get()
                         try:
-                            requests.post(requrl, json=data, timeout=0.5)
+                            session.post(requrl, json=data, timeout=0.5)
                         except requests.exceptions.ConnectTimeout:
                             pass
                             # lprint('[-] Connection timeout.')
@@ -1800,7 +1808,6 @@ def main():
     newthread.start()
     while newthread.isAlive():
         newthread.join(5)
-
 
 if __name__ == '__main__':
     main()
