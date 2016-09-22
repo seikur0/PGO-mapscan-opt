@@ -483,13 +483,17 @@ def login_ptc(account):
                     if answer.get('error_code',None) == 'users.login.activation_required':
                         lprint('[{}] Login error for {}, needs email verification.'.format(account['num'],account['user']))
                         exit()
-                    elif answer.get('errors',None)[0].startswith('Your username or password is incorrect.'):
-                        lprint('[{}] Login error for {}, incorrect username/password/account does not exist.'.format(account['num'], account['user']))
-                        exit()
-                    elif answer.get('errors',None)[0].startswith('As a security measure, your account has been disabled for 15 minutes'):
-                        lprint('[{}] Login error for {}, incorrect username/password was entered 5 times, login for that account is disabled for 15 minutes.'.format(account['num'], account['user']))
-                        exit()
-                    lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, answer))
+                    elif answer.get('errors',None) is not None:
+                        if answer['errors'][0].startswith('Your username or password is incorrect.'):
+                            lprint('[{}] Login error for {}, incorrect username/password/account does not exist.'.format(account['num'], account['user']))
+                            exit()
+                        elif answer['errors'][0].startswith('As a security measure, your account has been disabled for 15 minutes'):
+                            lprint('[{}] Login error for {}, incorrect username/password was entered 5 times, login for that account is disabled for 15 minutes.'.format(account['num'], account['user']))
+                            exit()
+                        else:
+                            lprint('[{}] Login error for {}, {}.'.format(account['num'], account['user'],answer['errors']))
+                    else:
+                        lprint('[{}] Connection error, http code: {}, content: {}'.format(account['num'], r.status_code, answer))
                 except ValueError:
                     lprint('[{}] Ptc login error in step {}: {}'.format(account['num'], step, e))
             else:
