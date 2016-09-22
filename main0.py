@@ -141,6 +141,7 @@ add_location_name = False
 acc_tos = False
 F_LIMIT = None
 language = None
+lang_code = None
 wID = None
 
 verbose = False
@@ -238,7 +239,7 @@ def get_encryption_lib_path():
 
 def do_settings():
     global language, LAT_C, LNG_C, scanrange, scaninterval, F_LIMIT, pb, PUSHPOKS, scannum, wID, acc_tos, exclude_ids, telebot,add_location_name
-    global time_socks5_retry,verbose,dumb,mode_plan,signature_lib,locktime,fname_spawnfile,threadnum,fpath_dir_plan,num_hookers,usespiral,hookurls
+    global time_socks5_retry,verbose,dumb,mode_plan,signature_lib,locktime,fname_spawnfile,threadnum,fpath_dir_plan,num_hookers,usespiral,hookurls,lang_code
 
     signature_lib = ctypes.cdll.LoadLibrary(get_encryption_lib_path())
     signature_lib.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_size_t)]
@@ -343,6 +344,13 @@ def do_settings():
             PUSHPOKS = []
 
     language = allsettings['language']
+    if language == 'german':
+        lang_code = 'de'
+    elif language == 'spanish':
+        lang_code = 'es'
+    else:
+        lang_code = 'en'
+
     exclude_ids = set(allsettings['exclude_ids'])
 
     if scanrange is None:
@@ -911,7 +919,7 @@ def get_plan_locations(plan):
     LAT_C, LNG_C = locations[0]
 
     try:
-        location_str = 'Location: ({})'.format(geolocator.reverse('{},{}'.format(location[0], location[1])).address)
+        location_str = 'Location: ({})'.format(geolocator.reverse('{},{}'.format(location[0], location[1]),language=lang_code).address)
     except:
         location_str = 'Lat: {}, Lng: {}'.format(LAT_C, LNG_C)
     return locations
@@ -1607,6 +1615,7 @@ def main():
         def run(self):
             fpath_log = '{}/res/logs/spawns{}.txt'.format(workdir, wID)
             POKEMONS = json.load(open('{}/webres/static/{}.json'.format(workdir, language)))
+
             statheader = 'Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n'
 
             reappear_texts = ('\n15m later back for 15m','\n15m later back for 30m','\n30m later back for 15m')
@@ -1688,7 +1697,7 @@ def main():
                             if len(PUSHPOKS) > 0 and wild.pokemon_data.pokemon_id in PUSHPOKS:
                                 if add_location_name:
                                     try:
-                                        location = format_address(geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude)).address, 4)
+                                        location = format_address(geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude),language=lang_code).address, 4)
                                         notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location)
                                     except:
                                         notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
