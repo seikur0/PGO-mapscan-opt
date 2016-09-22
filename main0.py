@@ -1436,7 +1436,8 @@ def main():
 
                 curT = get_time() - nowtime
                 scandata['quality']['runtimes'].append(curT)
-                lprint('[+] Scan Time: {} s'.format(int(round(curT/1000.0))))
+                curT /= 1000.0
+                lprint('[+] Scan Time: {} s'.format(int(round(curT))))
 
                 #########################################################################
                 if learning and nowtime - starttime >= 2700000:
