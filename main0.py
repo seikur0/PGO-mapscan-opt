@@ -912,7 +912,7 @@ def get_plan_locations(plan):
         return None
 
     ind_max = len(locations)
-    ind_part = int(math.ceil(ind_max / plan.get('subplans',1)))
+    ind_part = int(math.ceil(float(ind_max) / plan.get('subplans',1)))
     ind = plan.get('subplan_index',1) - 1
 
     locations = locations[0 + ind_part * ind:min(ind_max, ind_part * (ind + 1))]
