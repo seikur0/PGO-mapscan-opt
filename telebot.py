@@ -254,7 +254,7 @@ def on_chat_message(msg):
 			u_settings = set_settings(msg['from']['id'], noti=chat_id, lat=msg['location']['latitude'], lng=msg['location']['longitude'], rad=radius_by_default, ign=map(int, ignored_by_default.split(",")), nick=nick, silence="")
 		else:
 			u_settings = set_settings(msg['from']['id'], lat=msg['location']['latitude'], lng=msg['location']['longitude'])
-		send_message(chat_id, messages["location_received"] + " " + messages["actual_radius"].format(radius_by_default), reply_markup=build_menu("main", u_settings))
+		send_message(chat_id, messages["location_received"] + " " + messages["actual_radius"].format(u_settings["radius"]), reply_markup=build_menu("main", u_settings))
 	if content_type == 'text':
 		text = msg['text'].encode('ascii','replace')
 		print_log('[t] Text received: ' + tmp_nick + ": '" + text + "'")
