@@ -78,12 +78,56 @@ if(language == "spanish"):
 				"info" : "Sobre el bot",
 				"silence_hours" : "No molestar",
 				"silence_explanation" : "Mediante esta opcion puedes configurar un intervalo de horas en el que el bot no te mandara notificaciones. Elige las dos horas que conforman el intervalo y se activara.",
-				"silence_from" : "desde",
-				"silence_to" : "hasta",
+				"silence_from" : "de ->",
+				"silence_to" : "a ->",
 				"silence_deactivate" : "Quitar silencio",
 				"silence_deactivated" : "Silencio desactivado",
 				"silence_activated" : "Silencio activado",
 				"silence_choose" : "Ahora elige el otro marcador del intervalo"
+				}
+elif(language == "french"):
+	messages = {"location" : "Envoyer ma géolocalisation", 
+				"greeting" : "Bonjour ! Grâce à ce bot vous pourrez recevoir les notifications pour les pokémons spécifiés à portée. Envoyez votre géolocalisation pour commencer !", 
+				"location_received" : "Géolocalisation reçue, vous pouvez maintenant utiliser le menu pour configurer votre rayon et la liste des notifications !", 
+				"actual_radius" : "Distance du rayon {}m.",
+				"check_ignored" : "Config. des notifications",
+				"restore_default_ignored" : "Par défaut",
+				"ignored_default_restored" : "Liste des pokémons notifiés par défaut chargée.",
+				"mark_all" : "Tous",
+				"marked_all" : "Vous recevrez une notification pour tous les pokémons.",
+				"unmark_all" : "Aucun",
+				"unmarked_all" : "Aucun pokémon ne vous sera notifié.",
+				"update_location" : "Me géolocaliser",
+				"turn_off" : "Désactifier les notifs",
+				"turn_on" : "Activer les notifs",
+				"notifications_on" : "Notifications activées.",
+				"notifications_off" : "Notifications désactivées.",
+				"check_location" : "Vérif. géolocalisation",
+				"error" : "Désolé, une erreur est survenue.",
+				"radius_button" : "Rayon: [{}m]",
+				"check_radius" : "Vous pouvez voir votre rayon ici https://www.freemaptools.com/radius-around-point.htm?clat={}&clng={}&r={}&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true",
+				"home" : "Menu principal",
+				"ignored_intro" : "Voici la liste des notifications. Les pokémons marqués d'un ✅ seront notifiés et les pokémons marqués d'un ❌ seront ignorés. Appuyez pour modifier.",
+				"returning_home" : "Retour au menu principal",
+				"pokemon_ignored" : "Le pokémon #{0} {1} ne sera pas notifié;",
+				"pokemon_unignored" : "Le pokémon #{0} {1} sera notifié",
+				"wild_pokemon" : "Un <b>{0}</b> sauvage apparaît !",
+				"hidden_pokemon" : "Un hidden {0} <b>caché</b> est découvert !",
+				"time_left" : "Il sera là pour <b>{0}</b> jusque {1}",
+				"time_hidden" : "Il restera caché pour <b>{0}</b> jusque {1} puis reviendra pour <b>{2}</b> jusque {3}",
+				"time_return_later" : "<b>{0}</b> plus tard, il reviendra pour <b>{1}</b> de {2} jusque {3}",
+				"pokemon_distance" : "Distance: <b>{arg[distance]}m</b>",
+				"pokemon_address" : ", près de <i>{arg[address]}</i>",
+				"maximum_notifications" : "Vous avez atteint le nombre maximum de notifications consécutives, qui est de {0} par {1} secondes, essayez d'ignorer plus de pokémons ou de réduire le rayon !",
+				"info" : "A propos",
+				"silence_hours" : "Ne pas déranger",
+				"silence_explanation" : "Vous pouvez configurer l'intervalle de temps durant laquelle vous ne voulez pas être dérangé.",
+				"silence_from" : "de ->",
+				"silence_to" : "a ->",
+				"silence_deactivate" : "Désactiver le mode silencieux",
+				"silence_deactivated" : "Silencieux désactivé",
+				"silence_activated" : "Silencieux activé",
+				"silence_choose" : "Sélectionnez maintenant jusqu'à quand vous ne voulez pas être dérangé"
 				}
 else: #if(cfg["language"] == "english"):
 	messages = {"location" : "Send your location", 
@@ -122,8 +166,8 @@ else: #if(cfg["language"] == "english"):
 				"info" : "About the bot",
 				"silence_hours" : "Do not disturb",
 				"silence_explanation" : "With this option you can configure an interval of hours in which the bot won't send you notifications. Choose the two hours that form the interval and it will activate.",
-				"silence_from" : "from",
-				"silence_to" : "to",
+				"silence_from" : "from ->",
+				"silence_to" : "to ->",
 				"silence_deactivate" : "Deactivate silence",
 				"silence_deactivated" : "Silence deactivated",
 				"silence_activated" : "Silence activated",
@@ -291,6 +335,28 @@ def on_chat_message(msg):
 			elif messages_ascii["silence_deactivate"] in text:
 				u_settings = set_settings(chat_id, silence="")
 				send_message(chat_id, messages["silence_deactivated"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
+			elif messages_ascii["silence_from"] in text:
+				time = str(text[-5:])
+				if len(time) == 5 and time_re.match(time):
+					if u_settings["silence"] == "" or ("-" in u_settings["silence"] and u_settings["silence"].split("-")[1]==""):
+						u_settings = set_settings(u_settings["id"], silence=time + "-")
+						send_message(chat_id, messages["silence_choose"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
+					else:
+						u_settings = set_settings(u_settings["id"], silence=time + "-" + u_settings["silence"].split("-")[1])
+						send_message(chat_id, messages["silence_activated"] + " " + messages["silence_from"] + " " + str(u_settings["silence"].split("-")[0]) + " " + messages["silence_to"] + " " + str(u_settings["silence"].split("-")[1]), disable_notification=True, reply_markup=build_menu("silent", u_settings))
+				else:
+					send_message(chat_id, messages["error"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
+			elif messages_ascii["silence_to"] in text:
+				time = str(text[-5:])
+				if len(time) == 5 and time_re.match(time):
+					if u_settings["silence"] == "" or ("-" in u_settings["silence"] and u_settings["silence"].split("-")[0]==""):
+						u_settings = set_settings(u_settings["id"], silence="-" + time)
+						send_message(chat_id, messages["silence_choose"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
+					else:
+						u_settings = set_settings(u_settings["id"], silence=u_settings["silence"].split("-")[0] + "-" + time)
+						send_message(chat_id, messages["silence_activated"] + " " + messages["silence_from"] + " " + str(u_settings["silence"].split("-")[0]) + " " + messages["silence_to"] + " " + str(u_settings["silence"].split("-")[1]), disable_notification=True, reply_markup=build_menu("silent", u_settings))
+				else:
+					send_message(chat_id, messages["error"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
 			elif messages_ascii["check_location"] in text:
 				try:
 					bot.sendLocation(chat_id, u_settings['lat'], u_settings['lng'], disable_notification=True, reply_markup=build_menu("main", u_settings))
@@ -302,28 +368,6 @@ def on_chat_message(msg):
 					print_log("[!] An unkown error happened while sending location")
 			elif messages_ascii["radius_button"].format(u_settings['radius']) in text:
 				send_message(chat_id, messages['check_radius'].format(u_settings['lat'], u_settings['lng'], float(u_settings['radius'])/1000), disable_web_page_preview=True, disable_notification=True, reply_markup=build_menu("main", u_settings))
-			elif messages_ascii["silence_from"] in text:
-				time = str(text.split(" ")[1])
-				if len(time) == 5 and time_re.match(time):
-					if u_settings["silence"] == "" or ("-" in u_settings["silence"] and u_settings["silence"].split("-")[1]==""):
-						u_settings = set_settings(u_settings["id"], silence=time + "-")
-						send_message(chat_id, messages["silence_choose"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-					else:
-						u_settings = set_settings(u_settings["id"], silence=time + "-" + u_settings["silence"].split("-")[1])
-						send_message(chat_id, messages["silence_activated"] + " " + messages["silence_from"] + " " + str(u_settings["silence"].split("-")[0]) + " " + messages["silence_to"] + " " + str(u_settings["silence"].split("-")[1]), disable_notification=True, reply_markup=build_menu("silent", u_settings))
-				else:
-					send_message(chat_id, messages["error"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-			elif messages_ascii["silence_to"] in text:
-				time = str(text.split(" ")[1])
-				if len(time) == 5 and time_re.match(time):
-					if u_settings["silence"] == "" or ("-" in u_settings["silence"] and u_settings["silence"].split("-")[0]==""):
-						u_settings = set_settings(u_settings["id"], silence="-" + time)
-						send_message(chat_id, messages["silence_choose"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-					else:
-						u_settings = set_settings(u_settings["id"], silence=u_settings["silence"].split("-")[0] + "-" + time)
-						send_message(chat_id, messages["silence_activated"] + " " + messages["silence_from"] + " " + str(u_settings["silence"].split("-")[0]) + " " + messages["silence_to"] + " " + str(u_settings["silence"].split("-")[1]), disable_notification=True, reply_markup=build_menu("silent", u_settings))
-				else:
-					send_message(chat_id, messages["error"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
 			elif len(text) >= 2 and text[-1] == 'm' and text[:-1].isdigit():
 				try:
 					rad = int(text[:-1])

@@ -1,5 +1,5 @@
 {
-	"_comment" : "The language for the telegram bot messages, doesnt need to be the same as in PGO-mapscan-opt, for now spanish/english",
+	"_comment" : "The language for the telegram bot messages, doesnt need to be the same as in PGO-mapscan-opt, for now spanish/english/french",
 	"language" : "english",
 	
 	"_comment" : "Pokemon notifications ignored by default",
