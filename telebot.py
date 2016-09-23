@@ -265,8 +265,8 @@ def on_chat_message(msg):
 			if u_settings["nick"] != new_nick:
 				set_settings(u_settings["id"], nick=new_nick)
 			if messages_ascii["info"] in text:
-				send_message(chat_id, info_about, disable_notification=True, disable_web_page_preview=True)
-			if messages_ascii["turn_on"] in text:
+				send_message(chat_id, info_about, disable_notification=True, disable_web_page_preview=True, reply_markup=build_menu("main", u_settings))
+			elif messages_ascii["turn_on"] in text:
 				u_settings = set_settings(u_settings['id'], noti=chat_id)
 				send_message(chat_id, messages["notifications_on"], disable_notification=True, reply_markup=build_menu("main", u_settings))
 			elif messages_ascii["turn_off"] in text:
@@ -291,6 +291,17 @@ def on_chat_message(msg):
 			elif messages_ascii["silence_deactivate"] in text:
 				u_settings = set_settings(chat_id, silence="")
 				send_message(chat_id, messages["silence_deactivated"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
+			elif messages_ascii["check_location"] in text:
+				try:
+					bot.sendLocation(chat_id, u_settings['lat'], u_settings['lng'], disable_notification=True, reply_markup=build_menu("main", u_settings))
+				except BotWasBlockedError as err:
+					print_log("[!] Bot was blocked. Couldn't send location.")
+				except TelegramError as err:
+					print_log("[!] An error happened while sending location " + err.json)
+				except:
+					print_log("[!] An unkown error happened while sending location")
+			elif messages_ascii["radius_button"].format(u_settings['radius']) in text:
+				send_message(chat_id, messages['check_radius'].format(u_settings['lat'], u_settings['lng'], float(u_settings['radius'])/1000), disable_web_page_preview=True, disable_notification=True, reply_markup=build_menu("main", u_settings))
 			elif messages_ascii["silence_from"] in text:
 				time = str(text.split(" ")[1])
 				if len(time) == 5 and time_re.match(time):
@@ -313,17 +324,6 @@ def on_chat_message(msg):
 						send_message(chat_id, messages["silence_activated"] + " " + messages["silence_from"] + " " + str(u_settings["silence"].split("-")[0]) + " " + messages["silence_to"] + " " + str(u_settings["silence"].split("-")[1]), disable_notification=True, reply_markup=build_menu("silent", u_settings))
 				else:
 					send_message(chat_id, messages["error"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-			elif messages_ascii["check_location"] in text:
-				try:
-					bot.sendLocation(chat_id, u_settings['lat'], u_settings['lng'], disable_notification=True, reply_markup=build_menu("main", u_settings))
-				except BotWasBlockedError as err:
-					print_log("[!] Bot was blocked. Couldn't send location.")
-				except TelegramError as err:
-					print_log("[!] An error happened while sending location " + err.json)
-				except:
-					print_log("[!] An unkown error happened while sending location")
-			elif messages_ascii["radius_button"].format(u_settings['radius']) in text:
-				send_message(chat_id, messages['check_radius'].format(u_settings['lat'], u_settings['lng'], float(u_settings['radius'])/1000), disable_web_page_preview=True, disable_notification=True, reply_markup=build_menu("main", u_settings))
 			elif len(text) >= 2 and text[-1] == 'm' and text[:-1].isdigit():
 				try:
 					rad = int(text[:-1])
