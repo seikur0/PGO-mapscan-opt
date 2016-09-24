@@ -85,8 +85,8 @@ def neighbor_circle(location, pos, shift=False, factor=1.0):
     if not shift:
         y_un = y_un * (3.0 ** 0.5) / 2.0 * HEX_R
         x_un = x_un * HEX_R * 1.5
-        yvals = [-2, -1, 1,-2, -1, 1]
-        xvals = [0, 1, 1, 0, 1, 1]
+        yvals = [-2, -1, 1, 2, 1, -1]
+        xvals = [0, 1, 1, 0, -1, -1]
     else:
         y_un = y_un * HEX_R * 1.5
         x_un = x_un * (3.0 ** 0.5) / 2.0 * HEX_R
