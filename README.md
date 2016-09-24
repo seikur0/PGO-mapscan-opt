@@ -49,3 +49,7 @@ To AeonLucid for creating and expanding the POGO Protos Library: https://github.
 To the heroes of the unknown6 team.
 
 To HEKTakun, I'm using his awesome pokemon icons for the map.
+
+## Image of the actual map (with most pokemon being filtered out)
+
+![visual](https://cloud.githubusercontent.com/assets/20639004/18809142/0919b62e-8275-11e6-8d74-350eaec24fc9.png)
