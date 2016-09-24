@@ -1,6 +1,5 @@
 ﻿# -*- encoding: utf-8-*-
 import requests
-import grequests
 import re
 import json
 import argparse

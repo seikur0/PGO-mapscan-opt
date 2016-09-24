@@ -10,5 +10,4 @@ flask_compress
 telepot
 requests[socks]
 unidecode
-grequests
 -e git+git://github.com/kvangent/PokeAlarm#egg=pokealarm
