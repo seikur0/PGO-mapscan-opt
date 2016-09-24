@@ -204,8 +204,8 @@ def set_settings(id, noti=None, lat=None, lng=None, rad=None, ign=None, nick=Non
 	if nick == None:
 		nick = user_settings[id]["nick"]
 	if silence == None:
-		if(silence in user_settings[id]):
-			silence = user_settings[id]
+		if("silence" in user_settings[id]):
+			silence = user_settings[id]["silence"]
 		else:
 			silence = ""
 	user_settings[id] = {'id' : id, "noti" : noti, "lat": lat, "lng": lng, "radius" : rad, "ignored": ign, "nick" : nick, "silence" : silence}
@@ -504,6 +504,7 @@ while 1:
 			mins, secs = divmod(timeleft, 60)
 			time_till_show = "{}m {}s".format(mins, secs)
 			message = messages["hidden_pokemon"].format(POKEMONS[pokeid]) + '\n' + messages["time_hidden"].format(time_till_show, time_show, str(roh_for_time) + "m", time_despawn)
+		address = None
 		for user in user_settings:
 			us = user_settings[user]
 			user_id = int(us['id'])
@@ -528,18 +529,18 @@ while 1:
 			if (chat_id != -1)  and  (spawnid not in notified[chat_id])  and  (not silenced)  and  (pokeid not in us['ignored']):
 				dist = int(haversine(lng, lat, us['lng'], us['lat']))
 				if dist <= us['radius']:
+					if address is None:
+						try:
+							address = geolocator.reverse('{},{}'.format(lat, lng)).address.encode("utf-8")
+							address = address.split(", ")[1] + ", " + address.split(", ")[0]
+						except:
+							address = ""
+					if(address == ""):
+						message = message[0:message.find("\n")] + ' ' + messages['pokemon_distance'] + message[message.find("\n"):]
+					else:
+						message = message[0:message.find("\n")] + ' ' + messages['pokemon_distance'] + messages['pokemon_address'] + message[message.find("\n"):]
 					try:
 						if(message != ""):
-							address = ""
-							try:
-								address = geolocator.reverse('{},{}'.format(lat, lng)).address.encode("utf-8")
-								address = address.split(", ")[1] + ", " + address.split(", ")[0]
-							except:
-								address = ""
-							if(address == ""):
-								message = message[0:message.find("\n")] + ' ' + messages['pokemon_distance'] + message[message.find("\n"):]
-							else:
-								message = message[0:message.find("\n")] + ' ' + messages['pokemon_distance'] + messages['pokemon_address'] + message[message.find("\n"):]
 							argdic = {'distance' : dist, 'address' : address}
 							bot.sendMessage(chat_id, message.format(arg=argdic), parse_mode="html")
 							bot.sendLocation(chat_id, lat, lng, disable_notification=True)
