@@ -3,6 +3,8 @@
 ## Instructions
 See [New User Guide (Windows)](https://github.com/seikur0/PGO-mapscan-opt/wiki/New-User-Guide-(Windows)) for a guide that is mainly windows focused.
 
+We also have a [Discord Channel](https://discord.gg/s2esz7Z).
+
 ## Recent Changes
 * recent change from s to ms unit in learning files:
   * Use spawnfix.py to migrate your old learning files to the new format
