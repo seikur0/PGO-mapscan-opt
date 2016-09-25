@@ -329,7 +329,7 @@ def on_chat_message(msg):
 					ignore = []
 				else:
 					ignore = map(int, ignored_by_default.split(","))
-				u_settings = set_settings(u_settings['id'], ign=map(int, ignore))
+				u_settings = set_settings(u_settings['id'], ign=ignore)
 				send_message(chat_id, messages["ignored_default_restored"], disable_notification=True, reply_markup=build_menu("ignored", u_settings))
 			elif messages_ascii["unmark_all"] in text:
 				all_pokes = [i+1 for i in range(POKEMON_NUM)]
