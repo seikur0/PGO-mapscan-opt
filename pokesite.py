@@ -112,9 +112,9 @@ def server_start():
         with db:
             cursor = db.cursor()
             if profile == -1:
-                results = cursor.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (expiretime > ?) AND (fromtime >= ?)',[timenow,datatill])
+                results = cursor.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (expiretime > ?) AND (fromtime >= ?)',(timenow,datatill))
             else:
-                results = cursor.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (profile == ?) AND (expiretime > ?) AND (fromtime >= ?)', [profile,timenow, datatill])
+                results = cursor.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (profile == ?) AND (expiretime > ?) AND (fromtime >= ?)', (profile,timenow, datatill))
 
         return jsonify([timenow,results.fetchall()])
 

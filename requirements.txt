@@ -1,4 +1,4 @@
-protobuf==3.0.0b4
+protobuf==3.0.0
 s2sphere==0.2.4
 gpsoauth==0.3.0
 pushbullet.py
@@ -10,3 +10,4 @@ flask_compress
 telepot
 requests[socks]
 unidecode
+-e git+git://github.com/kvangent/PokeAlarm#egg=pokealarm

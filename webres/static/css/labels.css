@@ -24,3 +24,22 @@
     opacity: 0.8;
     white-space: nowrap;
 }
+
+.label_pokemon_name {
+    color: black;
+    font-weight: bold;
+    display: block;
+}
+
+.label_expire_time {
+    font-style: italic;
+    display: block;
+}
+
+.label_line {
+    display: block;
+}
+
+.label_hidden_pokemon {
+	color: #a9a9a9;
+}

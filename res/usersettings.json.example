@@ -1,32 +1,32 @@
 {
-  "_comment1": "Language, can be german/english/spanish",
+  "_comment": "Language, can be german/english/spanish",
   "language": "english",
 
-  "_comment2": "The size in MB after which the spawn file gets renamed and a new one is used, set to 0 to disable.",
+  "_comment": "The size in MB after which the spawn file gets renamed and a new one is used, set to 0 to disable.",
   "backup_size": 10,
 
-  "_comment3": "Standard scan range, represented as layers around the center hexagon.",
-  "range": 30,
+  "_comment": "Standard scan range in m.",
+  "range": 3300,
 
-  "_comment4": "How often it will scan. Can be higher under bad server conditions.",
+  "_comment": "How often it will scan. Can be higher under bad server conditions.",
   "scaninterval": 600,
 
-  "_comment5": "Google API key.",
+  "_comment": "Google API key.",
   "api_key": "PUT_YOUR_GOOGLE_API_KEY_HERE",
   
-  "_comment5.1": "Icon set to use for the map, can be 'standard'/'shuffle'/'alt'/'toon'.",
+  "_comment": "Icon set to use for the map, can be 'standard'/'shuffle'/'alt'/'toon'.",
   "icon_set": "shuffle",
 
-  "_comment6": "Pokemon with these ids won't be shown in the map. (data still gets collected)",
+  "_comment": "Pokemon with these ids won't be shown in the map. (data still gets collected)",
   "exclude_ids": [10,11,13,14,16,17,19,21,41,96],
 
-  "_comment7": "Will scale icons by this factor.",
+  "_comment": "Will scale icons by this factor.",
   "icon_scalefactor": 1.0,
 
-  "_comment8": "Will scale the whole user interface by this factor.",
+  "_comment": "Will scale the whole user interface by this factor.",
   "mobile_scalefactor": 0.7,
 
-  "_comment9": "Notification settings. Put ids of pokemon you want to be notified about into push_ids.",
+  "_comment": "Notification settings. Put ids of pokemon you want to be notified about into push_ids.",
   "notifications":
   {
 	"enabled": false,
@@ -46,17 +46,20 @@
 		"chat_ids":["PUT_YOUR_CHAT_ID_HERE"]
 	}
   },
-  
-  "_comment10": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
+
+  "_comment": "notification webhook urls, currently only for pokemon (Pokealarm standard: 'http://localhost:4000')",
+  "urls_webhook": [],
+
+  "_comment": "The number of times it will scan until it quits. Put it to 0 for infinite scans, 1 for just a single one.",
   "scannum": 0,
   
-  "_comment11": "true = Simultaneous login of all accounts, false = Subsequent login of all accounts, setting only for the beginning of the scan.",
-  "login_simu": true,
-  
-  "_comment12": "Port that the webserver will use. Set to 0 to use random open port.",
+  "_comment": "Port that the webserver will use. Set to 0 to use random open port.",
   "port": 8000,
-  
-  "_comment13": "The profiles. Each with their own id, login info, coordinates and proxy.",
+
+  "_comment": "If you're using a socks5 proxy and the IP is/gets banned, it'll wait that time in s until retrying instead of quitting. Set to 0 to disable.",
+  "time_socks5_retry": 30,
+
+  "_comment": "The profiles. Each with their own id, login info, coordinates and proxy.",
   "profiles": [
     {
       "id": 0,
@@ -68,7 +71,8 @@
           {
               "lat": 0,
               "lng": 0
-          }
+          },
+      "learn_file": "INSERT_NAME"
     },
     {
       "id": 0,

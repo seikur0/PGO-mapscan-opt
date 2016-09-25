@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Spawn View Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="static/css/leaflet.contextmenu.css"/>
+    <link rel="stylesheet" type="text/css" href="static/css/planview_sitestyle.css">
+</head>
+
+<body>
+    <div id="map" style="width: 100%; height: 100%"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        window.jQuery || document.write('<script src="static/js/jquery-3.1.0.js"><\/script>')
+    </script>
+    <script src="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
+    <script src="static/js/leaflet.contextmenu.js"></script>
+    <script>
+        var first = 0;
+        var rr = 1
+        var minrr = 0
+        var sight = 70.0;
+        var dist_neigh = 0;
+
+
+        function to_latlng(x) {
+            if (x.length > 1)
+                y = L.latLng(x[0],x[1]);
+            else
+                y = x
+            return y
+        }
+        function to_loc(x) {
+            if (x.length == 1)
+                y = [x.lat,x.lng]
+            else
+                y = x
+            return y
+        }
+
+        function distance(loc1,loc2) {
+            var [lat1,lng1] = loc1;
+            var [lat2,lng2] = loc2;
+          var p = 0.017453292519943295;    // Math.PI / 180
+          var c = Math.cos;
+          var a = 0.5 - c((lat2 - lat1) * p)/2 +
+                  c(lat1 * p) * c(lat2 * p) *
+                  (1 - c((lng2 - lng1) * p))/2;
+
+          return 12742 * Math.asin(Math.sqrt(a)) * 1000; // 2 * R; R = 6371 km
+        }
+        function saveplans() {
+            subplans = parseInt(window.prompt("Into how many parts should each plan be split?","2"));
+            if (subplans > 0) {
+                $.getJSON('_write_plans', {
+                        subplans: subplans
+                    }, function(returns) {
+                    });
+            }
+        }
+
+///////////////definition of map
+        var map = L.map('map', {
+            center: [53.148302, 8.182658],
+            zoom: 12,
+            doubleClickZoom: false,
+            contextmenu: true,
+              contextmenuWidth: 140,
+              contextmenuItems: [
+              {text: 'save plans',callback: saveplans},
+               ]
+        });
+        L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoidGF0aWFuYSIsImEiOiJjaWs1bzRiZGQwMDdjcHRrc285bTdwcWU5In0.0EWPVHyjaE9jTzNvOiIO-w', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.streets'
+		}).addTo(map);
+
+        var markers = [];
+
+///////////////definition returns cluster element for a location or nothing if not existant
+        function getMarker(location) {
+            for (let a=0;a<markers.length;a++) {
+                otherloc = [markers[a].marker.getLatLng().lat,markers[a].marker.getLatLng().lng]
+                dist = distance(location,otherloc)
+                if (dist < dist_neigh || dist_neigh == 0) {
+                    return markers[a]
+                }
+            }
+            return undefined
+        }
+
+///////////////definition of cluster element
+        var Cluster = L.Class.extend({
+
+            initialize: function (location,justone) {
+                var marker = L.marker(location, {
+                    draggable: false
+                })
+                this.marker = marker;
+                this.border;
+                this.token;
+                this.circles = [];
+                this.neighbors = [];
+                this.justone = justone;
+                this.parent = this;
+                marker.parent = this;
+                marker.on('add', this.setGrid);
+                marker.on('click', this.remove);
+                marker.on('mousedown', startMark);
+                marker.on('mouseup', endMark);
+                marker.on('mousemove', doMark);
+                marker.addTo(map);
+            },
+
+            remove: function() {
+                var classtop = this.parent
+                for (let a=0;a<classtop.circles.length;a++) {
+                    map.removeLayer(classtop.circles[a]);
+                }
+                var location = [classtop.marker.getLatLng().lat,classtop.marker.getLatLng().lng];
+                $.getJSON('_remove_plan', {
+                        lat: location[0],
+                        lng: location[1]
+                    }, function(returns) {
+                    });
+                map.removeLayer(classtop.marker);
+                map.removeLayer(classtop.border);
+                classtop.marker = [];
+                classtop.circles = [];
+                classtop.border = [];
+                var index = markers.indexOf(classtop);
+                markers.splice(index, 1);
+            },
+
+            setGrid : function() {
+                var classtop = this.parent;
+                var location = [classtop.marker.getLatLng().lat,classtop.marker.getLatLng().lng];
+                $.getJSON('_add_plan', {
+                    lat: location[0],
+                    lng: location[1],
+                    rr: rr,
+                    minrr: minrr
+                }, function(returns) {
+                    for (let a=0;a<returns[0].length;a++) {
+                        var circle = L.circle(returns[0][a], sight, {
+                            color: 'green',
+                            fillOpacity: 0,
+                            weight: 1
+                        }).addTo(map);
+                        circle.on('click',classtop.toogleCirc);
+                        classtop.circles.push(circle)
+                    }
+                    var border = L.polyline(returns[1], {color: 'red', weight: 1}).addTo(map);
+                    classtop.border = border;
+                    classtop.neighbors = returns[3];
+                    classtop.marker.setLatLng(L.latLng(returns[2][0][0],returns[2][0][1]));
+                    classtop.token = returns[2][1];
+                    for (let a=0;a<markers.length;a++)
+                        if (markers[a].token == classtop.token)
+                            classtop.remove()
+                    markers.push(classtop);
+                });
+			}
+        });
+
+///////////////definition of map click
+        function onMapClick(e) {
+            new Cluster([e.latlng.lat,e.latlng.lng],false)
+        }
+        map.on('click', onMapClick);
+
+///////////////definition of main
+        function main() {
+            $.getJSON('_main', {
+                    }, function(returns) {
+                        for (let a=0;a<returns.length;a++) {
+                            var circle = L.circle(returns[a], sight, {
+                            color: 'green',
+                            fillOpacity: 0,
+                            weight: 1
+                        }).addTo(map);
+                        }
+                    });
+        }
+///////////////definition of marking
+        var obj_rectangle;
+        var loc_start;
+
+        function startMark(e) {
+            console.log('startmark')
+            map.dragging.disable();
+            loc_start = e.latlng;
+            if (obj_rectangle !== undefined)
+            map.removeLayer(obj_rectangle)
+            obj_rectangle = L.rectangle([loc_start,e.latlng], {color: "#ff7800", weight: 1}).addTo(map);
+        }
+        function doMark(e) {
+            if (obj_rectangle!==undefined) {
+                obj_rectangle.setBounds([loc_start,e.latlng])
+            }
+
+        }
+
+        function endMark(e) {
+            console.log('endmark')
+            map.dragging.enable();
+            if (obj_rectangle !== undefined)
+                map.removeLayer(obj_rectangle)
+            obj_rectangle = undefined;
+            loc_end = e.latlng
+            if (loc_start !== undefined && loc_end != loc_start) {
+                $.getJSON('_add_regionplans', {
+                        lat_f: loc_start.lat,
+                        lat_t: loc_end.lat,
+                        lng_f: loc_start.lng,
+                        lng_t: loc_end.lng
+                    }, function(returns) {
+                        for (let a=0;a<returns.length;a++) {
+                            new Cluster([returns[a][0],returns[a][1]],false)
+                        }
+                    });
+            }
+            loc_start = undefined;
+        }
+
+
+        map.on('mouseup', endMark);
+        map.on('mousemove', doMark);
+        //main()
+    </script>
+</body>
+
+</html>

@@ -1,4 +1,8 @@
 function initMap() {
+    querylat=parseFloat(getParameterByName("lat"));
+    querylng=parseFloat(getParameterByName("lng"));
+    if (querylat) lat=querylat;
+    if (querylng) lng=querylng;
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
             lat: lat,
@@ -118,6 +122,8 @@ function getFile(path, asynch, callback) {
     };
     xhr.send(null);
 }
+
+debug = 0;
 
 function useData(newData) {
     // Add updated markers
@@ -250,24 +256,23 @@ function useData(newData) {
                  * 1. Line: Pokemonname
                  * (2. Line: backmsg)
                  * 3. Line: Countdown*/
-                firstmsg = "<b>" + pokenames[markers[i].id] + " (" + markers[i].id + ")</b><br>";
+                firstmsg = "<span class='label_pokemon_name'>" + pokenames[markers[i].id] + " (" + markers[i].id + ") <a target=\"_new\" href=\"https://maps.google.com/maps?q=" + markers[i].position.lat() + "," + markers[i].position.lng() + "\"><img src=\"static/icons/map.svg\" width=12 height=12></a></span>";
 				timemsg = new Date(markers[i].validTill * 1000)
-				timemsg = "<i>- " + timeuntiltext + " " + padZero(timemsg.getHours())+":" + padZero(timemsg.getMinutes()) + ":" + padZero(timemsg.getSeconds()) + " -</i><br>"
+				timemsg = "<span class='label_expire_time'>&ensp;" + timeuntiltext + " " + padZero(timemsg.getHours())+":" + padZero(timemsg.getMinutes()) + ":" + padZero(timemsg.getSeconds()) + "</span>"
                 if (backmsg != ""){
-                    backmsg += "<br>";
+                    backmsg = "<span class='label_line'>" + backmsg + "</span>";
                 }
-
                 if (ishidden == false){ // different format if the pokemon is hidden
-                    markers[i].infotext = firstmsg + timelefttext + formatTimeleftString(timeleft) + "<br>" + timemsg;
+                    markers[i].infotext = firstmsg + "<span class='label_line'>" + timelefttext + formatTimeleftString(timeleft) + "</span>" + timemsg + backmsg;
                     markers[i].labelClass = "label";
                 }else{
-                    markers[i].infotext = "<font color=\"#a9a9a9\">";
-                    markers[i].infotext += firstmsg + timehiddentext + formatTimeleftString(timeleft) + "<br>" + timemsg + backmsg;
-                    markers[i].infotext += "</font>";
+                    markers[i].infotext = "<span class='label_hidden_pokemon'>";
+                    markers[i].infotext += firstmsg + "<span class='label_line'>" + timehiddentext + formatTimeleftString(timeleft) + "</span>" + timemsg + backmsg;
+                    markers[i].infotext += "</span>";
                     markers[i].labelClass = "hidden_label";
                 }
                 markers[i].labelContent = formatTimeleftString(timeleft);
-                markers[i].label.setContent();
+				
             } else {
                 markers[i].validTill = 0;
             }
@@ -314,11 +319,13 @@ function showMarkers() {
     var filt_inactive = (document.getElementById("filter_active").style.opacity < 1)
 
     for (var i = 0; i < markers.length; i++) {
-        markers[i].labelVisible = showCdn;
-        markers[i].label.setVisible();
         if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && (filt_inactive || !filteredOut(markers[i].id))) {
-            if (markers[i].map == null)
+            if (markers[i].map === null)
                 markers[i].setMap(map);
+			markers[i].label.setStyles();
+			markers[i].label.setContent();
+			markers[i].labelVisible = showCdn;
+			markers[i].label.setVisible();
         } else {
             markers[i].setMap(null);
         }
@@ -435,4 +442,14 @@ function showFilterDialog() {
     } else {
         dialog.style.display = "none";
     };
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
