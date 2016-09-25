@@ -295,7 +295,11 @@ def on_chat_message(msg):
 		print_log('[l] Location received: ' + tmp_nick + ": [" + str(msg['location']['latitude']) + "," + str(msg['location']['longitude']) + "]")
 		nick = ("@" + msg['from']['username'] if 'username' in msg['from'] else msg['from']['first_name'])
 		if u_settings is None:
-			u_settings = set_settings(msg['from']['id'], noti=chat_id, lat=msg['location']['latitude'], lng=msg['location']['longitude'], rad=radius_by_default, ign=map(int, ignored_by_default.split(",")), nick=nick, silence="")
+			if ignored_by_default == "":
+				ignore = []
+			else:
+				ignore = map(int, ignored_by_default.split(","))
+			u_settings = set_settings(msg['from']['id'], noti=chat_id, lat=msg['location']['latitude'], lng=msg['location']['longitude'], rad=radius_by_default, ign=ignore, nick=nick, silence="")
 		else:
 			u_settings = set_settings(msg['from']['id'], lat=msg['location']['latitude'], lng=msg['location']['longitude'])
 		send_message(chat_id, messages["location_received"] + " " + messages["actual_radius"].format(u_settings["radius"]), reply_markup=build_menu("main", u_settings))
@@ -321,7 +325,11 @@ def on_chat_message(msg):
 			elif messages_ascii["home"] in text:
 				send_message(chat_id, messages["returning_home"], disable_notification=True, reply_markup=build_menu("main", u_settings))
 			elif messages_ascii["restore_default_ignored"] in text:
-				u_settings = set_settings(u_settings['id'], ign=map(int, ignored_by_default.split(",")))
+				if ignored_by_default == "":
+					ignore = []
+				else:
+					ignore = map(int, ignored_by_default.split(","))
+				u_settings = set_settings(u_settings['id'], ign=map(int, ignore))
 				send_message(chat_id, messages["ignored_default_restored"], disable_notification=True, reply_markup=build_menu("ignored", u_settings))
 			elif messages_ascii["unmark_all"] in text:
 				all_pokes = [i+1 for i in range(POKEMON_NUM)]
