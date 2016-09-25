@@ -123,6 +123,7 @@ threadnum = None
 signature_lib = None
 lock_network = threading.Lock()
 lock_banfile = threading.Lock()
+lock_db_acc = threading.Lock()
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 fpath_settings = '{}/res/usersettings.json'.format(workdir)
@@ -586,8 +587,9 @@ def do_full_login(account):
     with con:
         con.text_factory = str
         cur = con.cursor()
+        lock_db_acc.acquire()
         cur.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], 0, '0', '0'])
-
+        lock_db_acc.release()
 def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     session = account['session']
     r = None
@@ -800,7 +802,9 @@ def set_api_endpoint(location, account):
     with con:
         con.text_factory = str
         cur = con.cursor()
+        lock_db_acc.acquire()
         cur.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], account['auth_ticket']['expire_timestamp_ms'], account['auth_ticket']['start'], account['auth_ticket']['end']])
+        lock_db_acc.release()
 
 def heartbeat(location, account):
     global safetysecs
@@ -862,7 +866,6 @@ def update_data():
         for l in range(0,len(data_buffer)):
             [pokeid, spawnid, latitude, longitude, expiretime, addinfo] = data_buffer.pop()
             cur.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)",[spawnid,round(latitude,5),round(longitude,5),addinfo,pokeid,expiretime,timenow,wID])
-
 
 def lprint(message):
     sys.stdout.write(str(message) + '\n')
