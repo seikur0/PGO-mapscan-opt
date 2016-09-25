@@ -81,11 +81,3 @@ To HEKTakun, I'm using his awesome pokemon icons for the map.
 Check out the github page of lordbaconcake, it visualizes the beauty of the hexagon algorithm quite well.
 And if you'd like to cover more complex or square areas rather than a circle-like pattern, check out his api.
 https://github.com/spezifisch/geoscrape
-
-## Telegram interactive bot
-
-There's a new bot to use the map with! It currently connects locally to the database, so it needs to be in the same machine as the map. To configure it use telebotsettings.json.example, change as needed and remove the .example. In the future it may support webhooks. It currently features:
-* each user can configure their ignored pokemon list, the range, and location for the notifications
-* toggleable notifications and do not disturb function so you don't get notifications while trying to sleep
-* notification limiter per user, notify just once per appearence, every text message translatable
-* FANCY BUTTON INTERFACE, NO MORE COMMANDS OR WRITING
