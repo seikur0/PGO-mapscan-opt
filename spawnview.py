@@ -5,24 +5,13 @@ import socket
 import SocketServer
 import BaseHTTPServer
 import signal
-from s2sphere import CellId, LatLng, Cell, MAX_AREA, Point, LatLngRect, RegionCoverer
+from s2sphere import CellId, LatLng, Cell
 import res.maplib as mapl
 import json
 import threading
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 plandir = workdir + '/res/learning/learn_plans/new'
-
-EARTH_R = 6371000.0
-EARTH_Rmax = 6378137.0
-EARTH_Rmin = 6356752.3
-
-max_size = 1 << 30
-lvl_big = 10
-lvl_small = 17
-HEX_R = 70.0
-safety = 0.999
-safety_border = 0.9
 
 def signal_handler(signal, frame):
     sys.exit()
@@ -63,7 +52,7 @@ def server_start():
     @app.route('/_remove_plan')
     def remove_plan():
         location = (request.args.get('lat', type=float), request.args.get('lng', type=float))
-        cid = CellId.from_lat_lng(LatLng.from_degrees(location[0],location[1])).parent(lvl_big)
+        cid = CellId.from_lat_lng(LatLng.from_degrees(location[0],location[1])).parent(mapl.lvl_big)
         token = cid.to_token()
 
         lock_plans.acquire()
