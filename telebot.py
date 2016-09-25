@@ -135,7 +135,7 @@ elif(language == "french"):
 				"silence_activated" : "Silencieux activé",
 				"silence_choose" : "Sélectionnez maintenant jusqu'à quand vous ne voulez pas être dérangé"
 				}
-elif language == "german":
+elif language == "dutch":
 	messages = {"location" : "Stuur uw lokatie",
 				"greeting" : "Hallo!, Deze bot zal u notificaties sturen van pokemons die in uw buurt zijn, stuur uw lokatie om te beginnen!",
 				"location_received" : "Uw lokatie is ontvangen! U kunt nu in het menu de settings aanpassen van de radius of pokemons waar u niet over genotificeerd wilt worden.",
