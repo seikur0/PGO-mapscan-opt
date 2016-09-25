@@ -16,16 +16,22 @@ from math import radians, cos, sin, asin, sqrt
 from datetime import datetime
 from queue import Queue
 
-import httplib
-httplib.debuglevel = 4
-
 workdir = os.path.dirname(os.path.realpath(__file__))
 
 with open('{}/res/telebotsettings.json'.format(workdir)) as teleconfig:    
 	telecfg = json.load(teleconfig)
 
-language = str(telecfg["language"])
 ignored_by_default = telecfg["ignored_by_default"]
+
+# Support the old ignored string to array
+if type(ignored_by_default) == unicode:
+	if ignored_by_default == "":
+		ignored_by_default = []
+	else:
+		ignored_by_default = map(int, ignored_by_default.split(","))
+	print(time.strftime('[%H:%M:%S] ' + '[!] Warning, the ignored_by_default setting in telebotsettings.json should be now a array like [1,2,3] instead of a string like "1,2,3"'))
+
+language = str(telecfg["language"])
 radius_by_default = int(telecfg["radius_by_default"])
 radius_step = int(telecfg["radius_step"])
 radius_max = int(telecfg["radius_max"])
@@ -129,7 +135,51 @@ elif(language == "french"):
 				"silence_activated" : "Silencieux activé",
 				"silence_choose" : "Sélectionnez maintenant jusqu'à quand vous ne voulez pas être dérangé"
 				}
-else: #if(cfg["language"] == "english"):
+elif language == "german":
+	messages = {"location" : "Stuur uw lokatie",
+				"greeting" : "Hallo!, Deze bot zal u notificaties sturen van pokemons die in uw buurt zijn, stuur uw lokatie om te beginnen!",
+				"location_received" : "Uw lokatie is ontvangen! U kunt nu in het menu de settings aanpassen van de radius of pokemons waar u niet over genotificeerd wilt worden.",
+				"actual_radius" : "Uw radius is nu {}m.",
+				"check_ignored" : "Genegeerde pokemon",
+				"restore_default_ignored" : "Standaard",
+				"ignored_default_restored" : "Configuratie van standaard genegeerde pokemon hersteld.",
+				"mark_all" : "Notificatie aan voor alle pokemons ",
+				"marked_all" : "Alle pokemon notificaties zijn aan.",
+				"unmark_all" : "Negeer alle pokemons",
+				"unmarked_all" : "Alle pokemon notificaties zijn uit.",
+				"update_location" : "Update uw lokatie",
+				"turn_off" : "Zet notificaties uit",
+				"turn_on" : "Zet notificaties aan",
+				"notifications_on" : "Notificaties zijn aangezet.",
+				"notifications_off" : "Notificaties zijn uitgezet.",
+				"check_location" : "Check uw huidige locatie",
+				"error" : "Excuses, er was een error.",
+				"radius_button" : "Radius: [{}m]",
+				"check_radius" : "U kan hier uw radius checken https://www.freemaptools.com/radius-around-point.htm?clat={}&clng={}&r={}&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true",
+				"home" : "Terug naar hoofdmenu",
+				"ignored_intro" : "Hier is een lijst of alle pokemons, U krijgt notificaties van de pokemons gemarkeerd met ✅ en de pokemons gemarkeerd met ❌ worden genegeerd. Druk op de naam van de pokemon om de setting te veranderen.",
+				"returning_home" : "Terug naar het hoofdmenu",
+				"pokemon_ignored" : "Pokemon #{0} {1} genegeerd",
+				"pokemon_unignored" : "Pokemon #{0} {1} krijgt u notificaties van",
+				"wild_pokemon" : "Een wild <b>{0}</b> is gevonden!",
+				"hidden_pokemon" : "Een <b>verborgen {0}</b> is gevonden!",
+				"time_left" : "Het zal er zijn voor <b>{0}</b> tot {1}",
+				"time_hidden" : "Het zal verborgen zijn voor <b>{0}</b> tot {1} dan er weer zijn voor  <b>{2}</b> tot {3}",
+				"time_return_later" : "<b>{0}</b> later zal het er weer zijn voor <b>{1}</b> voor {2} tot {3}",
+				"pokemon_distance" : "Het is maar <b>{arg[distance]}m</b> van uw locaties verwijderd",
+				"pokemon_address" : ", bij <i>{arg[address]}</i>",
+				"maximum_notifications" : "U heeft de maximale notificaties gehad, Dat is {0} per {1} sekonden, probeer meer pokemons te negeren of maak uw radius kleiner!",
+				"info" : "Over deze bot!",
+				"silence_hours" : "Niet storen",
+				"silence_explanation" : "Met deze optie kan u instellen hoe lang u geen notificaties meer wilt ontvangen, de interval is in uren.",
+				"silence_from" : "vanaf ->",
+				"silence_to" : "tot ->",
+				"silence_deactivate" : "Deactiveer niet storen",
+				"silence_deactivated" : "Niet storen geactiveerd",
+				"silence_activated" : "Niet storen geactiveerd",
+				"silence_choose" : "Kies nu de andere marker voor het interval"
+				}
+else: #if(language == "english"):
 	messages = {"location" : "Send your location", 
 				"greeting" : "Hello! This bot will send you notifications of nearby pokemon as you specify. Send your ubication to start!", 
 				"location_received" : "Your location has been received successfully! Now you can use the menu to configure your radius or ignored pokemon.", 
@@ -255,7 +305,10 @@ def build_menu(stage, settings):
 	elif stage == "ignored":
 		pokemon_buttons = []
 		for i in range(1, POKEMON_NUM+1):
-			pokemon_buttons.append("❌ #".decode('utf-8') + str(i) + " " + POKEMONS[i]) if i in settings['ignored'] else pokemon_buttons.append("✅ #".decode('utf-8') + str(i) + " " + POKEMONS[i])
+			if i in settings['ignored']:
+				pokemon_buttons.append("❌ #".decode('utf-8') + str(i) + " " + POKEMONS[i])
+			else:
+				pokemon_buttons.append("✅ #".decode('utf-8') + str(i) + " " + POKEMONS[i])
 		formatted_pokemon_buttons = []
 		for i in xrange(0, len(pokemon_buttons), 3):
 			formatted_pokemon_buttons.append(pokemon_buttons[i:i+3])
@@ -295,11 +348,7 @@ def on_chat_message(msg):
 		print_log('[l] Location received: ' + tmp_nick + ": [" + str(msg['location']['latitude']) + "," + str(msg['location']['longitude']) + "]")
 		nick = ("@" + msg['from']['username'] if 'username' in msg['from'] else msg['from']['first_name'])
 		if u_settings is None:
-			if ignored_by_default == "":
-				ignore = []
-			else:
-				ignore = map(int, ignored_by_default.split(","))
-			u_settings = set_settings(msg['from']['id'], noti=chat_id, lat=msg['location']['latitude'], lng=msg['location']['longitude'], rad=radius_by_default, ign=ignore, nick=nick, silence="")
+			u_settings = set_settings(msg['from']['id'], noti=chat_id, lat=msg['location']['latitude'], lng=msg['location']['longitude'], rad=radius_by_default, ign=ignored_by_default, nick=nick, silence="")
 		else:
 			u_settings = set_settings(msg['from']['id'], lat=msg['location']['latitude'], lng=msg['location']['longitude'])
 		send_message(chat_id, messages["location_received"] + " " + messages["actual_radius"].format(u_settings["radius"]), reply_markup=build_menu("main", u_settings))
@@ -325,11 +374,7 @@ def on_chat_message(msg):
 			elif messages_ascii["home"] in text:
 				send_message(chat_id, messages["returning_home"], disable_notification=True, reply_markup=build_menu("main", u_settings))
 			elif messages_ascii["restore_default_ignored"] in text:
-				if ignored_by_default == "":
-					ignore = []
-				else:
-					ignore = map(int, ignored_by_default.split(","))
-				u_settings = set_settings(u_settings['id'], ign=ignore)
+				u_settings = set_settings(u_settings['id'], ign=ignored_by_default)
 				send_message(chat_id, messages["ignored_default_restored"], disable_notification=True, reply_markup=build_menu("ignored", u_settings))
 			elif messages_ascii["unmark_all"] in text:
 				all_pokes = [i+1 for i in range(POKEMON_NUM)]
@@ -419,13 +464,13 @@ def get_active_pokemon():
 	return pokes.fetchall()
 
 def haversine(lon1, lat1, lon2, lat2): # aaron-d from stackoverflow
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-    dlon = lon2 - lon1 
-    dlat = lat2 - lat1 
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a)) 
-    km = 6367 * c
-    return km * 1000
+	lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+	dlon = lon2 - lon1 
+	dlat = lat2 - lat1 
+	a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+	c = 2 * asin(sqrt(a)) 
+	km = 6367 * c
+	return km * 1000
 
 def print_log(s):
 	print(time.strftime('[%H:%M:%S] ') + str(s))
