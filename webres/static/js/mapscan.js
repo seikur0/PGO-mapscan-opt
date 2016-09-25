@@ -123,6 +123,8 @@ function getFile(path, asynch, callback) {
     xhr.send(null);
 }
 
+debug = 0;
+
 function useData(newData) {
     // Add updated markers
     for (var i = 0; i < newData.length; i++) {
@@ -256,22 +258,21 @@ function useData(newData) {
                  * 3. Line: Countdown*/
                 firstmsg = "<span class='label_pokemon_name'>" + pokenames[markers[i].id] + " (" + markers[i].id + ") <a target=\"_new\" href=\"https://maps.google.com/maps?q=" + markers[i].position.lat() + "," + markers[i].position.lng() + "\"><img src=\"static/icons/map.svg\" width=12 height=12></a></span>";
 				timemsg = new Date(markers[i].validTill * 1000)
-				timemsg = "<span class='label_expire_time'>- " + timeuntiltext + " " + padZero(timemsg.getHours())+":" + padZero(timemsg.getMinutes()) + ":" + padZero(timemsg.getSeconds()) + " -</span>"
+				timemsg = "<span class='label_expire_time'>&ensp;" + timeuntiltext + " " + padZero(timemsg.getHours())+":" + padZero(timemsg.getMinutes()) + ":" + padZero(timemsg.getSeconds()) + "</span>"
                 if (backmsg != ""){
-                    backmsg += "<br>";
+                    backmsg = "<span class='label_line'>" + backmsg + "</span>";
                 }
-
                 if (ishidden == false){ // different format if the pokemon is hidden
-                    markers[i].infotext = firstmsg + "<span class='label_time_left'>" + timelefttext + formatTimeleftString(timeleft) + "</span> " + timemsg;
+                    markers[i].infotext = firstmsg + "<span class='label_line'>" + timelefttext + formatTimeleftString(timeleft) + "</span>" + timemsg + backmsg;
                     markers[i].labelClass = "label";
                 }else{
                     markers[i].infotext = "<span class='label_hidden_pokemon'>";
-                    markers[i].infotext += firstmsg + "<span class='label_time_left'>" + timehiddentext + formatTimeleftString(timeleft) + "<br>" + timemsg + backmsg + "</span>";
+                    markers[i].infotext += firstmsg + "<span class='label_line'>" + timehiddentext + formatTimeleftString(timeleft) + "</span>" + timemsg + backmsg;
                     markers[i].infotext += "</span>";
                     markers[i].labelClass = "hidden_label";
                 }
                 markers[i].labelContent = formatTimeleftString(timeleft);
-                markers[i].label.setContent();
+				
             } else {
                 markers[i].validTill = 0;
             }
@@ -318,11 +319,13 @@ function showMarkers() {
     var filt_inactive = (document.getElementById("filter_active").style.opacity < 1)
 
     for (var i = 0; i < markers.length; i++) {
-        markers[i].labelVisible = showCdn;
-        markers[i].label.setVisible();
         if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && (filt_inactive || !filteredOut(markers[i].id))) {
-            if (markers[i].map == null)
+            if (markers[i].map === null)
                 markers[i].setMap(map);
+			markers[i].label.setStyles();
+			markers[i].label.setContent();
+			markers[i].labelVisible = showCdn;
+			markers[i].label.setVisible();
         } else {
             markers[i].setMap(null);
         }

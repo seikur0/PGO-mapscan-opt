@@ -1,6 +1,6 @@
 /**
  * @name MarkerWithLabel for V3
- * @version 1.1.10 [April 8, 2014]
+ * @version 1.1.11 [September 25, 2016] (moidified by seikur0 for a more robust setStyles function)
  * @author Gary Little (inspired by code from Marc Ridey of Google).
  * @copyright Copyright 2012 Gary Little [gary at luxcentral.com]
  * @fileoverview MarkerWithLabel extends the Google Maps JavaScript API V3
@@ -405,14 +405,16 @@ MarkerLabel_.prototype.setAnchor = function () {
  * @private
  */
 MarkerLabel_.prototype.setPosition = function (yOffset) {
-  var position = this.getProjection().fromLatLngToDivPixel(this.marker_.getPosition());
-  if (typeof yOffset === "undefined") {
-    yOffset = 0;
-  }
-  this.labelDiv_.style.left = Math.round(position.x) + "px";
-  this.labelDiv_.style.top = Math.round(position.y - yOffset) + "px";
+	if(this.marker_.getMap() !== undefined && this.marker_.getMap() !== null) {
+	  var position = this.getProjection().fromLatLngToDivPixel(this.marker_.getPosition());
+	  if (typeof yOffset === "undefined") {
+		yOffset = 0;
+	  }
+	  this.labelDiv_.style.left = Math.round(position.x) + "px";
+	  this.labelDiv_.style.top = Math.round(position.y - yOffset) + "px";
 
-  this.setZIndex();
+	  this.setZIndex();
+	}
 };
 
 /**

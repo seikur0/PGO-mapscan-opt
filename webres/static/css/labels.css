@@ -36,10 +36,10 @@
     display: block;
 }
 
-.label_time_left {
+.label_line {
     display: block;
 }
 
 .label_hidden_pokemon {
-    opacity:0.5;
+	color: #a9a9a9;
 }
