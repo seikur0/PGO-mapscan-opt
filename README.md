@@ -52,4 +52,10 @@ To HEKTakun, I'm using his awesome pokemon icons for the map.
 
 ## Image of the actual map (with most pokemon being filtered out)
 
+<<<<<<< HEAD
+Check out the github page of lordbaconcake, it visualizes the beauty of the hexagon algorithm quite well.
+And if you'd like to cover more complex or square areas rather than a circle-like pattern, check out his api.
+https://github.com/spezifisch/geoscrape
+=======
 ![visual](https://cloud.githubusercontent.com/assets/20639004/18809142/0919b62e-8275-11e6-8d74-350eaec24fc9.png)
+>>>>>>> refs/remotes/seikur0/master
