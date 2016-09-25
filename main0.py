@@ -589,7 +589,7 @@ def do_full_login(account):
         cur = con.cursor()
         lock_db_acc.acquire()
         cur.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], 0, '0', '0'])
-        lock_db_acc.release()
+    lock_db_acc.release()
 def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     session = account['session']
     r = None
@@ -804,7 +804,7 @@ def set_api_endpoint(location, account):
         cur = con.cursor()
         lock_db_acc.acquire()
         cur.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], account['auth_ticket']['expire_timestamp_ms'], account['auth_ticket']['start'], account['auth_ticket']['end']])
-        lock_db_acc.release()
+    lock_db_acc.release()
 
 def heartbeat(location, account):
     global safetysecs
