@@ -15,6 +15,7 @@ from geopy.geocoders import Nominatim
 from math import radians, cos, sin, asin, sqrt
 from datetime import datetime
 from queue import Queue
+from unidecode import unidecode
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -499,6 +500,13 @@ def is_time_interval_now(start, end):
     else:
         return now == sta
 
+def format_address(input, fieldnum):
+    fields = input.split(', ')
+    output = fields[0]
+    for f in range(1,min(fieldnum,len(fields))):
+        output += ', ' + fields[f]
+    output = unidecode(output.encode('utf-8').replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss').decode('utf-8'))
+    return output
 
 if (log_to_file):
     log_queue = Queue()
@@ -596,8 +604,7 @@ while 1:
                 if dist <= us['radius']:
                     if address is None:
                         try:
-                            address = geolocator.reverse('{},{}'.format(lat, lng)).address.encode("utf-8")
-                            address = address.split(", ")[1] + ", " + address.split(", ")[0]
+                            address = format_address(geolocator.reverse('{},{}'.format(lat, lng)).address,4)
                         except:
                             address = ""
                     if (address == ""):
