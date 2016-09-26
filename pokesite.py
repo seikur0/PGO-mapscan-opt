@@ -65,6 +65,9 @@ def server_start():
     else:
         main_ind = 0
 
+    db_data = sqlite3.connect(data_file, check_same_thread=False)
+    db_data.create_function("isnotExcluded", 1, isnotExcluded)
+
     def patched_finish(self):
         try:
             if not self.wfile.closed:
@@ -81,12 +84,6 @@ def server_start():
     app.config['COMPRESS_LEVEL'] = 6
     app.config['COMPRESS_MIMETYPES'] = ['text/html', 'text/css', 'text/xml', 'application/json', 'application/javascript', 'application/octet-stream', 'image/svg+xml']
     compress.init_app(app)
-
-    def get_db():
-        db = getattr(g, '_database', None)
-        if db is None:
-            db = g._database = sqlite3.connect(data_file)
-        return db
 
     @app.teardown_appcontext
     def close_connection(exception):
@@ -106,15 +103,14 @@ def server_start():
     def add_numbers():
         datatill = request.args.get('data_till', 0, type=int)
         profile = request.args.get('profile', -1, type=int)
-        db = get_db()
+
         timenow = int(round(time.time(),0))
-        db.create_function("isnotExcluded", 1, isnotExcluded)
-        with db:
-            cursor = db.cursor()
-            if profile == -1:
-                results = cursor.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (expiretime > ?) AND (fromtime >= ?)',(timenow,datatill))
-            else:
-                results = cursor.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (profile == ?) AND (expiretime > ?) AND (fromtime >= ?)', (profile,timenow, datatill))
+
+        cursor_data = db_data.cursor()
+        if profile == -1:
+            results = cursor_data.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (expiretime > ?) AND (fromtime >= ?)',(timenow,datatill))
+        else:
+            results = cursor_data.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (profile == ?) AND (expiretime > ?) AND (fromtime >= ?)', (profile,timenow, datatill))
 
         return jsonify([timenow,results.fetchall()])
 

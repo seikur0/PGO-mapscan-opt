@@ -130,6 +130,9 @@ fpath_settings = '{}/res/usersettings.json'.format(workdir)
 fpath_data = '{}/webres/data.db'.format(workdir)
 fpath_accs = '{}/res/accs.db'.format(workdir)
 
+db_data = None
+db_accs = None
+
 #constants from settings
 exclude_ids = None
 pb = []
@@ -512,11 +515,13 @@ def login_ptc(account):
             time.sleep(2)
 
 def init_account_db():
-    con = sqlite3.connect(fpath_accs)
-    with con:
-        cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS accounts(user BLOB PRIMARY KEY, access_token BLOB, access_expire_timestamp INTEGER, api_url BLOB, auth_ticket__expire_timestamp_ms INTEGER, auth_ticket__start BLOB, auth_ticket__end BLOB)")
-        cur.execute("PRAGMA journal_mode = WAL")
+    global db_accs
+    db_accs = sqlite3.connect(fpath_accs,check_same_thread=False)
+    db_accs.text_factory = str
+    cursor_accs = db_accs.cursor()
+    cursor_accs.execute("CREATE TABLE IF NOT EXISTS accounts(user BLOB PRIMARY KEY, access_token BLOB, access_expire_timestamp INTEGER, api_url BLOB, auth_ticket__expire_timestamp_ms INTEGER, auth_ticket__start BLOB, auth_ticket__end BLOB)")
+    cursor_accs.execute("PRAGMA journal_mode = WAL")
+    db_accs.commit()
 
 def new_session(account):
     if account.get('session',None) is None:
@@ -541,12 +546,8 @@ def do_login(account):
 
     lprint('[{}] Login for {} account: {}'.format(account['num'], account['type'], account['user']))
     timenow = get_time()
-    con = sqlite3.connect(fpath_accs)
-    with con:
-        cur = con.cursor()
-        con.text_factory = str
-        results = cur.execute("SELECT access_token,access_expire_timestamp,api_url,auth_ticket__expire_timestamp_ms,auth_ticket__start,auth_ticket__end from accounts WHERE user = ?",(account['user'],))
-    acc_saved = results.fetchone()
+    cursor_accs = db_accs.cursor()
+    acc_saved = cursor_accs.execute("SELECT access_token,access_expire_timestamp,api_url,auth_ticket__expire_timestamp_ms,auth_ticket__start,auth_ticket__end from accounts WHERE user = ?",(account['user'],)).fetchone()
 
     if acc_saved is not None and timenow < acc_saved[1]:
         new_session(account)
@@ -583,12 +584,10 @@ def do_full_login(account):
     else:
         lprint('[{}] Error: Login type should be either ptc or google.'.format(account['num']))
         sys.exit()
-    con = sqlite3.connect(fpath_accs)
-    with con:
-        con.text_factory = str
-        cur = con.cursor()
-        lock_db_acc.acquire()
-        cur.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], 0, '0', '0'])
+    cursor_accs = db_accs.cursor()
+    lock_db_acc.acquire()
+    cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], 0, '0', '0'])
+    db_accs.commit()
     lock_db_acc.release()
 def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     session = account['session']
@@ -798,12 +797,10 @@ def get_profile(rtype, location, account, *reqq):
 def set_api_endpoint(location, account):
     account['auth_ticket'] = None
     get_profile(53, location, account)
-    con = sqlite3.connect(fpath_accs)
-    with con:
-        con.text_factory = str
-        cur = con.cursor()
-        lock_db_acc.acquire()
-        cur.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], account['auth_ticket']['expire_timestamp_ms'], account['auth_ticket']['start'], account['auth_ticket']['end']])
+    cursor_accs = db_accs.cursor()
+    lock_db_acc.acquire()
+    cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], account['auth_ticket']['expire_timestamp_ms'], account['auth_ticket']['start'], account['auth_ticket']['end']])
+    db_accs.commit()
     lock_db_acc.release()
 
 def heartbeat(location, account):
@@ -852,20 +849,20 @@ def accept_tos(location, account):
     get_profile(0, location, account, m1)
 
 def init_data():
-    con = sqlite3.connect(fpath_data)
-    with con:
-        cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS spawns(spawnid INTEGER PRIMARY KEY, latitude REAL, longitude REAL, spawntype INTEGER, pokeid INTEGER, expiretime INTEGER, fromtime INTEGER, profile INTEGER)")
-        cur.execute("PRAGMA journal_mode = WAL")
+    global db_data
+    db_data = sqlite3.connect(fpath_data,check_same_thread=False)
+    cursor_data = db_data.cursor()
+    cursor_data.execute("CREATE TABLE IF NOT EXISTS spawns(spawnid INTEGER PRIMARY KEY, latitude REAL, longitude REAL, spawntype INTEGER, pokeid INTEGER, expiretime INTEGER, fromtime INTEGER, profile INTEGER)")
+    cursor_data.execute("PRAGMA journal_mode = WAL")
+    db_data.commit()
 
 def update_data():
     timenow = int(round(time.time(),0))
-    con = sqlite3.connect(fpath_data)
-    with con:
-        cur = con.cursor()
-        for l in range(0,len(data_buffer)):
-            [pokeid, spawnid, latitude, longitude, expiretime, addinfo] = data_buffer.pop()
-            cur.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)",[spawnid,round(latitude,5),round(longitude,5),addinfo,pokeid,expiretime,timenow,wID])
+    for l in range(0,len(data_buffer)):
+        [pokeid, spawnid, latitude, longitude, expiretime, addinfo] = data_buffer.pop()
+        cursor_data = db_data.cursor()
+        cursor_data.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)",[spawnid,round(latitude,5),round(longitude,5),addinfo,pokeid,expiretime,timenow,wID])
+    db_data.commit()
 
 def lprint(message):
     sys.stdout.write(str(message) + '\n')
