@@ -320,7 +320,7 @@ function showMarkers() {
 
     for (var i = 0; i < markers.length; i++) {
         if (bounds.contains(markers[i].getPosition()) && markers[i].validTill - timenow > 0 && (filt_inactive || !filteredOut(markers[i].id))) {
-            if (markers[i].map === null)
+            if (markers[i].map == null)
                 markers[i].setMap(map);
 			markers[i].label.setStyles();
 			markers[i].label.setContent();
