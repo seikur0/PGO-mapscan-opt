@@ -1732,6 +1732,9 @@ def main():
                                     except requests.ConnectionError as e:
                                         if re.search('Connection aborted', str(e)) is None:
                                             lprint('[-] Connection Error during Pushbullet, error: {}'.format(e))
+                                        else:
+                                            lprint('[-] Pushbullet: Connection aborted, retrying...')
+                                            li -= 1
                                     except pushbullet.PushbulletError as e:
                                         lprint(e)
                                         if e['error_code'] == "pushbullet_pro_required":
@@ -1746,8 +1749,8 @@ def main():
 
                                 for telegram in telegrams:
                                     try:
-                                        telebot.sendMessage(chat_id=telegram, text='<b>' + notification_text + '</b>\n' + time_text, parse_mode='HTML', disable_web_page_preview='False', disable_notification='False')
-                                        telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude)
+                                        telebot.sendMessage(chat_id=telegram, text='<b>' + notification_text + '</b>\n' + time_text, parse_mode='HTML', disable_web_page_preview=False, disable_notification=False)
+                                        telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude, disable_notification=True)
                                     except Exception as e:
                                         lprint('[-] Connection Error during Telegram, error: {}'.format(e))
                             if addpokemon.empty() and time.time() < nextdatwrite:
