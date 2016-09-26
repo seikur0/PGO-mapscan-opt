@@ -1027,6 +1027,10 @@ class spawnpoint:
         self.pausetime = -1
 
         self.encounters = []
+        self.debug__scanned_times = None
+        self.debug__occupied_times = None
+        self.debug__pausetime = None
+        self.debug__occupied = None
 
 class scan:
     def __init__(self,location):
@@ -1131,6 +1135,9 @@ def main():
                 scanned_times.extend(occupied_times)
                 scanned_times.sort()
 
+                spawn.debug__scanned_times = scanned_times
+                spawn.debug__occupied_times = occupied_times
+
                 spawn_compromised = False
                 for t in range(1,len(scanned_times)):
                     if scanned_times[t]-scanned_times[t-1] > time_1q-1:
@@ -1143,6 +1150,8 @@ def main():
                 for t in range(1,len(occupied_times)):
                     pausetime = max(occupied_times[t]-occupied_times[t-1],pausetime)
                 pausetime = max(occupied_times[0] + time_4q -occupied_times[-1],pausetime)
+
+                spawn.debug__pausetime = pausetime
 
                 if pausetime > time_4q - 1:
                     continue
@@ -1173,6 +1182,8 @@ def main():
                                 occupied[occ] = True
                                 break
 
+                spawn.debug__occupied = occupied
+
                 if pausetime < 2*time_1q + 1:
                     if occupied == [True,True,True,False]:
                         spawn.type = SPAWN_1x45
@@ -1193,9 +1204,17 @@ def main():
 
             #######
             for s in all_spawns:
-                scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'pausetime': s.pausetime})
                 if s.type == SPAWN_UNDEF:
+                    for a in range(0,len(s.debug__scanned_times)):
+                        s.debug__scanned_times[a] /= 60000.0
+                    for a in range(0,len(s.debug__occupied_times)):
+                        s.debug__occupied_times[a] /= 60000.0
+                    s.debug__pausetime /= 60000.0
+                    scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'pausetime': s.pausetime,
+                    'debug__scanned_times': s.debug__scanned_times, 'debug__occupied_times': s.debug__occupied_times, 'debug__pausetime': s.debug__pausetime, 'debug__occupied': s.debug__occupied})
                     scandata['quality']['undefined'] += 1
+                else:
+                    scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'pausetime': s.pausetime})
 
             count_empty_locs = 0
             for l in range(0,len(all_loc)):
