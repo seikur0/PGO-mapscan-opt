@@ -32,7 +32,6 @@ import pushbullet
 from pushbullet import Pushbullet
 import telepot
 from geopy.geocoders import Nominatim
-from unidecode import unidecode
 from s2sphere import CellId, LatLng, Cell
 from gpsoauth import perform_master_login, perform_oauth
 from shutil import move
@@ -57,7 +56,6 @@ def format_address(input, fieldnum):
     output = fields[0]
     for f in range(1,min(fieldnum,len(fields))):
         output += ', ' + fields[f]
-    output = unidecode(output.encode('utf-8').replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss').decode('utf-8'))
     return output
 
 def get_time():
@@ -340,7 +338,7 @@ def do_settings():
                     lprint('[-] Pushbullet error, key {} is invalid, {}'.format(key, e))
                     lprint('[-] This pushbullet will be disabled.')
         if allsettings['notifications']['telegram']['enabled']:
-            telebot = telepot.Bot(allsettings['notifications']['telegram']['bot_token'])
+            telebot = telepot.Bot(str(allsettings['notifications']['telegram']['bot_token']))
             for chat_id in allsettings['notifications']['telegram']['chat_ids']:
                 telegrams.append(chat_id)
         if (len(telegrams) + len(pb)) == 0:
@@ -1275,7 +1273,7 @@ def main():
             elif typecount[8]:
                 lprint('[-] Learning file contains {} undefined spawn points. It is advised to recreate it. This can happen, if you either run into softban issues during the scan (very high range/very high amount of workers/other reasons) or if you\'re not using enough workers for your range.'.format(typecount[8]))
 
-            infostring = 'ID: {}, {}, Range: {}, Start: {}'.format(wID, location_str, scanrange, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
+            infostring = u'ID: {}, {}, Range: {}, Start: {}'.format(wID, location_str, scanrange, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
 
             lprint('\n[+] Starting intelligent scan mode.\n')
             lprint('[+] Spawn point count: {}'.format(tallcount))
@@ -1298,7 +1296,7 @@ def main():
                 indx_sort -= 1
 
             lprint('[+] Catch up phase, 0/2 complete.')
-            lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+            lprint(u'[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
             catchup = -1.5 * threadnum
             caughtup = False
             nextperc = percinterval
@@ -1324,14 +1322,14 @@ def main():
             lprint('[+] Phase complete: 100 %')
 
             lprint('\n[+] Catch up phase, 1/2 complete.')
-            lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+            lprint(u'[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
             while not caughtup or vleft > 0:
                 timediff = (all_sort[indx_sort][0] - get_time() - time_hb * 1000) % 3600000
                 if timediff < 2*time_1q:
                     if not caughtup:
                         lprint('\n[+] Catch up phase 2/2 complete. Map is now live.')
-                        lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+                        lprint(u'[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
                         caughtup = True
                         tries = 3
                         actT = get_time()
@@ -1373,7 +1371,7 @@ def main():
                     indx_sort += 1
 
             lprint('\n[+] Catch up phase, cleanup finished.')
-            lprint('[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+            lprint(u'[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
             if not silent and not verbose:
                 lprint('[+] Switching to silent mode.\n')
@@ -1397,7 +1395,7 @@ def main():
 
                     list_unique.intersection_update(list_seen)
                     list_seen.clear()
-                    lprint('\n[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
+                    lprint(u'\n[+] Time: {}, {}\n'.format(datetime.now().strftime('%H:%M:%S'), infostring))
 
 #########################################################################
 #########################################################################
@@ -1431,7 +1429,7 @@ def main():
             lprint('[+] If it\'s higher than 600 s (720 s, if you feel lucky), consider adding more workers or reducing the range.\n')
 
             starttime = get_time()
-            infostring = 'ID: {}, {}, Scan Interval: {} s, Range: {}, Start: {}'.format(wID, location_str, scaninterval, scanrange, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
+            infostring = u'ID: {}, {}, Scan Interval: {} s, Range: {}, Start: {}'.format(wID, location_str, scaninterval, scanrange, datetime.fromtimestamp(starttime / 1000.0).strftime('%H:%M:%S'))
             ##################################################################################################################################################
             while True:
                 pres_runs += 1
@@ -1439,7 +1437,7 @@ def main():
                 nextperc = percinterval
                 nowtime = get_time()
 
-                lprint('\n[+] Run #{}, Time: {}, {}\n'.format(pres_runs, datetime.fromtimestamp(nowtime / 1000.0).strftime('%H:%M:%S'), infostring))
+                lprint(u'\n[+] Run #{}, Time: {}, {}\n'.format(pres_runs, datetime.fromtimestamp(nowtime / 1000.0).strftime('%H:%M:%S'), infostring))
                 for this_loc in all_loc:
                     addlocation.put(this_loc)
                     if (100.0 * pres_curR / maxR) >= nextperc:

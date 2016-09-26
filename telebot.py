@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+# -*- encoding: utf-8-*-
 import sqlite3
 import telepot
 import os
@@ -15,7 +14,6 @@ from geopy.geocoders import Nominatim
 from math import radians, cos, sin, asin, sqrt
 from datetime import datetime
 from queue import Queue
-from unidecode import unidecode
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -67,7 +65,7 @@ if (language == "spanish"):
                 "radius_button": "Radio: [{}m]",
                 "check_radius": "Puedes ver tu radio actual aqui https://www.freemaptools.com/radius-around-point.htm?clat={}&clng={}&r={}&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true",
                 "home": "Volver al menu principal",
-                "ignored_intro": "Aqui tienes una lista de tus notificaciones de pokemon. Los pokemon con ✅ seran notificados y los pokemon con ❌ seran ignorados. Presiona para cambiar.",
+                "ignored_intro": u"Aqui tienes una lista de tus notificaciones de pokemon. Los pokemon con ✅ seran notificados y los pokemon con ❌ seran ignorados. Presiona para cambiar.",
                 "returning_home": "De vuelta al menu principal",
                 "pokemon_ignored": "El pokemon #{0} {1} no sera notificado",
                 "pokemon_unignored": "El pokemon #{0} {1} sera notificado",
@@ -111,7 +109,7 @@ elif (language == "french"):
                 "radius_button": "Rayon: [{}m]",
                 "check_radius": "Vous pouvez voir votre rayon ici https://www.freemaptools.com/radius-around-point.htm?clat={}&clng={}&r={}&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true",
                 "home": "Menu principal",
-                "ignored_intro": "Voici la liste des notifications. Les pokémons marqués d'un ✅ seront notifiés et les pokémons marqués d'un ❌ seront ignorés. Appuyez pour modifier.",
+                "ignored_intro": u"Voici la liste des notifications. Les pokémons marqués d'un ✅ seront notifiés et les pokémons marqués d'un ❌ seront ignorés. Appuyez pour modifier.",
                 "returning_home": "Retour au menu principal",
                 "pokemon_ignored": "Le pokémon #{0} {1} ne sera pas notifié;",
                 "pokemon_unignored": "Le pokémon #{0} {1} sera notifié",
@@ -155,7 +153,7 @@ elif language == "dutch":
                 "radius_button": "Radius: [{}m]",
                 "check_radius": "U kan hier uw radius checken https://www.freemaptools.com/radius-around-point.htm?clat={}&clng={}&r={}&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true",
                 "home": "Terug naar hoofdmenu",
-                "ignored_intro": "Hier is een lijst of alle pokemons, U krijgt notificaties van de pokemons gemarkeerd met ✅ en de pokemons gemarkeerd met ❌ worden genegeerd. Druk op de naam van de pokemon om de setting te veranderen.",
+                "ignored_intro": u"Hier is een lijst of alle pokemons, U krijgt notificaties van de pokemons gemarkeerd met ✅ en de pokemons gemarkeerd met ❌ worden genegeerd. Druk op de naam van de pokemon om de setting te veranderen.",
                 "returning_home": "Terug naar het hoofdmenu",
                 "pokemon_ignored": "Pokemon #{0} {1} genegeerd",
                 "pokemon_unignored": "Pokemon #{0} {1} krijgt u notificaties van",
@@ -179,7 +177,7 @@ elif language == "dutch":
                 }
 else:  # if(language == "english"):
     messages = {"location": "Send your location",
-                "greeting": "Hello! This bot will send you notifications of nearby pokemon as you specify. Send your ubication to start!",
+                "greeting": "Hello! This bot will send you notifications of nearby pokemon as you specify. Send your location to start!",
                 "location_received": "Your location has been received successfully! Now you can use the menu to configure your radius or ignored pokemon.",
                 "actual_radius": "Your radius is set to {}m.",
                 "check_ignored": "Ignored pokemon",
@@ -198,10 +196,10 @@ else:  # if(language == "english"):
                 "error": "Sorry, an error happened.",
                 "radius_button": "Radius: [{}m]",
                 "check_radius": "You can see your current radius here https://www.freemaptools.com/radius-around-point.htm?clat={}&clng={}&r={}&lc=FFFFFF&lw=1&fc=00FF00&mt=r&fs=true",
-                "home": "Go back to main men",
-                "ignored_intro": "Here you have a list of your pokemon notifications. The pokemon marked with ✅ will be notified and the pokemon with ❌ will be ignored. Press to toggle.",
-                "returning_home": "Returned to main men",
-                "pokemon_ignored": "Pokemon #{0} {1} wont be notified",
+                "home": "Go back to main menu",
+                "ignored_intro": u"Here you have a list of your pokemon notifications. The pokemon marked with ✅ will be notified and the pokemon with ❌ will be ignored. Press to toggle.",
+                "returning_home": "Returned to main menu",
+                "pokemon_ignored": "Pokemon #{0} {1} won't be notified",
                 "pokemon_unignored": "Pokemon #{0} {1} will be notified",
                 "wild_pokemon": "A wild <b>{0}</b> appeared!",
                 "hidden_pokemon": "A <b>hidden {0}</b> has been spotted!",
@@ -222,6 +220,9 @@ else:  # if(language == "english"):
                 "silence_choose": "Now choose the other marker for the interval"
                 }
 
+# for m in messages:
+#     messages[m] = messages[m].decode('utf-8')
+
 POKEMONS = json.load(open('{}/webres/static/{}.json'.format(workdir, cfg["language"])))
 POKEMON_NUM = 151
 
@@ -229,7 +230,6 @@ data_file = '{}/webres/data.db'.format(workdir)
 telesettings_file = '{}/res/telegram_data.db'.format(workdir)
 
 user_settings = {}
-messages_ascii = {}
 
 geolocator = Nominatim()
 
@@ -239,8 +239,8 @@ db_telebot = None
 
 
 def init_data():
-    global db_telebot,cursor_telebot
-    db_telebot = sqlite3.connect(telesettings_file)
+    global db_telebot
+    db_telebot = sqlite3.connect(telesettings_file,check_same_thread=False)
     db_telebot.text_factory = str
     cursor_telebot = db_telebot.cursor()
     cursor_telebot.execute("PRAGMA journal_mode = WAL")
@@ -284,12 +284,13 @@ def load_all_settings():
     for row in cursor_telebot.execute('SELECT id, notify, latitude, longitude, radius, ignored, nick, silence FROM users'):
         user_settings[row[0]] = {'id': row[0], 'noti': row[1], 'lat': row[2], 'lng': row[3], 'radius': row[4], 'ignored': [] if row[5].encode("ascii", "ignore") == "" else map(int, row[5].encode("ascii", "ignore").split(",")), 'nick': row[6], 'silence': "" if row[7] is None else row[7]}
 
+symbols = {'pin': u'📌 ', 'list': u'📝 ', 'info': u'ℹ ', 'bell': u'🔔 ', 'bell_crossed': u'🔕 ' , 'bed': u'🛌 ', 'globe': u'🌍 ', 'home': u'🏠 ', 'silence': u'🗣 ', 'yes': u"✅ ", 'no': u'❌ ', 'reset': u'♻ ', 'check': u'☑ ', 'uncheck':  u'◼ '}
 
 def build_menu(stage, settings):
     markup = None
     if stage == "location":
         markup = ReplyKeyboardMarkup(keyboard=[
-            [KeyboardButton(text='📌 ' + messages["location"], request_location=True)]
+            [KeyboardButton(text=symbols['pin'] + messages["location"], request_location=True)]
         ])
     elif stage == "main":
         if (len(settings["silence"]) == 11):
@@ -297,7 +298,7 @@ def build_menu(stage, settings):
         else:
             silence_time = ""
         if settings['radius'] < radius_step:
-            radius_buttons = [messages['radius_button'].format(settings['radius']), str(radius_step) + "m"]
+            radius_buttons = [messages['radius_button'].format(settings['radius']), radius_step + "m"]
         elif settings['radius'] == radius_step:
             radius_buttons = [messages['radius_button'].format(settings['radius']), str(radius_step * 2) + "m"]
         elif settings['radius'] == radius_max:
@@ -306,30 +307,28 @@ def build_menu(stage, settings):
             radius_buttons = [str(settings['radius'] - radius_step) + "m", messages['radius_button'].format(settings['radius']), str(settings['radius'] + radius_step) + "m"]
         markup = ReplyKeyboardMarkup(keyboard=[
             radius_buttons,
-            ["📝 " + messages["check_ignored"], "ℹ️ " + messages["info"]],
-            ["🔔 " + messages["turn_on"] if settings['noti'] == -1 else "🔕 " + messages["turn_off"], "🛌 " + messages["silence_hours"] + silence_time],
-            ["🌍 " + messages["check_location"], KeyboardButton(text='📌 ' + messages["update_location"], request_location=True)]
+            [symbols['list'] + messages["check_ignored"], symbols['info'] + messages["info"]],
+            [symbols['bell'] + messages["turn_on"] if settings['noti'] == -1 else symbols['bell_crossed'] + messages["turn_off"], symbols['bed'] + messages["silence_hours"] + silence_time],
+            [symbols['globe'] + messages["check_location"], KeyboardButton(text= symbols['pin'] + messages["update_location"], request_location=True)]
         ])
     elif stage == "ignored":
         pokemon_buttons = []
         for i in range(1, POKEMON_NUM + 1):
             if i in settings['ignored']:
-                pokemon_buttons.append("❌ #".decode('utf-8') + str(i) + " " + POKEMONS[i])
+                pokemon_buttons.append(symbols['no'] + "#" + str(i) + " " + POKEMONS[i])
             else:
-                pokemon_buttons.append("✅ #".decode('utf-8') + str(i) + " " + POKEMONS[i])
-        formatted_pokemon_buttons = []
-        for i in xrange(0, len(pokemon_buttons), 3):
+                pokemon_buttons.append(symbols['yes'] + "#" + str(i) + " " + POKEMONS[i])
+        formatted_pokemon_buttons = [[symbols['reset'] + messages["restore_default_ignored"], symbols['check'] + messages["mark_all"], symbols['uncheck']+ messages["unmark_all"]],[symbols['home'] + messages["home"]]]
+        for i in range(0, len(pokemon_buttons), 3):
             formatted_pokemon_buttons.append(pokemon_buttons[i:i + 3])
-        formatted_pokemon_buttons.insert(0, ["🏠 " + messages["home"]])
-        formatted_pokemon_buttons.insert(0, ["♻️ " + messages["restore_default_ignored"], "☑️ " + messages["mark_all"], "◼️ " + messages["unmark_all"]])
         markup = ReplyKeyboardMarkup(keyboard=formatted_pokemon_buttons)
     elif stage == "silent":
         ignore_times = []
         for i in range(0, 24):
             ignore_times.append([messages["silence_from"] + " {:02}:00".format(i), messages["silence_to"] + " {:02}:00".format(i)])
-        ignore_times.insert(0, ["🏠 " + messages["home"]])
+        ignore_times.insert(0, [symbols['home'] + messages["home"]])
         if len(settings["silence"]) == 11:
-            ignore_times.insert(0, ["🗣 " + messages["silence_deactivate"] + " [{}]".format(settings["silence"])])
+            ignore_times.insert(0, [symbols['silence'] + messages["silence_deactivate"] + " [{}]".format(settings["silence"])])
         markup = ReplyKeyboardMarkup(keyboard=ignore_times)
     return markup
 
@@ -337,15 +336,15 @@ def build_menu(stage, settings):
 def send_message(chat_id, text, disable_notification=False, reply_markup=None, disable_web_page_preview=False):
     try:
         if reply_markup is None:
-            bot.sendMessage(chat_id, text, disable_notification=disable_notification, disable_web_page_preview=disable_web_page_preview)
+            bot.sendMessage(chat_id, text, parse_mode='HTML', disable_notification=disable_notification, disable_web_page_preview=disable_web_page_preview)
         else:
-            bot.sendMessage(chat_id, text, disable_notification=disable_notification, disable_web_page_preview=disable_web_page_preview, reply_markup=reply_markup)
-    except BotWasBlockedError as err:
+            bot.sendMessage(chat_id, text, parse_mode='HTML', disable_notification=disable_notification, disable_web_page_preview=disable_web_page_preview, reply_markup=reply_markup)
+    except BotWasBlockedError:
         print_log("[!] Bot was blocked. Couldn't send message.")
-    except TelegramError as err:
-        print_log("[!] An error happened while sending message " + str(err.json))
-    except:
-        print_log("[!] An unkown error happened while sending message")
+    except TelegramError as e:
+        print_log("[!] An error happened while sending message " + str(e.json))
+    except Exception as e:
+        print_log("[!] An unkown error happened while sending message, error: {}".format(e))
 
 
 def on_chat_message(msg):
@@ -363,42 +362,42 @@ def on_chat_message(msg):
             u_settings = set_settings(msg['from']['id'], lat=msg['location']['latitude'], lng=msg['location']['longitude'])
         send_message(chat_id, messages["location_received"] + " " + messages["actual_radius"].format(u_settings["radius"]), reply_markup=build_menu("main", u_settings))
     if content_type == 'text':
-        text = msg['text'].encode('ascii', 'replace')
-        print_log('[t] Text received: ' + tmp_nick + ": '" + text + "'")
+        text = msg['text']
+        print_log(u'[t] Text received: {}: "{}"'.format(tmp_nick,text))
         if (u_settings is None):
             send_message(chat_id, messages["greeting"], reply_markup=build_menu('location', u_settings))
         else:
             new_nick = "@" + msg['from']['username'] if 'username' in msg['from'] else msg['from']['first_name']
             if u_settings["nick"] != new_nick:
                 set_settings(u_settings["id"], nick=new_nick)
-            if messages_ascii["info"] in text:
+            if messages["info"] in text:
                 send_message(chat_id, info_about, disable_notification=True, disable_web_page_preview=True, reply_markup=build_menu("main", u_settings))
-            elif messages_ascii["turn_on"] in text:
+            elif messages["turn_on"] in text:
                 u_settings = set_settings(u_settings['id'], noti=chat_id)
                 send_message(chat_id, messages["notifications_on"], disable_notification=True, reply_markup=build_menu("main", u_settings))
-            elif messages_ascii["turn_off"] in text:
+            elif messages["turn_off"] in text:
                 u_settings = set_settings(u_settings['id'], noti=-1)
                 send_message(chat_id, messages["notifications_off"], disable_notification=True, reply_markup=build_menu("main", u_settings))
-            elif messages_ascii["check_ignored"] in text:
+            elif messages["check_ignored"] in text:
                 send_message(chat_id, messages["ignored_intro"], disable_notification=True, reply_markup=build_menu("ignored", u_settings))
-            elif messages_ascii["home"] in text:
+            elif messages["home"] in text:
                 send_message(chat_id, messages["returning_home"], disable_notification=True, reply_markup=build_menu("main", u_settings))
-            elif messages_ascii["restore_default_ignored"] in text:
+            elif messages["restore_default_ignored"] in text:
                 u_settings = set_settings(u_settings['id'], ign=ignored_by_default)
                 send_message(chat_id, messages["ignored_default_restored"], disable_notification=True, reply_markup=build_menu("ignored", u_settings))
-            elif messages_ascii["unmark_all"] in text:
+            elif messages["unmark_all"] in text:
                 all_pokes = [i + 1 for i in range(POKEMON_NUM)]
                 u_settings = set_settings(u_settings['id'], ign=all_pokes)
                 send_message(chat_id, messages["unmarked_all"], disable_notification=True, reply_markup=build_menu("ignored", u_settings))
-            elif messages_ascii["mark_all"] in text:
+            elif messages["mark_all"] in text:
                 u_settings = set_settings(u_settings['id'], ign=[])
                 send_message(chat_id, messages["marked_all"], disable_notification=True, reply_markup=build_menu("ignored", u_settings))
-            elif messages_ascii["silence_hours"] in text:
+            elif messages["silence_hours"] in text:
                 send_message(chat_id, messages["silence_explanation"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-            elif messages_ascii["silence_deactivate"] in text:
+            elif messages["silence_deactivate"] in text:
                 u_settings = set_settings(chat_id, silence="")
                 send_message(chat_id, messages["silence_deactivated"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-            elif messages_ascii["silence_from"] in text:
+            elif messages["silence_from"] in text:
                 time = str(text[-5:])
                 if len(time) == 5 and time_re.match(time):
                     if u_settings["silence"] == "" or ("-" in u_settings["silence"] and u_settings["silence"].split("-")[1] == ""):
@@ -410,7 +409,7 @@ def on_chat_message(msg):
                                      reply_markup=build_menu("silent", u_settings))
                 else:
                     send_message(chat_id, messages["error"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-            elif messages_ascii["silence_to"] in text:
+            elif messages["silence_to"] in text:
                 time = str(text[-5:])
                 if len(time) == 5 and time_re.match(time):
                     if u_settings["silence"] == "" or ("-" in u_settings["silence"] and u_settings["silence"].split("-")[0] == ""):
@@ -422,7 +421,7 @@ def on_chat_message(msg):
                                      reply_markup=build_menu("silent", u_settings))
                 else:
                     send_message(chat_id, messages["error"], disable_notification=True, reply_markup=build_menu("silent", u_settings))
-            elif messages_ascii["check_location"] in text:
+            elif messages["check_location"] in text:
                 try:
                     bot.sendLocation(chat_id, u_settings['lat'], u_settings['lng'], disable_notification=True, reply_markup=build_menu("main", u_settings))
                 except BotWasBlockedError as err:
@@ -431,7 +430,7 @@ def on_chat_message(msg):
                     print_log("[!] An error happened while sending location " + err.json)
                 except:
                     print_log("[!] An unkown error happened while sending location")
-            elif messages_ascii["radius_button"].format(u_settings['radius']) in text:
+            elif messages["radius_button"].format(u_settings['radius']) in text:
                 send_message(chat_id, messages['check_radius'].format(u_settings['lat'], u_settings['lng'], float(u_settings['radius']) / 1000), disable_web_page_preview=True, disable_notification=True, reply_markup=build_menu("main", u_settings))
             elif len(text) >= 2 and text[-1] == 'm' and text[:-1].isdigit():
                 try:
@@ -484,9 +483,10 @@ def haversine(lon1, lat1, lon2, lat2):  # aaron-d from stackoverflow
 
 
 def print_log(s):
-    print(time.strftime('[%H:%M:%S] ') + str(s))
+    log = u'{}{}'.format(time.strftime('[%H:%M:%S] '),s)
+    print(log)
     if log_to_file:
-        log_queue.put(time.strftime('%d/%m/%y %H:%M:%S ') + str(s))
+        log_queue.put(log)
 
 
 def is_time_interval_now(start, end):
@@ -505,7 +505,6 @@ def format_address(input, fieldnum):
     output = fields[0]
     for f in range(1,min(fieldnum,len(fields))):
         output += ', ' + fields[f]
-    output = unidecode(output.encode('utf-8').replace('ä','ae').replace('ö','oe').replace('ü','ue').replace('ß','ss').decode('utf-8'))
     return output
 
 if (log_to_file):
@@ -514,10 +513,7 @@ if (log_to_file):
 init_data()
 load_all_settings()
 
-for m in messages:
-    messages_ascii[m] = messages[m].decode("utf-8").encode('ascii', 'replace')
-
-bot = telepot.Bot(TELEGRAM_BOT_TOKEN)
+bot = telepot.Bot(str(TELEGRAM_BOT_TOKEN))
 
 bot.message_loop({'chat': on_chat_message})
 print_log('[+] Telegram bot for PGO-mapscan-opt started!')
@@ -526,13 +522,14 @@ notified = {}
 
 time_re = re.compile(r'^(([01]\d|2[0-3]):([0-5]\d)|24:00)$')
 
-while 1:
-    if log_to_file:
+while True:
+    if False:#log_to_file:
         queue_to_file = log_queue
         log_queue = Queue()
-        with open('{}/res/telegram_log.txt'.format(workdir), 'a') as f:
+        with open('{}/res/telegram_log.txt'.format(workdir), 'ab') as f:
             while not queue_to_file.empty():
-                f.write(queue_to_file.get() + '\n')
+                message = queue_to_file.get()
+                f.write(queue_to_file.get() + u'\n')
         del queue_to_file
     time.sleep(time_between_cycles)
     pokes = get_active_pokemon()
@@ -619,7 +616,7 @@ while 1:
                             if max_notis_per_user_and_cycle > 0:
                                 received_notifications[user_id] = received_notifications[user_id] + 1
                             if log_notifications:
-                                print_log("[N] Notified user " + us['nick'] + " (" + str(us['id']) + ") of " + POKEMONS[pokeid] + " " + str(dist) + "m away!")
+                                print_log(u"[N] Notified user {} ({}) of {} {}m away!".format(us['nick'],us['id'], POKEMONS[pokeid],dist))
                         notified[chat_id].add(spawnid)
                     except BotWasBlockedError as err:
                         print_log("[!] Bot was blocked. Deactivated notifications for " + us['nick'] + " (" + str(us['id']) + ")")
