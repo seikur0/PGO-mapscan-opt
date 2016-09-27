@@ -21,6 +21,7 @@ import POGOProtos.Networking.Platform.Requests_pb2
 import time
 from datetime import datetime
 import sys
+import codecs
 import math
 import os
 import random
@@ -1670,7 +1671,7 @@ def main():
             nextdatwrite = time.time() + interval_datwrite
             init_data()
             try:
-                f = open(fpath_log, 'a', 0)
+                f = codecs.open(fpath_log, mode='a', buffering=0, encoding='utf-8')
                 f.seek(0, 2)
                 if f.tell() == 0:
                     f.write(statheader)
