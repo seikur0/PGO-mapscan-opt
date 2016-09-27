@@ -50,7 +50,6 @@ def signal_handler(signal, frame):
     sys.exit()
 signal.signal(signal.SIGINT, signal_handler)
 
-
 def format_address(input, fieldnum):
     fields = input.split(', ')
     output = fields[0]
@@ -545,7 +544,14 @@ def do_login(account):
     lprint('[{}] Login for {} account: {}'.format(account['num'], account['type'], account['user']))
     timenow = get_time()
     cursor_accs = db_accs.cursor()
-    acc_saved = cursor_accs.execute("SELECT access_token,access_expire_timestamp,api_url,auth_ticket__expire_timestamp_ms,auth_ticket__start,auth_ticket__end from accounts WHERE user = ?",(account['user'],)).fetchone()
+
+    db_repeat = True
+    while db_repeat:
+        try:
+            acc_saved = cursor_accs.execute("SELECT access_token,access_expire_timestamp,api_url,auth_ticket__expire_timestamp_ms,auth_ticket__start,auth_ticket__end from accounts WHERE user = ?",(account['user'],)).fetchone()
+            db_repeat = False
+        except sqlite3.OperationalError:
+            pass
 
     if acc_saved is not None and timenow < acc_saved[1]:
         new_session(account)
@@ -582,11 +588,16 @@ def do_full_login(account):
     else:
         lprint('[{}] Error: Login type should be either ptc or google.'.format(account['num']))
         sys.exit()
+
     cursor_accs = db_accs.cursor()
-    lock_db_acc.acquire()
-    cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], 0, '0', '0'])
-    db_accs.commit()
-    lock_db_acc.release()
+    while True:
+        try:
+            cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], 0, '0', '0'])
+            db_accs.commit()
+            return
+        except sqlite3.OperationalError:
+            pass
+
 def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     session = account['session']
     r = None
@@ -796,10 +807,13 @@ def set_api_endpoint(location, account):
     account['auth_ticket'] = None
     get_profile(53, location, account)
     cursor_accs = db_accs.cursor()
-    lock_db_acc.acquire()
-    cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], account['auth_ticket']['expire_timestamp_ms'], account['auth_ticket']['start'], account['auth_ticket']['end']])
-    db_accs.commit()
-    lock_db_acc.release()
+    while True:
+        try:
+            cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], account['auth_ticket']['expire_timestamp_ms'], account['auth_ticket']['start'], account['auth_ticket']['end']])
+            db_accs.commit()
+            return
+        except sqlite3.OperationalError:
+            pass
 
 def heartbeat(location, account):
     global safetysecs
@@ -856,11 +870,23 @@ def init_data():
 
 def update_data():
     timenow = int(round(time.time(),0))
+    cursor_data = db_data.cursor()
     for l in range(0,len(data_buffer)):
         [pokeid, spawnid, latitude, longitude, expiretime, addinfo] = data_buffer.pop()
-        cursor_data = db_data.cursor()
-        cursor_data.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)",[spawnid,round(latitude,5),round(longitude,5),addinfo,pokeid,expiretime,timenow,wID])
-    db_data.commit()
+        db_repeat = True
+        while db_repeat:
+            try:
+                cursor_data.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)", [spawnid, round(latitude, 5), round(longitude, 5), addinfo, pokeid, expiretime, timenow, wID])
+                db_repeat = False
+            except sqlite3.OperationalError:
+                pass
+
+    while True:
+        try:
+            db_data.commit()
+            return
+        except sqlite3.OperationalError:
+            pass
 
 def lprint(message):
     sys.stdout.write(str(message) + '\n')

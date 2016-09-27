@@ -107,12 +107,17 @@ def server_start():
         timenow = int(round(time.time(),0))
 
         cursor_data = db_data.cursor()
-        if profile == -1:
-            results = cursor_data.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (expiretime > ?) AND (fromtime >= ?)',(timenow,datatill))
-        else:
-            results = cursor_data.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (profile == ?) AND (expiretime > ?) AND (fromtime >= ?)', (profile,timenow, datatill))
 
-        return jsonify([timenow,results.fetchall()])
+        while True:
+            try:
+                if profile == -1:
+                    results = cursor_data.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (expiretime > ?) AND (fromtime >= ?)',(timenow,datatill))
+                else:
+                    results = cursor_data.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (profile == ?) AND (expiretime > ?) AND (fromtime >= ?)', (profile,timenow, datatill))
+                return jsonify([timenow, results.fetchall()])
+            except sqlite3.OperationalError:
+                pass
+
 
     @app.route("/")
     def mainapp():
