@@ -1,5 +1,5 @@
 {
-  "_comment": "Language, can be german/english/spanish",
+  "_comment": "Language, can be german/english/spanish/zh-HK",
   "language": "english",
 
   "_comment": "The size in MB after which the spawn file gets renamed and a new one is used, set to 0 to disable.",
