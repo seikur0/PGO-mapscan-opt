@@ -1632,7 +1632,7 @@ def main():
             fpath_log = '{}/res/logs/spawns{}.txt'.format(workdir, wID)
             POKEMONS = json.load(open('{}/webres/static/{}.json'.format(workdir, language)))
 
-            statheader = 'Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n'
+            statheader = u'Name\tid\tSpawnID\tlat\tlng\tspawnTime\tTime\tTime2Hidden\tencounterID\n'
 
             reappear_texts = ('\n15m later back for 15m','\n15m later back for 30m','\n30m later back for 15m')
             reappear_ind = (0,1,0,2)
@@ -1692,10 +1692,10 @@ def main():
                             if mod_spawntime == 0:
                                 mod_spawntime = wild.last_modified_timestamp_ms + mod_tth - time_1q
 
-                            f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime,
+                            f.write(u'{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime,
                                                                                   wild.last_modified_timestamp_ms, mod_tth, wild.encounter_id))
                             if addinfo:
-                                f.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime_2nd,
+                                f.write(u'{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(POKEMONS[wild.pokemon_data.pokemon_id], wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, mod_spawntime_2nd,
                                                                                       mod_spawntime_2nd+finished_ms, addinfo_phase_sec[addinfo]-finished_ms, wild.encounter_id))
                             data_buffer.append([wild.pokemon_data.pokemon_id, spawnIDint, wild.latitude, wild.longitude, int(round((wild.last_modified_timestamp_ms + mod_tth + addinfo_phase_sec[addinfo] + addinfo_pausetime[addinfo]) / 1000.0)) ,addinfo])
                             if not silent:
@@ -1706,7 +1706,7 @@ def main():
                                 difflng = diff.lng().degrees
                                 distance = int(origin_ll.get_distance(other_ll).radians * EARTH_Rrect)
                                 direction = (('N' if difflat >= 0 else 'S') if abs(difflat) > 1e-4 else '') + (('E' if difflng >= 0 else 'W') if abs(difflng) > 1e-4 else '')
-                                lprint('[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), distance, direction))
+                                lprint(u'[+] ({}) {} visible for {} seconds ({}m {} from you)'.format(wild.pokemon_data.pokemon_id, POKEMONS[wild.pokemon_data.pokemon_id], int(mod_tth / 1000.0), distance, direction))
 
                             hookdata = {"type": "pokemon","message": {"encounter_id": wild.encounter_id,"spawnpoint_id": spawnIDint,"pokemon_id": wild.pokemon_data.pokemon_id,"latitude": wild.latitude,"longitude": wild.longitude,"disappear_time": int((wild.last_modified_timestamp_ms + mod_tth)/1000.0),"last_modified_time": wild.last_modified_timestamp_ms,"time_until_hidden_ms": mod_tth, 'respawn_info': addinfo}}
                             addhook.put(hookdata)
@@ -1714,11 +1714,11 @@ def main():
                                 if add_location_name:
                                     try:
                                         location = format_address(geolocator.reverse('{},{}'.format(wild.latitude, wild.longitude),language=lang_code).address, 4)
-                                        notification_text = "{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location)
+                                        notification_text = u"{} @ {}".format(POKEMONS[wild.pokemon_data.pokemon_id], location)
                                     except:
-                                        notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
+                                        notification_text = u'{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 else:
-                                    notification_text = '{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
+                                    notification_text = u'{} found!'.format(POKEMONS[wild.pokemon_data.pokemon_id])
                                 disappear_time = datetime.fromtimestamp(int((wild.last_modified_timestamp_ms + mod_tth) / 1000.0)).strftime("%H:%M:%S")
                                 time_text = 'disappears at: {} ({}m)'.format(disappear_time, mod_tth / 60000)
                                 if addinfo:
@@ -1747,7 +1747,7 @@ def main():
 
                                 for telegram in telegrams:
                                     try:
-                                        telebot.sendMessage(chat_id=telegram, text='<b>' + notification_text + '</b>\n' + time_text, parse_mode='HTML', disable_web_page_preview=False, disable_notification=False)
+                                        telebot.sendMessage(chat_id=telegram, text=u'<b>{}</b><br>{}'.format(notification_text,time_text), parse_mode='HTML', disable_web_page_preview=False, disable_notification=False)
                                         telebot.sendLocation(chat_id=telegram, latitude=wild.latitude, longitude=wild.longitude, disable_notification=True)
                                     except Exception as e:
                                         lprint('[-] Connection Error during Telegram, error: {}'.format(e))
