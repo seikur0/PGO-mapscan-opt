@@ -120,7 +120,6 @@ threadnum = None
 signature_lib = None
 lock_network = threading.Lock()
 lock_banfile = threading.Lock()
-lock_db_acc = threading.Lock()
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 fpath_settings = '{}/res/usersettings.json'.format(workdir)
