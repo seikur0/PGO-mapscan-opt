@@ -51,6 +51,9 @@ def signal_handler(signal, frame):
     sys.exit()
 signal.signal(signal.SIGINT, signal_handler)
 
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+sys.stderr = codecs.getwriter('utf8')(sys.stderr)
+
 def format_address(input, fieldnum):
     fields = input.split(', ')
     output = fields[0]
