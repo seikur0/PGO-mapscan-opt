@@ -904,7 +904,7 @@ def get_planid(plan):
     elif plan['type'] == 'seikur0_circle':
         id = 'seikur0_circle__{}_{}__{}'.format(plan['location'][0],plan['location'][1],plan['radius'])
     elif plan['type'] == 'raw':
-        id = 'raw__{}_{}__{}'.format(plan['location'][0],plan['location'][1],plan['id'])
+        id = 'raw__{}_{}__{}'.format(plan['locations'][0][0],plan['locations'][0][1],plan['id'])
     if plan.get('subplan_index',None) is not None and plan.get('subplans',None) is not None:
         id = '{}__{}_{}'.format(id,plan['subplan_index'],plan['subplans'])
     id = '{}__{}'.format(id,Rsight)
