@@ -551,10 +551,12 @@ def do_login(account):
     db_repeat = True
     while db_repeat:
         try:
-            acc_saved = cursor_accs.execute("SELECT access_token,access_expire_timestamp,api_url,auth_ticket__expire_timestamp_ms,auth_ticket__start,auth_ticket__end from accounts WHERE user = ?",(account['user'],)).fetchone()
+            acc_saved = cursor_accs.execute("SELECT access_token,access_expire_timestamp,api_url,auth_ticket__expire_timestamp_ms,auth_ticket__start,auth_ticket__end from accounts WHERE user = ?",[account['user']]).fetchone()
             db_repeat = False
         except sqlite3.OperationalError:
             pass
+        except sqlite3.InterfaceError as e:
+            lprint('[-] Sqlite interface error: {}, account: {} Retrying...'.format(e, account['user']))
 
     if acc_saved is not None and timenow < acc_saved[1]:
         new_session(account)
