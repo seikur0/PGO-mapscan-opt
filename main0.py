@@ -1235,7 +1235,8 @@ def main():
                         s.debug__scanned_times[a] /= 60000.0
                     for a in range(0,len(s.debug__occupied_times)):
                         s.debug__occupied_times[a] /= 60000.0
-                    s.debug__pausetime /= 60000.0
+                    if s.debug__pausetime is not None:
+                        s.debug__pausetime /= 60000.0
                     scandata['spawns'].append({'type': s.type, 'id': s.spawnid, 'lat': s.lat, 'lng': s.lng, 'spawntime': s.spawntime, 'pausetime': s.pausetime,
                     'debug__scanned_times': s.debug__scanned_times, 'debug__occupied_times': s.debug__occupied_times, 'debug__pausetime': s.debug__pausetime, 'debug__occupied': s.debug__occupied})
                     scandata['quality']['undefined'] += 1
