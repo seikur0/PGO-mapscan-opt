@@ -889,7 +889,7 @@ def update_data():
             pass
 
 def lprint(message):
-    sys.stdout.write(str(message) + '\n')
+    sys.stdout.write(u'{}\n'.format(message))
 
 def get_planid(plan):
     if plan['type'] == 'seikur0_s2':
