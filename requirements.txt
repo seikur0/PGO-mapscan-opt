@@ -9,5 +9,4 @@ flask
 flask_compress
 telepot
 requests[socks]
-unidecode
--e git+git://github.com/kvangent/PokeAlarm#egg=pokealarm
+tornado

@@ -1,14 +1,20 @@
 from flask import Flask, render_template, g, request, jsonify
 from flask_compress import Compress
 import os, sys
-import logging
 import socket
-import SocketServer
-import BaseHTTPServer
+# import SocketServer
+# import BaseHTTPServer
 import signal
 import time
 import json
 import sqlite3
+
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
+import tornado.options
+
+tornado.options.parse_command_line()
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 data_file = '{}/webres/data.db'.format(workdir)
@@ -68,15 +74,16 @@ def server_start():
     db_data = sqlite3.connect(data_file, check_same_thread=False)
     db_data.create_function("isnotExcluded", 1, isnotExcluded)
 
-    def patched_finish(self):
-        try:
-            if not self.wfile.closed:
-                self.wfile.close()
-        except socket.error as e:
-            sys.stdout.write('socket error: {}\n'.format(e))
-        self.rfile.close()
-    SocketServer.StreamRequestHandler.finish = patched_finish
-    BaseHTTPServer.HTTPServer.allow_reuse_address = False
+    # def patched_finish(self):
+    #     print('still')
+    #     try:
+    #         if not self.wfile.closed:
+    #             self.wfile.close()
+    #     except socket.error as e:
+    #         sys.stdout.write('socket error: {}\n'.format(e))
+    #     self.rfile.close()
+    # SocketServer.StreamRequestHandler.finish = patched_finish
+    # BaseHTTPServer.HTTPServer.allow_reuse_address = False
 
     compress = Compress()
     app = Flask(__name__,template_folder=workdir+'/'+'webres',static_url_path='/static',static_folder=workdir+'/webres/static')
@@ -129,13 +136,22 @@ def server_start():
             sub_ind = list_profiles.index(profile)
             return render_template('index.html', api_key=allsettings['api_key'], icon_scalefactor=allsettings['icon_scalefactor'], mobile_scale=allsettings['mobile_scalefactor'],lat=list_lats[sub_ind],lng=list_lngs[sub_ind], language=allsettings['language'], icon_set = icon_set, profile=profile)
 
-    while True:
-        try:
-            app.run(host='0.0.0.0', port=port, threaded=True)
-        except socket.error as e:
-            if e.errno == 10048:
-                print('[-] Error: The specified port {} is already in use.'.format(port))
-                break
+    http_server = HTTPServer(WSGIContainer(app))
+
+    try:
+        http_server.listen(port=port,address='0.0.0.0')
+        IOLoop.instance().start()
+    except socket.error as e:
+             if e.errno == 10048:
+                 print('[-] Error: The specified port {} is already in use.'.format(port))
+
+    # while True:
+    #     try:
+    #         app.run(host='0.0.0.0', port=port, threaded=True)
+    #     except socket.error as e:
+    #         if e.errno == 10048:
+    #             print('[-] Error: The specified port {} is already in use.'.format(port))
+    #             break
 
 if __name__ == "__main__":
     server_start()
