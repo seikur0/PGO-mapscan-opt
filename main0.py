@@ -602,6 +602,8 @@ def do_full_login(account):
             return
         except sqlite3.OperationalError:
             pass
+        except sqlite3.InterfaceError as e:
+            lprint('[-] Sqlite interface error: {}, account: {} Retrying...'.format(e, account['user']))
 
 def api_req(location, account, api_endpoint, access_token, *reqs, **auth):
     session = account['session']
@@ -819,6 +821,8 @@ def set_api_endpoint(location, account):
             return
         except sqlite3.OperationalError:
             pass
+        except sqlite3.InterfaceError as e:
+            lprint('[-] Sqlite interface error: {}, account: {} Retrying...'.format(e, account['user']))
 
 def heartbeat(location, account):
     global safetysecs

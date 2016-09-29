@@ -1,5 +1,5 @@
 from math import pi,radians, cos, sin, asin, sqrt, ceil, floor
-from s2sphere import CellId, LatLng, Cell, MAX_AREA, Point
+from s2sphere import CellId, LatLng, Cell, MAX_AREA, Point, RegionCoverer, LatLngRect
 from operator import itemgetter
 
 earth_Rmean = 6371000.0
@@ -210,6 +210,43 @@ def workers_for_number(num_scans,parts=1):
     num_worker_scans_ph = 3600.0 / 10 - 2 #reauthorizations (- 2)
     num_workers_required = int(ceil(num_scans_ph_max/ num_worker_scans_ph /parts))
     return num_workers_required
+
+def cover_region_s2(location1,location2):
+    rc = RegionCoverer()
+    rc.max_level = lvl_big
+    rc.min_level = lvl_big
+    rc.max_cells = 1000
+    locations = []
+
+    if location1[0] > location2[0]:
+        lat1,lat2 = location2[0],location1[0]
+    else:
+        lat1, lat2 = location1[0], location2[0]
+
+
+    if location1[1] > location2[1]:
+        lng1, lng2 = location2[1], location1[1]
+    else:
+        lng1, lng2 = location1[1], location2[1]
+
+    lng1 = (lng1 + 180) % 360 - 180
+    lng2 = (lng2 + 180) % 360 - 180
+
+    lngs = []
+    if lng2 > lng1:
+        lngs.append((lng1,lng2))
+    elif lng2 < lng1:
+        lngs.append((-180.0,lng2))
+        lngs.append((lng1,180.0))
+
+    for lng1,lng2 in lngs:
+        cids = rc.get_covering(LatLngRect(LatLng.from_degrees(lat1,lng1),LatLng.from_degrees(lat2,lng2)))
+
+        for cid in cids:
+            ll_cid = cid.to_lat_lng()
+            locations.append((ll_cid.lat().degrees,ll_cid.lng().degrees))
+    return locations
+
 
 class Hexgrid(object):
     earth_R = earth_Rrect

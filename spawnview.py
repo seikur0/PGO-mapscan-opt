@@ -98,7 +98,7 @@ def server_start():
     def add_plan():
         location = (request.args.get('lat', type=float),request.args.get('lng', type=float))
         all_loc,border,cid = mapl.get_area_cell(location,True)
-        grid = mapl.Hexgrid()
+        # grid = mapl.Hexgrid()
         # all_loc = grid.cover_cell(cid)
         center = LatLng.from_point(Cell(cid).get_center())
         center = (center.lat().degrees, center.lng().degrees)
