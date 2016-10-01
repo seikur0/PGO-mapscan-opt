@@ -42,6 +42,15 @@ function initMap() {
         timereturntext_15min_15min = "(15m volvera mas tarde por 15m)";
         timereturntext_15min_30min = "(15m volvera mas tarde por 30m)";
         timereturntext_30min_15min = "(30m volvera mas tarde por 15m)";
+    } else if (language == "zh-HK") {
+        timeuntiltext = "直至";
+        timelefttext = "剩餘時間: ";
+        timehiddentext = "隱藏: ";
+        timehiddentext_15min = "(後再出現 15m)";
+        timehiddentext_30min = "(後再出現 30m)";
+        timereturntext_15min_15min = "(15m 後再出現 15m)";
+        timereturntext_15min_30min = "(15m 後再出現 30m)";
+        timereturntext_30min_15min = "(30m 後再出現 15m)";
     }
     // filter interface
     pokefilter = getCookie("pokefilter");
