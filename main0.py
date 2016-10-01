@@ -349,6 +349,8 @@ def do_settings():
         lang_code = 'de'
     elif language == 'spanish':
         lang_code = 'es'
+    elif language == 'zh-HK':
+        lang_code = 'zh-HK'
     else:
         lang_code = 'en'
 
