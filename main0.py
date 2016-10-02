@@ -1,4 +1,4 @@
-﻿# -*- encoding: utf-8-*-
+﻿# -*- coding: utf-8-*-
 import requests
 import re
 import json
@@ -351,8 +351,6 @@ def do_settings():
         lang_code = 'de'
     elif language == 'spanish':
         lang_code = 'es'
-    elif language == 'zh-HK':
-        lang_code = 'zh-HK'
     else:
         lang_code = 'en'
 
@@ -929,9 +927,9 @@ def get_plan_locations(plan):
 
     elif plan['type'] == 'seikur0_spir':
         location = plan['location']
-        range = plan['range']
+        scanrange = plan['range']
 
-        locations = mapl.get_area_spiral(location, range)
+        locations = mapl.get_area_spiral(location, scanrange)
 
     elif plan['type'] == 'seikur0_circle':
         location = plan['location']
@@ -1797,7 +1795,7 @@ def main():
                                     lprint('[+] File size is over the set limit, doing backup.')
                                     f.close()
                                     move(fpath_log, fpath_log[:-4] + '.' + time.strftime('%Y%m%d_%H%M') + '.txt')
-                                    f = open(fpath_log, 'a', 0)
+                                    f = codecs.open(fpath_log, mode='a', buffering=0, encoding='utf-8')
                                     f.write(statheader)
 
                                 nextdatwrite = time.time() + interval_datwrite
