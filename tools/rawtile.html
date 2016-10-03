@@ -7,12 +7,59 @@ body,
   margin: 0px;
   padding: 0px
 }
+
+#menu {
+    position: absolute;
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 11px;
+    right: 12px;
+    top: 12px;
+    box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+    border-radius: 2px;
+}
+
+.submenu {
+    position: absolute;
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 11px;
+    right: 12px;
+    top: 50px;
+    box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+    border-radius: 2px;
+    visibility: hidden;
+}
+
+.menuitem {
+    height: 20px;
+    line-height: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+    display: inline-table;
+    margin: 0px;
+    padding: 4px;
+}
+
+.notselected {
+    background-color: white;
+}
+
+.selected {
+    background-color: lightgray;
+}
 </style>
 
 <script src="https://maps.googleapis.com/maps/api/js?libraries=geometry,places&ext=.js"></script>
 <script>
+var mode = "polygon";
+var spirallayers = 6;
+var lasthex;
+var everything = [];
+
 var map = null;
 var polyline = null;
+var pitch = 70 * .995;
 var polygons = [];
 var region = '';
 var altitude=17;
@@ -20,7 +67,7 @@ var altitude=17;
 var controlkey = false
 
 window.onkeydown = function(e) {
-  controlkey = ((e.keyIdentifier == 'Control') || (e.ctrlKey == true));
+  controlkey = ((e.keyIdentifier == 'Control') || (e.ctrlKey == true) || (e.metaKey == true));
 }
 window.onkeyup = function(e) {
   controlkey = false;
@@ -46,10 +93,6 @@ function initMap() {
   var point = new google.maps.LatLng(origin.lat(), origin.lng());
   map.setCenter(point);
   
-  var d = 2 * 70 * Math.cos(Math.PI / 6);
-  var cos30 = 0.8660254038;
-  var pt = new google.maps.LatLng(33.923926, -78.020936);
-  
   map.addListener('click',clickHandler);
   polyline = newPoly();
 
@@ -66,6 +109,7 @@ function polyContainsVertex(poly1,poly2) {
     contains=false;
     for(i=0;i<p2path.length;i++){
         contains = contains || google.maps.geometry.poly.containsLocation(p2path.getAt(i),poly1)
+        if (contains) break;
     }
     return contains;
 }
@@ -83,31 +127,46 @@ function newPoly() {
 
 function clickHandler(event) {
 
-    var polypath = polyline.getPath();
-    polypath.push(event.latLng);
+    switch(mode) {
+        case "polygon":
+            var polypath = polyline.getPath();
+            polypath.push(event.latLng);
 
-    var latitude = event.latLng.lat();
-    var longitude = event.latLng.lng();
-    console.log( latitude + ', ' + longitude );
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            console.log( latitude + ', ' + longitude );
+            
+            if (controlkey && polypath.length > 2) {
+              var newPolygon = new google.maps.Polygon({
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                fillOpacity: 0.0,
+                editable: false,
+                draggable: false,
+                path: polypath
+              });
+              newPolygon.setMap(map);
+              newPolygon.addListener('click', polyClick);
+              polygons.push(newPolygon);
+              polyline.setMap(null);
+              polyline = newPoly(); 
+              
+              everything.push({type: "raw", locations: tilePoly(newPolygon)});
+            }
+            break;
+        
+        case "circle":
+        
+            break;
+        case "spiral":
+            lasthex = addHexGrid(event.latLng,spirallayers);
+            everything.push({type: "spiral", location: event.latLng, layers: spirallayers});
+            break;
     
-    if (controlkey && polypath.length > 2) {
-      var newPolygon = new google.maps.Polygon({
-        strokeColor: '#FF0000',
-        strokeOpacity: 1.0,
-        strokeWeight: 2,
-        fillOpacity: 0.0,
-        editable: false,
-        draggable: false,
-        path: polypath
-      });
-      newPolygon.setMap(map);
-      newPolygon.addListener('click', polyClick);
-      polygons.push(newPolygon);
-      polyline.setMap(null);
-      polyline = newPoly(); 
-      
-      tilePoly(newPolygon);
     }
+
+
 
 }
 
@@ -121,12 +180,14 @@ function polyClick(event) {
 }
 
 function gridStep(lastpoint,direction,layers) {
-  var d = 2 * 70 * Math.cos(Math.PI / 6);
+  var d = 2 * pitch * Math.cos(Math.PI / 6);
   var cos30 = 0.8660254038;
   
   var pt = EOffsetBearing(lastpoint, 2*layers*d*cos30, 30+60*(direction-1));
   addHexGrid(pt,layers);
 
+  everything.push({type: "spiral", location: pt, layers: spirallayers});
+  
   return pt;
 }
 
@@ -146,7 +207,7 @@ function tilePoly(polygon) {
         if (vert.lng() > maxLng) maxLng=vert.lng();
     }
     
-    var d = 2 * 70 * Math.cos(Math.PI / 6);
+    var d = 2 * pitch * Math.cos(Math.PI / 6);
     center = new google.maps.LatLng(minLat, minLng);
     oneMoreLat = false;
     
@@ -155,7 +216,7 @@ function tilePoly(polygon) {
         oneMoreLng = false;
         while (center.lng() < maxLng || oneMoreLng) {
             
-            var newhex = google.maps.Polygon.RegularPoly(center, 70, 6, 30, "#000000", 1, 1, "#00ff00", 0.5);
+            var newhex = google.maps.Polygon.RegularPoly(center, pitch, 6, 30, "#000000", 1, 1, "#00ff00", 0.5);
             
             if (polyContainsVertex(polygon,newhex)) {
                 newhex.setMap(map);
@@ -183,7 +244,7 @@ function tilePoly(polygon) {
         }
         
     }
-    download(JSON.stringify(results, null, ' '),"scanlocations.json","text/json");
+    
     return results;
 
 }
@@ -192,9 +253,9 @@ function addHexGrid(center, layers) {
 
   console.log(center.lat().toFixed(10)+' '+center.lng().toFixed(10)+' '+altitude+' '+layers+ ' '+region);
 
-  var d = 2 * 70 * Math.cos(Math.PI / 6);
+  var d = 2 * pitch * Math.cos(Math.PI / 6);
   
-  var newhex = google.maps.Polygon.RegularPoly(center, 70, 6, 0, "#000000", 1, 1, "#00ff00", 0.5);
+  var newhex = google.maps.Polygon.RegularPoly(center, pitch, 6, 0, "#000000", 1, 1, "#00ff00", 0.5);
   newhex.setMap(map);
   
   for (i=1;i<=layers;i++){
@@ -205,12 +266,13 @@ function addHexGrid(center, layers) {
       
       for (j=1;j<=i;j++) {
         startpoint=EOffsetBearing(startpoint, d, bearing)
-        var newhex=google.maps.Polygon.RegularPoly(startpoint, 70, 6, 0, "#000000", 1, 1, "#00ffff", 0.5);
+        var newhex=google.maps.Polygon.RegularPoly(startpoint, pitch, 6, 0, "#000000", 1, 1, "#00ffff", 0.5);
         newhex.setMap(map);
       }
     }
   }
 
+  return center;
 }
 
 google.maps.event.addDomListener(window, 'load', initMap);
@@ -298,5 +360,46 @@ function EOffsetBearing(point, dist, bearing) {
   var lng = dist * Math.sin(bearing * Math.PI / 180) / lngConv;
   return new google.maps.LatLng(point.lat() + lat, point.lng() + lng)
 }
+
+function changemode(item) {
+    var sel = document.getElementsByClassName("selected");
+    sel[0].className = "menuitem notselected";
+    
+    var submenus = document.getElementsByClassName("submenu")
+    for (i=0;i<submenus.length;i++){
+        submenus[i].style.visibility = "hidden";
+    }
+    
+    polyline.setMap(null);
+    polyline = newPoly();
+    
+    item.className = "menuitem selected";
+    
+    mode = item.attributes["name"].nodeValue;
+    
+    switch(mode) {
+        case "spiral":
+            nlayers = parseInt(prompt("Number of layers in spiral:", spirallayers));
+            if (!isNaN(nlayers)) spirallayers = nlayers;
+            
+            document.getElementById("hexstep").style.visibility = "visible";
+            break;
+    }
+}
 </script>
 <div id="map"></div>
+<div id="menu" class="notselected">
+<div class="menuitem selected" title="Tile polygon with grid. Click to add new points. Control/meta-click to close region." name="polygon" onclick="changemode(this);">Freeform</div>
+<div class="menuitem notselected" title="A hexagonal grid that is layered around a central point." name="spiral" onclick="changemode(this);">Layered Hex</div>
+<div class="menuitem notselected" title="A hexagonal grid that is tiled to fill a circle." name="circle" onclick="changemode(this);">Circle</div>
+<div class="menuitem notselected" title="Save results to JSON file." name="save" onclick="download(JSON.stringify(everything, null, ' '),'scanlocations.json','text/json');">Save</div>
+</div>
+
+<div class="submenu notselected" id="hexstep">
+<div class="menuitem" onclick="lasthex=gridStep(lasthex,1,spirallayers);">NE</div>
+<div class="menuitem" onclick="lasthex=gridStep(lasthex,2,spirallayers);">E</div>
+<div class="menuitem" onclick="lasthex=gridStep(lasthex,3,spirallayers);">SE</div>
+<div class="menuitem" onclick="lasthex=gridStep(lasthex,4,spirallayers);">SW</div>
+<div class="menuitem" onclick="lasthex=gridStep(lasthex,5,spirallayers);">W</div>
+<div class="menuitem" onclick="lasthex=gridStep(lasthex,6,spirallayers);">NW</div>
+</div>
