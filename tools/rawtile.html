@@ -16,6 +16,9 @@ body,
     top: 12px;
     box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
     border-radius: 2px;
+    -webkit-user-select: none;     
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .submenu {
@@ -27,6 +30,9 @@ body,
     box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
     border-radius: 2px;
     visibility: hidden;
+    -webkit-user-select: none;     
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .menuitem {
@@ -56,6 +62,7 @@ var mode = "polygon";
 var spirallayers = 6;
 var lasthex;
 var everything = [];
+var mapobjects = [];
 
 var map = null;
 var polyline = null;
@@ -152,16 +159,29 @@ function clickHandler(event) {
               polyline.setMap(null);
               polyline = newPoly(); 
               
-              everything.push({type: "raw", locations: tilePoly(newPolygon)});
+              results = tilePoly(newPolygon);
+              mapobjects.push({shape: newPolygon, tiles: results})
             }
             break;
         
         case "circle":
-        
+            var circle = new google.maps.Circle({
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                fillOpacity: 0.0,
+                map: map,
+                center: event.latLng,
+                radius: 1000.0,
+                editable: true,
+                dragable: true
+            });
+            circle.addListener('click', circleClick);
             break;
         case "spiral":
-            lasthex = addHexGrid(event.latLng,spirallayers);
-            everything.push({type: "spiral", location: event.latLng, layers: spirallayers});
+            results = addHexGrid(event.latLng,spirallayers);
+            mapobjects.push({shape: null, tiles: results})
+            everything.push({type: "spiral", tile_count: 3*spirallayers*(spirallayers+1)+1, location: event.latLng, layers: spirallayers});
             break;
     
     }
@@ -179,16 +199,84 @@ function polyClick(event) {
     }
 }
 
+function circleClick(event) {
+    if (controlkey) {
+        var results = tileCircle(this);
+        google.maps.event.clearListeners(this, 'click');
+        this.setMap(null);
+        var circle = new google.maps.Circle({
+            strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 2,
+            fillOpacity: 0.0,
+            map: map,
+            center: this.center,
+            radius: this.radius,
+            editable: false,
+            dragable: false,
+        });
+        circle.setMap(map);
+        mapobjects.push({shape: circle, tiles: results})
+    }
+}
+
 function gridStep(lastpoint,direction,layers) {
   var d = 2 * pitch * Math.cos(Math.PI / 6);
   var cos30 = 0.8660254038;
   
   var pt = EOffsetBearing(lastpoint, 2*layers*d*cos30, 30+60*(direction-1));
-  addHexGrid(pt,layers);
+  var results = addHexGrid(pt,layers);
 
-  everything.push({type: "spiral", location: pt, layers: spirallayers});
+  mapobjects.push({shape: null, tiles: results, lasthex: lastpoint})
+  everything.push({type: "spiral", tile_count: 3*spirallayers*(spirallayers+1)+1, location: pt, layers: spirallayers});
   
-  return pt;
+  lasthex = pt;
+  return results;
+}
+
+function tileCircle(circle){
+    minLat = EOffsetBearing(circle.center, circle.radius, 180.0).lat();
+    maxLat = EOffsetBearing(circle.center, circle.radius, 0.0).lat();
+    minLng = EOffsetBearing(circle.center, circle.radius, 270.0).lng();
+    maxLng = EOffsetBearing(circle.center, circle.radius, 90.0).lng();
+    
+    results = [];
+
+    var d = 2 * pitch * Math.cos(Math.PI / 6);
+    center = new google.maps.LatLng(minLat, minLng);
+    oneMoreLat = false;
+    
+    while (center.lat() < maxLat || oneMoreLat) {
+        lastLng = center.lng();
+        oneMoreLng = false;
+        while (center.lng() < maxLng || oneMoreLng) {
+            
+            var newhex = google.maps.Polygon.RegularPoly(center, pitch, 6, 30, "#000000", 1, 1, "#00ff00", 0.5);
+            
+            if (google.maps.geometry.spherical.computeDistanceBetween(circle.center, center) < circle.radius) {
+                newhex.setMap(map);
+                results.push(newhex);
+            }
+            
+            center = EOffsetBearing(center, d, 90);
+            if (oneMoreLng) {
+                oneMoreLng = false;
+            } else {
+                if (center.lng() >= maxLng) oneMoreLng = true;
+            } 
+        }
+    
+        center = new google.maps.LatLng(center.lat(), lastLng);
+        center = EOffsetBearing(center, d, 330);
+        if (oneMoreLat) {
+            oneMoreLat = false;
+        } else {
+            if (center.lat() >= maxLat) oneMoreLat = true;
+        }
+        
+    }
+    everything.push({type: "circle", tile_count: results.length, radius: this.radius, location: this.center});
+    return results;
 }
 
 function tilePoly(polygon) {
@@ -198,6 +286,7 @@ function tilePoly(polygon) {
     maxLng = -180.0;
     verts = polygon.getPath();
     results = [];
+    coords = [];
     
     for (i=0;i<verts.length;i++) {
         vert = verts.getAt(i);
@@ -220,10 +309,11 @@ function tilePoly(polygon) {
             
             if (polyContainsVertex(polygon,newhex)) {
                 newhex.setMap(map);
-                results.push([
+                coords.push([
                   center.lat(),
                   center.lng()
                 ]);
+                results.push(newhex);
             }
             
             
@@ -245,18 +335,20 @@ function tilePoly(polygon) {
         
     }
     
+    everything.push({type: "raw", tile_count: coords.length, locations: coords});
     return results;
 
 }
 
 function addHexGrid(center, layers) {
 
-  console.log(center.lat().toFixed(10)+' '+center.lng().toFixed(10)+' '+altitude+' '+layers+ ' '+region);
+  var results = [];
 
   var d = 2 * pitch * Math.cos(Math.PI / 6);
   
   var newhex = google.maps.Polygon.RegularPoly(center, pitch, 6, 0, "#000000", 1, 1, "#00ff00", 0.5);
   newhex.setMap(map);
+  results.push(newhex);
   
   for (i=1;i<=layers;i++){
   
@@ -268,11 +360,13 @@ function addHexGrid(center, layers) {
         startpoint=EOffsetBearing(startpoint, d, bearing)
         var newhex=google.maps.Polygon.RegularPoly(startpoint, pitch, 6, 0, "#000000", 1, 1, "#00ffff", 0.5);
         newhex.setMap(map);
+        results.push(newhex);
       }
     }
   }
 
-  return center;
+  lasthex = center;
+  return results;
 }
 
 google.maps.event.addDomListener(window, 'load', initMap);
@@ -386,20 +480,38 @@ function changemode(item) {
             break;
     }
 }
+
+function undoLast() {
+    var lastShape = mapobjects.pop();
+    everything.pop();
+    if (!lastShape) return;
+    if (lastShape.shape) {
+        lastShape.shape.setMap(null);
+    }
+    
+    if (lastShape.lasthex) {
+        lasthex = lastShape.lasthex;
+    }
+    
+    for (i=0;i<lastShape.tiles.length;i++) {
+        lastShape.tiles[i].setMap(null);
+    }
+}
 </script>
 <div id="map"></div>
 <div id="menu" class="notselected">
 <div class="menuitem selected" title="Tile polygon with grid. Click to add new points. Control/meta-click to close region." name="polygon" onclick="changemode(this);">Freeform</div>
 <div class="menuitem notselected" title="A hexagonal grid that is layered around a central point." name="spiral" onclick="changemode(this);">Layered Hex</div>
-<div class="menuitem notselected" title="A hexagonal grid that is tiled to fill a circle." name="circle" onclick="changemode(this);">Circle</div>
+<div class="menuitem notselected" title="A hexagonal grid that is tiled to fill a circle. Control/meta-click to complete circle." name="circle" onclick="changemode(this);">Circle</div>
 <div class="menuitem notselected" title="Save results to JSON file." name="save" onclick="download(JSON.stringify(everything, null, ' '),'scanlocations.json','text/json');">Save</div>
+<div class="menuitem notselected" title="Remove last tiled object." name="undo" onclick="undoLast();">Undo</div>
 </div>
 
 <div class="submenu notselected" id="hexstep">
-<div class="menuitem" onclick="lasthex=gridStep(lasthex,1,spirallayers);">NE</div>
-<div class="menuitem" onclick="lasthex=gridStep(lasthex,2,spirallayers);">E</div>
-<div class="menuitem" onclick="lasthex=gridStep(lasthex,3,spirallayers);">SE</div>
-<div class="menuitem" onclick="lasthex=gridStep(lasthex,4,spirallayers);">SW</div>
-<div class="menuitem" onclick="lasthex=gridStep(lasthex,5,spirallayers);">W</div>
-<div class="menuitem" onclick="lasthex=gridStep(lasthex,6,spirallayers);">NW</div>
+<div class="menuitem" onclick="gridStep(lasthex,1,spirallayers);">NE</div>
+<div class="menuitem" onclick="gridStep(lasthex,2,spirallayers);">E</div>
+<div class="menuitem" onclick="gridStep(lasthex,3,spirallayers);">SE</div>
+<div class="menuitem" onclick="gridStep(lasthex,4,spirallayers);">SW</div>
+<div class="menuitem" onclick="gridStep(lasthex,5,spirallayers);">W</div>
+<div class="menuitem" onclick="gridStep(lasthex,6,spirallayers);">NW</div>
 </div>
