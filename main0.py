@@ -555,8 +555,8 @@ def do_login(account):
         try:
             acc_saved = cursor_accs.execute("SELECT access_token,access_expire_timestamp,api_url,auth_ticket__expire_timestamp_ms,auth_ticket__start,auth_ticket__end from accounts WHERE user = ?",[account['user']]).fetchone()
             db_repeat = False
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            lprint('[-] Sqlite operational error: {}, account: {} Retrying...'.format(e, account['user']))
         except sqlite3.InterfaceError as e:
             lprint('[-] Sqlite interface error: {}, account: {} Retrying...'.format(e, account['user']))
 
@@ -602,8 +602,8 @@ def do_full_login(account):
             cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], 0, '0', '0'])
             db_accs.commit()
             return
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            lprint('[-] Sqlite operational error: {}, account: {} Retrying...'.format(e, account['user']))
         except sqlite3.InterfaceError as e:
             lprint('[-] Sqlite interface error: {}, account: {} Retrying...'.format(e, account['user']))
 
@@ -821,8 +821,8 @@ def set_api_endpoint(location, account):
             cursor_accs.execute("INSERT OR REPLACE INTO accounts VALUES(?,?,?,?,?,?,?)", [account['user'], account['access_token'], account['access_expire_timestamp'], account['api_url'], account['auth_ticket']['expire_timestamp_ms'], account['auth_ticket']['start'], account['auth_ticket']['end']])
             db_accs.commit()
             return
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            lprint('[-] Sqlite operational error: {}, account: {} Retrying...'.format(e, account['user']))
         except sqlite3.InterfaceError as e:
             lprint('[-] Sqlite interface error: {}, account: {} Retrying...'.format(e, account['user']))
 
@@ -889,15 +889,15 @@ def update_data():
             try:
                 cursor_data.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)", [spawnid, round(latitude, 5), round(longitude, 5), addinfo, pokeid, expiretime, timenow, wID])
                 db_repeat = False
-            except sqlite3.OperationalError:
-                pass
+            except sqlite3.OperationalError as e:
+                lprint('[-] Sqlite operational error: {}, account: {} Retrying...'.format(e, account['user']))
 
     while True:
         try:
             db_data.commit()
             return
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            lprint('[-] Sqlite operational error: {}, account: {} Retrying...'.format(e, account['user']))
 
 def lprint(message):
     sys.stdout.write(u'{}\n'.format(message))

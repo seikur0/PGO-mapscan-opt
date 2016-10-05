@@ -122,8 +122,8 @@ def server_start():
                 else:
                     results = cursor_data.execute('SELECT spawnid, latitude, longitude, spawntype, pokeid, expiretime FROM spawns WHERE isnotExcluded(pokeid) AND (profile == ?) AND (expiretime > ?) AND (fromtime >= ?)', (profile,timenow, datatill))
                 return jsonify([timenow, results.fetchall()])
-            except sqlite3.OperationalError:
-                pass
+            except sqlite3.OperationalError as e:
+                print('[-] Sqlite operational error: {} Retrying...'.format(e))
 
 
     @app.route("/")
