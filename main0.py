@@ -124,6 +124,7 @@ threadnum = None
 signature_lib = None
 lock_network = threading.Lock()
 lock_banfile = threading.Lock()
+lock_capfile = threading.Lock()
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 fpath_settings = '{}/res/usersettings.json'.format(workdir)
@@ -582,6 +583,7 @@ def do_login(account):
         lprint('[{}] New API endpoint: {}'.format(account['num'], account['api_url']))
     if acc_tos:
         accept_tos(location, account)
+    account['captcha_needed'] = False
 
 def do_full_login(account):
     lock_network.acquire()
@@ -754,6 +756,14 @@ def get_profile(rtype, location, account, *reqq):
     while True:  # 1 for heartbeat, 2 for profile authorization, 53 for api endpoint, 52 for error, 102 session token invalid
         time.sleep(time_hb)
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
+
+        if response is not None and response.status_code in [1,2]:
+            captchaResponse = POGOProtos.Networking.Responses_pb2.CheckChallengeResponse()
+            captchaResponse.ParseFromString(response.returns[2])
+            if captchaResponse.show_challenge:
+                lprint('[{}] Captcha required: {}'.format(account['num'],captchaResponse.challenge_url))
+                account['captcha_needed'] = True
+
         if response is None:
             time.sleep(1)
             lprint('[{}] Response error, retrying...'.format(account['num']))
@@ -790,13 +800,14 @@ def get_profile(rtype, location, account, *reqq):
         elif response.status_code == 52:
             lprint('[{}] Servers busy (52), retrying...'.format(account['num']))
         elif response.status_code == 3:
-            if synch_li.empty():
-                #addlocation.put([location[0],location[1]])
-                addlocation.task_done()
-            else:
+            lprint('[{}] Account was banned. It\'ll be logged out.'.format(account['num']))
+            if not synch_li.empty():
                 synch_li.get()
                 synch_li.task_done()
-            lprint('Account {}: {} was banned. It\'ll be logged out.'.format(account['num']+1,account['user']))
+            elif rtype == 1:
+                addlocation.put(location,block=True,timeout=10)
+                addlocation.task_done()
+
             lock_banfile.acquire()
             try:
                 f = open('{}/res/banned{}.txt'.format(workdir, wID), 'a')
@@ -890,14 +901,14 @@ def update_data():
                 cursor_data.execute("INSERT OR REPLACE INTO spawns VALUES(?,?,?,?,?,?,?,?)", [spawnid, round(latitude, 5), round(longitude, 5), addinfo, pokeid, expiretime, timenow, wID])
                 db_repeat = False
             except sqlite3.OperationalError as e:
-                lprint('[-] Sqlite operational error: {}, account: {} Retrying...'.format(e, account['user']))
+                lprint('[-] Sqlite operational error: {} Retrying...'.format(e))
 
     while True:
         try:
             db_data.commit()
             return
         except sqlite3.OperationalError as e:
-            lprint('[-] Sqlite operational error: {}, account: {} Retrying...'.format(e, account['user']))
+            lprint('[-] Sqlite operational error: {} Retrying...'.format(e))
 
 def lprint(message):
     sys.stdout.write(u'{}\n'.format(message))
@@ -1570,35 +1581,52 @@ def main():
 
             # ////////////////////
             while True:
-                location = addlocation.get()
-                h = heartbeat(location, self.account)
-                count = 0
-                while emptyheartbeat(h) and count < tries:
-                    count += 1
+                if not self.account['captcha_needed']:
+                    location = addlocation.get()
                     h = heartbeat(location, self.account)
-                if emptyheartbeat(h):
-                    if dumb or not smartscan:
-                        empty_loc[all_loc.index(location)] += 1
-                        pres_empty += 1
-                    else:
-                        lprint('[{}] Non-empty cell returned as empty.'.format(self.account['num']))
-                else:
-                    if dumb or not smartscan:
-                        empty_loc[all_loc.index(location)] = 0
-                        pres_countmax = max(pres_countmax, count)
-                        pres_countall += count
-                    for cell in h.map_cells:
-                        for p in range(0,len(cell.wild_pokemons)):
-                            if cell.catchable_pokemons[p].expiration_timestamp_ms == -1:
-                                cell.wild_pokemons[p].time_till_hidden_ms = -1
-                            addpokemon.put(cell.wild_pokemons[p])
+                    count = 0
+                    while emptyheartbeat(h) and count < tries and not self.account['captcha_needed']:
+                        count += 1
+                        h = heartbeat(location, self.account)
+                    if not self.account['captcha_needed']:
+                        if emptyheartbeat(h):
+                            if dumb or not smartscan:
+                                empty_loc[all_loc.index(location)] += 1
+                                pres_empty += 1
+                            else:
+                                lprint('[{}] Non-empty cell returned as empty.'.format(self.account['num']))
+                        else:
+                            if dumb or not smartscan:
+                                empty_loc[all_loc.index(location)] = 0
+                                pres_countmax = max(pres_countmax, count)
+                                pres_countall += count
+                            for cell in h.map_cells:
+                                for p in range(0,len(cell.wild_pokemons)):
+                                    if cell.catchable_pokemons[p].expiration_timestamp_ms == -1:
+                                        cell.wild_pokemons[p].time_till_hidden_ms = -1
+                                    addpokemon.put(cell.wild_pokemons[p])
+                                if not smartscan:
+                                    for fort in cell.forts:
+                                        addforts.put(fort)
                         if not smartscan:
-                            for fort in cell.forts:
-                                addforts.put(fort)
-                if not smartscan:
-                    addspawns.put((location,h))
-                    pres_curR += 1
-                addlocation.task_done()
+                            addspawns.put((location,h))
+                            pres_curR += 1
+                        addlocation.task_done()
+                    else:
+                        addlocation.put(location)
+                        addlocation.task_done()
+
+                if self.account['captcha_needed']:
+                    lock_capfile.acquire()
+                    try:
+                        f = open('{}/res/captcha{}.txt'.format(workdir, wID), 'a')
+                        f.write('{}\n'.format(self.account['user']))
+                    finally:
+                        if 'f' in vars() and not f.closed:
+                            f.close()
+                    lock_capfile.release()
+                    exit()
+
 #########################################################################
 #########################################################################
 
