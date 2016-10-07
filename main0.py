@@ -125,6 +125,7 @@ signature_lib = None
 lock_network = threading.Lock()
 lock_banfile = threading.Lock()
 lock_capfile = threading.Lock()
+lock_capinput = threading.Lock()
 
 workdir = os.path.dirname(os.path.realpath(__file__))
 fpath_settings = '{}/res/usersettings.json'.format(workdir)
@@ -758,11 +759,15 @@ def get_profile(rtype, location, account, *reqq):
         response = api_req(location, account, account['api_url'], account['access_token'], req, useauth=account['auth_ticket'])
 
         if response is not None and response.status_code in [1,2]:
-            captchaResponse = POGOProtos.Networking.Responses_pb2.CheckChallengeResponse()
-            captchaResponse.ParseFromString(response.returns[2])
-            if captchaResponse.show_challenge:
-                lprint('[{}] Captcha required: {}'.format(account['num'],captchaResponse.challenge_url))
-                account['captcha_needed'] = True
+            if response.status_code == 2:
+                time.sleep(1)
+                continue
+            else:
+                captchaResponse = POGOProtos.Networking.Responses_pb2.CheckChallengeResponse()
+                captchaResponse.ParseFromString(response.returns[2])
+                if captchaResponse.show_challenge:
+                    lprint('[{}] Captcha required: {}'.format(account['num'],captchaResponse.challenge_url))
+                    account['captcha_needed'] = True
 
         if response is None:
             time.sleep(1)
@@ -787,7 +792,7 @@ def get_profile(rtype, location, account, *reqq):
                 lprint('[{}] auth/token error, refreshing login...'.format(account['num']))
                 do_full_login(account)
                 set_api_endpoint(location, account)
-        elif rtype == 0 and response.status_code in [1,2]:
+        elif rtype in [406,601] and response.status_code in [1,2]:
             return
         elif response.status_code == 102:
             timenow = get_time()
@@ -880,7 +885,17 @@ def accept_tos(location, account):
     m11.send_push_notifications = False
 
     m1.request_message = m11.SerializeToString()
-    get_profile(0, location, account, m1)
+    get_profile(406, location, account, m1)
+
+def answer_captcha(location, account,answer):
+    m1 = POGOProtos.Networking.Envelopes_pb2.RequestEnvelope().requests.add()
+    m1.request_type = POGOProtos.Networking.Envelopes_pb2.VERIFY_CHALLENGE
+    m11 = POGOProtos.Networking.Requests.Messages_pb2.VerifyChallengeMessage()
+
+    m11.token = answer
+
+    m1.request_message = m11.SerializeToString()
+    get_profile(601, location, account, m1)
 
 def init_data():
     global db_data
@@ -1573,7 +1588,6 @@ def main():
                     if len(cell.ListFields()) > 2:
                         return False
                 return True
-
             do_login(self.account)
             # /////////////////
             synch_li.get()
@@ -1613,7 +1627,7 @@ def main():
                             pres_curR += 1
                         addlocation.task_done()
                     else:
-                        addlocation.put(location)
+                        # addlocation.put(location)
                         addlocation.task_done()
 
                 if self.account['captcha_needed']:
@@ -1625,7 +1639,17 @@ def main():
                         if 'f' in vars() and not f.closed:
                             f.close()
                     lock_capfile.release()
-                    exit()
+                    lock_capinput.acquire()
+                    raw_input('[{}] Hit return to read captcha token from res/token_captcha.txt file.\n'.format(self.account['num']))
+                    try:
+                        f = open('{}/res/token_captcha.txt'.format(workdir), 'r')
+                        answer = f.read()
+                    finally:
+                        if 'f' in vars() and not f.closed:
+                            f.close()
+                    lock_capinput.release()
+                    answer_captcha(location, self.account, answer)
+                    self.account['captcha_needed'] = False
 
 #########################################################################
 #########################################################################
