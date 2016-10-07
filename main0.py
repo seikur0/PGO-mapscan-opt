@@ -1594,7 +1594,7 @@ def main():
                                 empty_loc[all_loc.index(location)] += 1
                                 pres_empty += 1
                             else:
-                                lprint('[{}] Non-empty cell returned as empty.'.format(self.account['num']))
+                                lprint('[-] Non-empty cell returned as empty.')
                         else:
                             if dumb or not smartscan:
                                 empty_loc[all_loc.index(location)] = 0
