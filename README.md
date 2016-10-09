@@ -1,5 +1,22 @@
 # PGO-mapscan-opt
 
+## Announcement
+
+Let me take this chance to announce, that I won't continue this map, even if they figure out the api again.
+
+The last few months were really awesome for me, I learned so much about coding. So much about people. So much about myself. But every project needs an end.
+
+While it's been a lot of fun, it's also been pretty time consuming, which is one of the reasons.
+The other reason is, that I have enough of Pokemon GO. The truth is, it's very, very disappointing and not just for me. When we heard of it, a game that you can play outside together with other people and it's Pokemon too, we were all excited. We wanted it to be that amazing game we imagined it to be. Some of us were so enthusiastic and adamant about it, that they started to make maps, a feature, that Niantic never delivered and that is pretty essential for a game like this. The threads over at the pokemongo reddit are full of cool suggestions about making the game better.
+
+But instead of working together with the community Niantic made a fight out of it. Their game is so bareboned, that it should be an alpha from my point of view, yet they already threw this out and are raking in tons of money. Money we pay for that amazing game we imagined in our head, that we all hoped for. Money that allows them to simply not care about it as much anymore, because it's already a huge success for them. We were sold a dream and got an unfinished game.
+
+For me it's enough, I'll move on. If anyone wants to overtake the github project and the discord channel, feel free to contact me.
+
+Thank you so much for your support,
+SeiKur0
+
+
 ## Instructions
 See [New User Guide (Windows)](https://github.com/seikur0/PGO-mapscan-opt/wiki/New-User-Guide-(Windows)) for a guide that is mainly windows focused.
 
