@@ -1,0 +1,517 @@
+<style>
+html,
+body,
+#map {
+  height: 100%;
+  width: 100%;
+  margin: 0px;
+  padding: 0px
+}
+
+#menu {
+    position: absolute;
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 11px;
+    right: 12px;
+    top: 12px;
+    box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+    border-radius: 2px;
+    -webkit-user-select: none;     
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.submenu {
+    position: absolute;
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 11px;
+    right: 12px;
+    top: 50px;
+    box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+    border-radius: 2px;
+    visibility: hidden;
+    -webkit-user-select: none;     
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.menuitem {
+    height: 20px;
+    line-height: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+    display: inline-table;
+    margin: 0px;
+    padding: 4px;
+}
+
+.notselected {
+    background-color: white;
+}
+
+.selected {
+    background-color: lightgray;
+}
+</style>
+
+<script src="https://maps.googleapis.com/maps/api/js?libraries=geometry,places&ext=.js"></script>
+<script>
+var mode = "polygon";
+var spirallayers = 6;
+var lasthex;
+var everything = [];
+var mapobjects = [];
+
+var map = null;
+var polyline = null;
+var pitch = 70 * .995;
+var polygons = [];
+var region = '';
+var altitude=17;
+
+var controlkey = false
+
+window.onkeydown = function(e) {
+  controlkey = ((e.keyIdentifier == 'Control') || (e.ctrlKey == true) || (e.metaKey == true));
+}
+window.onkeyup = function(e) {
+  controlkey = false;
+}
+
+function initMap() {
+  var origin=new google.maps.LatLng(34.065, -77.906);
+  
+  var myOptions = {
+    zoom: 12,
+    center: origin,
+    mapTypeControl: true,
+    mapTypeControlOptions: {
+      style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+    },
+    navigationControl: true,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  }
+  map = new google.maps.Map(document.getElementById("map"),
+    myOptions);
+
+  // === Hexagonal grid ===
+  var point = new google.maps.LatLng(origin.lat(), origin.lng());
+  map.setCenter(point);
+  
+  map.addListener('click',clickHandler);
+  polyline = newPoly();
+
+  // This Javascript is based on code provided by the
+  // Community Church Javascript Team
+  // http://www.bisphamchurch.org.uk/   
+  // http://econym.org.uk/gmap/
+
+  //]]>
+}
+
+function polyContainsVertex(poly1,poly2) {
+    p2path = poly2.getPath();
+    contains=false;
+    for(i=0;i<p2path.length;i++){
+        contains = contains || google.maps.geometry.poly.containsLocation(p2path.getAt(i),poly1)
+        if (contains) break;
+    }
+    return contains;
+}
+
+function newPoly() {
+  return new google.maps.Polyline({
+    strokeColor: '#FF0000',
+    strokeOpacity: 1.0,
+    strokeWeight: 2,
+    editable: true,
+    draggable: true,
+    map: map
+  });
+}
+
+function clickHandler(event) {
+
+    switch(mode) {
+        case "polygon":
+            var polypath = polyline.getPath();
+            polypath.push(event.latLng);
+
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            console.log( latitude + ', ' + longitude );
+            
+            if (controlkey && polypath.length > 2) {
+              var newPolygon = new google.maps.Polygon({
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                fillOpacity: 0.0,
+                editable: false,
+                draggable: false,
+                path: polypath
+              });
+              newPolygon.setMap(map);
+              newPolygon.addListener('click', polyClick);
+              polygons.push(newPolygon);
+              polyline.setMap(null);
+              polyline = newPoly(); 
+              
+              results = tilePoly(newPolygon);
+              mapobjects.push({shape: newPolygon, tiles: results})
+            }
+            break;
+        
+        case "circle":
+            var circle = new google.maps.Circle({
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                fillOpacity: 0.0,
+                map: map,
+                center: event.latLng,
+                radius: 1000.0,
+                editable: true,
+                dragable: true
+            });
+            circle.addListener('click', circleClick);
+            break;
+        case "spiral":
+            results = addHexGrid(event.latLng,spirallayers);
+            mapobjects.push({shape: null, tiles: results})
+            everything.push({type: "spiral", tile_count: 3*spirallayers*(spirallayers+1)+1, location: event.latLng, layers: spirallayers});
+            break;
+    
+    }
+
+
+
+}
+
+function polyClick(event) {
+    if (controlkey) {
+        // Delete the polygon
+        idx = polygons.indexOf(this);
+        polygons.splice(idx, 1);
+        this.setMap(null);
+    }
+}
+
+function circleClick(event) {
+    if (controlkey) {
+        var results = tileCircle(this);
+        google.maps.event.clearListeners(this, 'click');
+        this.setMap(null);
+        var circle = new google.maps.Circle({
+            strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 2,
+            fillOpacity: 0.0,
+            map: map,
+            center: this.center,
+            radius: this.radius,
+            editable: false,
+            dragable: false,
+        });
+        circle.setMap(map);
+        mapobjects.push({shape: circle, tiles: results})
+    }
+}
+
+function gridStep(lastpoint,direction,layers) {
+  var d = 2 * pitch * Math.cos(Math.PI / 6);
+  var cos30 = 0.8660254038;
+  
+  var pt = EOffsetBearing(lastpoint, 2*layers*d*cos30, 30+60*(direction-1));
+  var results = addHexGrid(pt,layers);
+
+  mapobjects.push({shape: null, tiles: results, lasthex: lastpoint})
+  everything.push({type: "spiral", tile_count: 3*spirallayers*(spirallayers+1)+1, location: pt, layers: spirallayers});
+  
+  lasthex = pt;
+  return results;
+}
+
+function tileCircle(circle){
+    minLat = EOffsetBearing(circle.center, circle.radius, 180.0).lat();
+    maxLat = EOffsetBearing(circle.center, circle.radius, 0.0).lat();
+    minLng = EOffsetBearing(circle.center, circle.radius, 270.0).lng();
+    maxLng = EOffsetBearing(circle.center, circle.radius, 90.0).lng();
+    
+    results = [];
+
+    var d = 2 * pitch * Math.cos(Math.PI / 6);
+    center = new google.maps.LatLng(minLat, minLng);
+    oneMoreLat = false;
+    
+    while (center.lat() < maxLat || oneMoreLat) {
+        lastLng = center.lng();
+        oneMoreLng = false;
+        while (center.lng() < maxLng || oneMoreLng) {
+            
+            var newhex = google.maps.Polygon.RegularPoly(center, pitch, 6, 30, "#000000", 1, 1, "#00ff00", 0.5);
+            
+            if (google.maps.geometry.spherical.computeDistanceBetween(circle.center, center) < circle.radius) {
+                newhex.setMap(map);
+                results.push(newhex);
+            }
+            
+            center = EOffsetBearing(center, d, 90);
+            if (oneMoreLng) {
+                oneMoreLng = false;
+            } else {
+                if (center.lng() >= maxLng) oneMoreLng = true;
+            } 
+        }
+    
+        center = new google.maps.LatLng(center.lat(), lastLng);
+        center = EOffsetBearing(center, d, 330);
+        if (oneMoreLat) {
+            oneMoreLat = false;
+        } else {
+            if (center.lat() >= maxLat) oneMoreLat = true;
+        }
+        
+    }
+    everything.push({type: "circle", tile_count: results.length, radius: this.radius, location: this.center});
+    return results;
+}
+
+function tilePoly(polygon) {
+    minLat = 180.0;
+    minLng = 180.0;
+    maxLat = -180.0;
+    maxLng = -180.0;
+    verts = polygon.getPath();
+    results = [];
+    coords = [];
+    
+    for (i=0;i<verts.length;i++) {
+        vert = verts.getAt(i);
+        if (vert.lat() < minLat) minLat=vert.lat();
+        if (vert.lng() < minLng) minLng=vert.lng();
+        if (vert.lat() > maxLat) maxLat=vert.lat();
+        if (vert.lng() > maxLng) maxLng=vert.lng();
+    }
+    
+    var d = 2 * pitch * Math.cos(Math.PI / 6);
+    center = new google.maps.LatLng(minLat, minLng);
+    oneMoreLat = false;
+    
+    while (center.lat() < maxLat || oneMoreLat) {
+        lastLng = center.lng();
+        oneMoreLng = false;
+        while (center.lng() < maxLng || oneMoreLng) {
+            
+            var newhex = google.maps.Polygon.RegularPoly(center, pitch, 6, 30, "#000000", 1, 1, "#00ff00", 0.5);
+            
+            if (polyContainsVertex(polygon,newhex)) {
+                newhex.setMap(map);
+                coords.push([
+                  center.lat(),
+                  center.lng()
+                ]);
+                results.push(newhex);
+            }
+            
+            
+            center = EOffsetBearing(center, d, 90);
+            if (oneMoreLng) {
+                oneMoreLng = false;
+            } else {
+                if (center.lng() >= maxLng) oneMoreLng = true;
+            } 
+        }
+    
+        center = new google.maps.LatLng(center.lat(), lastLng);
+        center = EOffsetBearing(center, d, 330);
+        if (oneMoreLat) {
+            oneMoreLat = false;
+        } else {
+            if (center.lat() >= maxLat) oneMoreLat = true;
+        }
+        
+    }
+    
+    everything.push({type: "raw", tile_count: coords.length, locations: coords});
+    return results;
+
+}
+
+function addHexGrid(center, layers) {
+
+  var results = [];
+
+  var d = 2 * pitch * Math.cos(Math.PI / 6);
+  
+  var newhex = google.maps.Polygon.RegularPoly(center, pitch, 6, 0, "#000000", 1, 1, "#00ff00", 0.5);
+  newhex.setMap(map);
+  results.push(newhex);
+  
+  for (i=1;i<=layers;i++){
+  
+    var startpoint = EOffsetBearing(center, i*d, 300);
+    for (b=0;b<=6;b++) {
+      bearing = 60*b + 60;
+      
+      for (j=1;j<=i;j++) {
+        startpoint=EOffsetBearing(startpoint, d, bearing)
+        var newhex=google.maps.Polygon.RegularPoly(startpoint, pitch, 6, 0, "#000000", 1, 1, "#00ffff", 0.5);
+        newhex.setMap(map);
+        results.push(newhex);
+      }
+    }
+  }
+
+  lasthex = center;
+  return results;
+}
+
+google.maps.event.addDomListener(window, 'load', initMap);
+
+// Function to download data to a file
+// ref: http://stackoverflow.com/questions/13405129/javascript-create-and-save-file
+function download(data, filename, type) {
+    var a = document.createElement("a"),
+        file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);  
+        }, 0); 
+    }
+}
+
+// EShapes.js
+//
+// Based on an idea, and some lines of code, by "thetoy" 
+//
+//   This Javascript is provided by Mike Williams
+//   Community Church Javascript Team
+//   http://www.bisphamchurch.org.uk/   
+//   http://econym.org.uk/gmap/
+//
+//   This work is licenced under a Creative Commons Licence
+//   http://creativecommons.org/licenses/by/2.0/uk/
+//
+// Version 0.0 04/Apr/2008 Not quite finished yet
+// Version 1.0 10/Apr/2008 Initial release
+// Version 3.0 12/Oct/2011 Ported to v3 by Lawrence Ross
+
+google.maps.Polygon.Shape = function(point, r1, r2, r3, r4, rotation, vertexCount, strokeColour, strokeWeight, Strokepacity, fillColour, fillOpacity, opts, tilt) {
+  var rot = -rotation * Math.PI / 180;
+  var points = [];
+  var latConv = google.maps.geometry.spherical.computeDistanceBetween(point, new google.maps.LatLng(point.lat() + 0.1, point.lng())) * 10;
+  var lngConv = google.maps.geometry.spherical.computeDistanceBetween(point, new google.maps.LatLng(point.lat(), point.lng() + 0.1)) * 10;
+  var step = (360 / vertexCount) || 10;
+
+  var flop = -1;
+  if (tilt) {
+    var I1 = 180 / vertexCount;
+  } else {
+    var I1 = 0;
+  }
+  for (var i = I1; i <= 360.001 + I1; i += step) {
+    var r1a = flop ? r1 : r3;
+    var r2a = flop ? r2 : r4;
+    flop = -1 - flop;
+    var y = r1a * Math.cos(i * Math.PI / 180);
+    var x = r2a * Math.sin(i * Math.PI / 180);
+    var lng = (x * Math.cos(rot) - y * Math.sin(rot)) / lngConv;
+    var lat = (y * Math.cos(rot) + x * Math.sin(rot)) / latConv;
+
+    points.push(new google.maps.LatLng(point.lat() + lat, point.lng() + lng));
+  }
+  return (new google.maps.Polygon({
+    paths: points,
+    strokeColor: strokeColour,
+    strokeWeight: strokeWeight,
+    strokeOpacity: Strokepacity,
+    fillColor: fillColour,
+    fillOpacity: fillOpacity
+  }))
+}
+
+google.maps.Polygon.RegularPoly = function(point, radius, vertexCount, rotation, strokeColour, strokeWeight, Strokepacity, fillColour, fillOpacity, opts) {
+  rotation = rotation || 0;
+  var tilt = !(vertexCount & 1);
+  return google.maps.Polygon.Shape(point, radius, radius, radius, radius, rotation, vertexCount, strokeColour, strokeWeight, Strokepacity, fillColour, fillOpacity, opts, tilt)
+}
+
+function EOffsetBearing(point, dist, bearing) {
+  var latConv = google.maps.geometry.spherical.computeDistanceBetween(point, new google.maps.LatLng(point.lat() + 0.1, point.lng())) * 10;
+  var lngConv = google.maps.geometry.spherical.computeDistanceBetween(point, new google.maps.LatLng(point.lat(), point.lng() + 0.1)) * 10;
+  var lat = dist * Math.cos(bearing * Math.PI / 180) / latConv;
+  var lng = dist * Math.sin(bearing * Math.PI / 180) / lngConv;
+  return new google.maps.LatLng(point.lat() + lat, point.lng() + lng)
+}
+
+function changemode(item) {
+    var sel = document.getElementsByClassName("selected");
+    sel[0].className = "menuitem notselected";
+    
+    var submenus = document.getElementsByClassName("submenu")
+    for (i=0;i<submenus.length;i++){
+        submenus[i].style.visibility = "hidden";
+    }
+    
+    polyline.setMap(null);
+    polyline = newPoly();
+    
+    item.className = "menuitem selected";
+    
+    mode = item.attributes["name"].nodeValue;
+    
+    switch(mode) {
+        case "spiral":
+            nlayers = parseInt(prompt("Number of layers in spiral:", spirallayers));
+            if (!isNaN(nlayers)) spirallayers = nlayers;
+            
+            document.getElementById("hexstep").style.visibility = "visible";
+            break;
+    }
+}
+
+function undoLast() {
+    var lastShape = mapobjects.pop();
+    everything.pop();
+    if (!lastShape) return;
+    if (lastShape.shape) {
+        lastShape.shape.setMap(null);
+    }
+    
+    if (lastShape.lasthex) {
+        lasthex = lastShape.lasthex;
+    }
+    
+    for (i=0;i<lastShape.tiles.length;i++) {
+        lastShape.tiles[i].setMap(null);
+    }
+}
+</script>
+<div id="map"></div>
+<div id="menu" class="notselected">
+<div class="menuitem selected" title="Tile polygon with grid. Click to add new points. Control/meta-click to close region." name="polygon" onclick="changemode(this);">Freeform</div>
+<div class="menuitem notselected" title="A hexagonal grid that is layered around a central point." name="spiral" onclick="changemode(this);">Layered Hex</div>
+<div class="menuitem notselected" title="A hexagonal grid that is tiled to fill a circle. Control/meta-click to complete circle." name="circle" onclick="changemode(this);">Circle</div>
+<div class="menuitem notselected" title="Save results to JSON file." name="save" onclick="download(JSON.stringify(everything, null, ' '),'scanlocations.json','text/json');">Save</div>
+<div class="menuitem notselected" title="Remove last tiled object." name="undo" onclick="undoLast();">Undo</div>
+</div>
+
+<div class="submenu notselected" id="hexstep">
+<div class="menuitem" onclick="gridStep(lasthex,1,spirallayers);">NE</div>
+<div class="menuitem" onclick="gridStep(lasthex,2,spirallayers);">E</div>
+<div class="menuitem" onclick="gridStep(lasthex,3,spirallayers);">SE</div>
+<div class="menuitem" onclick="gridStep(lasthex,4,spirallayers);">SW</div>
+<div class="menuitem" onclick="gridStep(lasthex,5,spirallayers);">W</div>
+<div class="menuitem" onclick="gridStep(lasthex,6,spirallayers);">NW</div>
+</div>
